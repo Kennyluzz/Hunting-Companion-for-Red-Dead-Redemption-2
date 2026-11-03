@@ -1,0 +1,3 @@
+[General]
+; Decimal Windows virtual-key code. 119 = F8.
+MenuKey=119
