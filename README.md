@@ -1,71 +1,93 @@
-# Hunting Companion 1.0.0
+# Hunting Companion 1.10.0
 
-DISCLAIMER: 100% AI-CODED
+A read-only RDR2 Story Mode companion for Pearson, the Trapper, challenges,
+reinforced equipment, garment sets and focused-animal crafting indicators.
 
-**For:** Red Dead Redemption 2 — Story Mode
+## Release highlights
 
-Hunting Companion is a compact in-game menu for crafting information, challenge ranks, reinforced equipment unlocks, and Trapper garment-set progress.
+- **Independent CJK rendering:** Japanese, Korean, Simplified Chinese and
+  Traditional Chinese text can render even when RDR2 is running in another
+  language. Regional Noto Sans CJK subsets and the Latin/Cyrillic fallback font
+  are embedded in the ASI.
+- **One-file installation:** all companion code, localization dictionaries,
+  official item/challenge label tables and font subsets are compiled into
+  `HuntingCompanion.asi`. The mod creates no `commonx` folder, `fontmap.xml`,
+  language directory or external font files.
+- **All 82 challenge objectives localized:** 68 objectives use Rockstar's
+  official locale string hashes; 14 companion-authored composite objectives
+  use exact full-sentence translations in all 12 non-English locales.
+- **Official item/material names:** 290 recipe/material hashes are embedded
+  for all 13 supported locales.
+- **Immediate language switching:** item/material and challenge strings resolve
+  against the newly selected locale on the next draw.
+- **Read-only challenge tracking:** progress is read from the game's challenge
+  system and is never modified.
 
-## Features
+## Supported languages
 
-- **Pearson and Trapper:** browse recipes, required materials, ownership, and relevant donation-storage counts.
-- **Challenges:** read live completed-rank totals for all nine Story Mode challenge categories and see a short description of the next rank's objective.
-- **Reinforced equipment:** check unlock requirements and status for all 36 reinforced bandoliers, gun belts, holsters, and off-hand holsters.
-- **Garment sets:** track crafted-piece totals for all 16 Trapper garment sets and inspect their individual pieces.
-- **Animal indicators:** see when a focused animal can provide a material still needed by an unowned Pearson or Trapper recipe.
+English, French, German, Italian, Spanish (Spain), Portuguese (Brazil), Polish,
+Russian, Korean, Chinese (Traditional), Japanese, Spanish (Mexico), and
+Chinese (Simplified).
 
-Challenge objective descriptions are short reference summaries, not live objective counters. Use the in-game Challenges screen to check partial progress within a rank.
+## Installation
 
-## Platform and requirements
+Copy `HuntingCompanion.asi` into the RDR2 game directory alongside the normal
+ScriptHookRDR2/ASI-loader requirements. No other Hunting Companion files are
+required by end users.
 
-- Red Dead Redemption 2.
-- A compatible installation of ScriptHookRDR2.
-- A compatible ASI loader.
+## Build (Windows x64 / MinGW-w64)
 
-**Story Mode only. Do not use with Red Dead Online.**
+**Always configure a fresh build directory.** Do not reuse a copied
+`build-win64` folder or its CMake/Ninja cache; those files can retain absolute
+paths from another machine and can produce an old binary.
 
-## Install
-
-1. Copy `HuntingCompanion.asi` into the game's main folder, beside `RDR2.exe`.
-2. Make sure ScriptHookRDR2 and your ASI loader are installed and working in the same game environment.
-3. Launch Story Mode and press **F8** to open or close the menu.
-
-The mod creates `HuntingCompanion.ini` beside the ASI on first launch. The default menu key is F8; it can also be changed from the in-game **Settings** page.
-
-## Build from source
-
-The project uses C++17, CMake 3.20+, Ninja, and an x86-64 MinGW-w64 toolchain. On Linux, the included toolchain file cross-compiles the Windows x64 ASI:
-
-```sh
-cmake -S . -B build-win64 -G Ninja \
+```bash
+cmake -S . -B build-release -G Ninja \
   -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-toolchain.cmake \
   -DCMAKE_BUILD_TYPE=Release
-
-cmake --build build-win64 --parallel
+cmake --build build-release --clean-first --verbose
+python tools/verify_release_binary.py build-release/HuntingCompanion.asi
+python tools/package_release.py build-release/HuntingCompanion.asi
 ```
 
-The output is `build-win64/HuntingCompanion.asi`.
+The verifier checks that the compiled x64 ASI actually contains all 68 official
+challenge objective translations in all 13 locales, plus the 14 custom challenge
+translations in every non-English locale. The package script reruns that verifier
+and creates a clean end-user ZIP with the ASI and all required licence notices.
 
-This source archive does not include ScriptHookRDR2, an ASI loader, or a prebuilt ASI binary. Obtain third-party components separately and follow their own licences and installation instructions.
+Development-only generators and source inputs are in `tools/` and `data/`.
+The official game-language ZIP archives are not needed to build or run this
+release: the generated string tables are already included in `src/`.
 
-## Controls
+## Source checks
 
-| Key | Action |
-| --- | --- |
-| F8 | Open / close the menu |
-| Up / Down | Navigate |
-| Enter | Select / open |
-| Backspace / Esc | Go back |
-| Page Up / Page Down | Move faster through long lists |
+```bash
+python tools/embed_languages.py
+python tools/validate_localizations.py
+python tests/test_catalog_contract.py
+python tests/test_overlay_integration.py
+g++ -std=c++17 -Wall -Wextra -Wpedantic -Werror -I src \
+  src/official_strings.cpp tests/test_official_strings.cpp \
+  -o /tmp/test_official_strings
+/tmp/test_official_strings
+g++ -std=c++17 -pthread -I src tests/test_overlay_queue.cpp \
+  -o /tmp/test_overlay_queue
+/tmp/test_overlay_queue
+```
 
-## Read-only behavior
+## Runtime notes
 
-Challenge ranks and game catalog information are read from the running game. Hunting Companion does not advance, complete, reset, or otherwise modify challenge progress. It does not perform purchases or crafting, change inventory, or write to save data.
+- The CJK overlay uses Vulkan. Native Windows DirectX 12 currently falls back
+  to English when the selected companion language requires the overlay.
+- HDR output is not specially handled.
+- Overlay text is composited above the game frame, so it cannot be occluded by
+  later native game UI draws.
+- ScriptHookRDR2 and a compatible ASI loader remain external game-plugin-host
+  requirements; they are not Hunting Companion dependencies.
 
-## Licence and disclaimer
+## Licensing
 
-Hunting Companion's project source and documentation are provided under the **MIT License**. See [LICENSE](LICENSE). You may use, modify, and redistribute the project under that licence; keep the copyright and licence notice with copies or substantial portions of the project.
-
-The licence covers only project material that can be licensed by the project maintainer. It does not grant rights to Red Dead Redemption 2, Rockstar Games, Take-Two Interactive, their trademarks, game assets, ScriptHookRDR2, or other third-party software.
-
-Hunting Companion is an unofficial fan-made modification. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive.
+Hunting Companion's original source code is MIT-licensed. Third-party code and
+fonts retain their own licences; see `THIRD-PARTY-NOTICES.md` and `LICENSES/`.
+Rockstar-authored localization strings are not relicensed by this project MIT
+licence. See the release/legal note in `THIRD-PARTY-NOTICES.md`.

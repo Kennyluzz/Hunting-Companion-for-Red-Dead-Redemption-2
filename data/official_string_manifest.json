@@ -1,0 +1,1834 @@
+{
+  "description": "Exact Rockstar label hashes referenced by Hunting Companion.",
+  "sourceLanguage": "English",
+  "locales": [
+    "en-US",
+    "fr-FR",
+    "de-DE",
+    "it-IT",
+    "es-ES",
+    "pt-BR",
+    "pl-PL",
+    "ru-RU",
+    "ko-KR",
+    "zh-TW",
+    "ja-JP",
+    "es-MX",
+    "zh-CN"
+  ],
+  "uniqueHashes": 358,
+  "entriesPerLocale": 358,
+  "recipeMaterialHashes": 290,
+  "challengeObjectiveHashes": 68,
+  "verifiedAgainstEnglish": 358,
+  "excludedUnlabelledEntries": [],
+  "items": [
+    {
+      "id": "0x036F1224",
+      "kind": "recipe",
+      "english": "Wilderness Vest"
+    },
+    {
+      "id": "0x04AFD7FE",
+      "kind": "recipe",
+      "english": "Beaver Mountain Hat"
+    },
+    {
+      "id": "0x04E8FADB",
+      "kind": "recipe",
+      "english": "Hinterland Vest"
+    },
+    {
+      "id": "0x05FC4F77",
+      "kind": "recipe",
+      "english": "Goat Flop Hat"
+    },
+    {
+      "id": "0x061E2F1D",
+      "kind": "recipe",
+      "english": "Legendary Elk Moccasins"
+    },
+    {
+      "id": "0x06E86861",
+      "kind": "recipe",
+      "english": "Legendary Beaver Flop Hat"
+    },
+    {
+      "id": "0x07215CDA",
+      "kind": "material",
+      "english": "Perfect Skunk Pelt"
+    },
+    {
+      "id": "0x076F5442",
+      "kind": "recipe",
+      "english": "The Death Roll"
+    },
+    {
+      "id": "0x0ABEC24A",
+      "kind": "recipe",
+      "english": "Legendary Ram Hat"
+    },
+    {
+      "id": "0x0D9236AA",
+      "kind": "recipe",
+      "english": "Bandit Bandolier"
+    },
+    {
+      "id": "0x0DAC0E73",
+      "kind": "material",
+      "english": "Legendary Elk Pelt"
+    },
+    {
+      "id": "0x0DE74ADA",
+      "kind": "recipe",
+      "english": "Legendary Cougar Riding Gloves"
+    },
+    {
+      "id": "0x1015ECC5",
+      "kind": "recipe",
+      "english": "The Beast of Prey"
+    },
+    {
+      "id": "0x110241BA",
+      "kind": "recipe",
+      "english": "Legendary Buck & Fox Range Gloves"
+    },
+    {
+      "id": "0x11FF5266",
+      "kind": "recipe",
+      "english": "Winter Cavalry Gloves"
+    },
+    {
+      "id": "0x13A7442E",
+      "kind": "material",
+      "english": "Cardinal Feather"
+    },
+    {
+      "id": "0x13AE3B04",
+      "kind": "recipe",
+      "english": "Sharpshooter Gun Belt"
+    },
+    {
+      "id": "0x147DE3DA",
+      "kind": "recipe",
+      "english": "Master Hunter Holster"
+    },
+    {
+      "id": "0x14ED6C7E",
+      "kind": "recipe",
+      "english": "Gambler Gun Belt"
+    },
+    {
+      "id": "0x1545A376",
+      "kind": "recipe",
+      "english": "Herbalist Bandolier"
+    },
+    {
+      "id": "0x158AFE6E",
+      "kind": "material",
+      "english": "Perfect Armadillo Skin"
+    },
+    {
+      "id": "0x166C9ECC",
+      "kind": "material",
+      "english": "Crow Feather"
+    },
+    {
+      "id": "0x187C9718",
+      "kind": "recipe",
+      "english": "Pronghorn Half Chaps"
+    },
+    {
+      "id": "0x18E48396",
+      "kind": "recipe",
+      "english": "Boar Fringed Shotgun Chaps"
+    },
+    {
+      "id": "0x1A667B0A",
+      "kind": "recipe",
+      "english": "Bull Fowler Boots"
+    },
+    {
+      "id": "0x1AFEA7E3",
+      "kind": "material",
+      "english": "Cedar Waxwing Feather"
+    },
+    {
+      "id": "0x1BA02C14",
+      "kind": "material",
+      "english": "Perfect Gila Monster Skin"
+    },
+    {
+      "id": "0x1C50DE66",
+      "kind": "recipe",
+      "english": "Legendary Cougar & Wolf Vest"
+    },
+    {
+      "id": "0x1C5C7CC2",
+      "kind": "recipe",
+      "english": "Muskrat Half Chaps"
+    },
+    {
+      "id": "0x1CAC7B98",
+      "kind": "recipe",
+      "english": "Legendary Buck Vest"
+    },
+    {
+      "id": "0x1DD86958",
+      "kind": "material",
+      "english": "Perfect Fox Pelt"
+    },
+    {
+      "id": "0x1E55237D",
+      "kind": "recipe",
+      "english": "Legendary Cougar Flop Hat"
+    },
+    {
+      "id": "0x1E8254F3",
+      "kind": "material",
+      "english": "Pigeon Feather"
+    },
+    {
+      "id": "0x1EC3956E",
+      "kind": "recipe",
+      "english": "Horseman Off-Hand Holster"
+    },
+    {
+      "id": "0x1F8C9103",
+      "kind": "material",
+      "english": "Buck Antlers"
+    },
+    {
+      "id": "0x20EA9D25",
+      "kind": "material",
+      "english": "Legendary Wolf Pelt"
+    },
+    {
+      "id": "0x21A51495",
+      "kind": "recipe",
+      "english": "Iguana Range Gloves"
+    },
+    {
+      "id": "0x21D78CD7",
+      "kind": "recipe",
+      "english": "Gila Monster Gambler's Hat"
+    },
+    {
+      "id": "0x24B41AA7",
+      "kind": "recipe",
+      "english": "Sheep Batwing Chaps"
+    },
+    {
+      "id": "0x25357F3B",
+      "kind": "material",
+      "english": "Perfect Snake Skin"
+    },
+    {
+      "id": "0x25376605",
+      "kind": "recipe",
+      "english": "Bandit Holster"
+    },
+    {
+      "id": "0x261C06C9",
+      "kind": "recipe",
+      "english": "The Rattler"
+    },
+    {
+      "id": "0x26911A76",
+      "kind": "recipe",
+      "english": "Javelina Half Chaps"
+    },
+    {
+      "id": "0x26D2671B",
+      "kind": "recipe",
+      "english": "Herbalist Holster"
+    },
+    {
+      "id": "0x26F21B6B",
+      "kind": "material",
+      "english": "Perfect Wolf Pelt"
+    },
+    {
+      "id": "0x2736D9DE",
+      "kind": "material",
+      "english": "Legendary Panther Pelt"
+    },
+    {
+      "id": "0x2750B772",
+      "kind": "material",
+      "english": "Perfect Ox Hide"
+    },
+    {
+      "id": "0x278A515A",
+      "kind": "material",
+      "english": "Perfect Black Bear Pelt"
+    },
+    {
+      "id": "0x279DD42E",
+      "kind": "recipe",
+      "english": "Batwing Chaps"
+    },
+    {
+      "id": "0x28A86103",
+      "kind": "recipe",
+      "english": "Pilgrim Accessory"
+    },
+    {
+      "id": "0x2A348502",
+      "kind": "recipe",
+      "english": "Snake Skin Banjo Head"
+    },
+    {
+      "id": "0x2AA8CB35",
+      "kind": "recipe",
+      "english": "The Ghost Bison"
+    },
+    {
+      "id": "0x2B56DA12",
+      "kind": "recipe",
+      "english": "Cougar Cutaway Coat"
+    },
+    {
+      "id": "0x2BEA8ED4",
+      "kind": "recipe",
+      "english": "Beaver Roping Saddle"
+    },
+    {
+      "id": "0x2DA8186A",
+      "kind": "recipe",
+      "english": "Wolf Skull"
+    },
+    {
+      "id": "0x2F0BB426",
+      "kind": "recipe",
+      "english": "Beaver Hunting Jacket"
+    },
+    {
+      "id": "0x2F1FEB04",
+      "kind": "recipe",
+      "english": "Elk Fringed Shotgun Chaps"
+    },
+    {
+      "id": "0x2F85F580",
+      "kind": "recipe",
+      "english": "Gambler Off-Hand Holster"
+    },
+    {
+      "id": "0x2FBDCD2C",
+      "kind": "material",
+      "english": "Sparrow Feather"
+    },
+    {
+      "id": "0x31A7A75C",
+      "kind": "recipe",
+      "english": "Pursuer Accessory"
+    },
+    {
+      "id": "0x31A8BAA1",
+      "kind": "material",
+      "english": "Duck Feather"
+    },
+    {
+      "id": "0x31AC666D",
+      "kind": "recipe",
+      "english": "The Wrangler"
+    },
+    {
+      "id": "0x32F01C0A",
+      "kind": "material",
+      "english": "Perfect Beaver Pelt"
+    },
+    {
+      "id": "0x3326D4FA",
+      "kind": "recipe",
+      "english": "Campfire Seat Cover"
+    },
+    {
+      "id": "0x353FC03C",
+      "kind": "recipe",
+      "english": "Cougar McClelland Saddle"
+    },
+    {
+      "id": "0x35591FAE",
+      "kind": "material",
+      "english": "Moose Antler"
+    },
+    {
+      "id": "0x35FDBD3A",
+      "kind": "recipe",
+      "english": "Bear Batwing Chaps"
+    },
+    {
+      "id": "0x36B2ED97",
+      "kind": "recipe",
+      "english": "Kit Satchel"
+    },
+    {
+      "id": "0x3716C79E",
+      "kind": "recipe",
+      "english": "The Huntsman"
+    },
+    {
+      "id": "0x385631CB",
+      "kind": "material",
+      "english": "Quail Feather"
+    },
+    {
+      "id": "0x3C9FDAE1",
+      "kind": "material",
+      "english": "Seagull Feather"
+    },
+    {
+      "id": "0x3D631CA8",
+      "kind": "recipe",
+      "english": "Outdoorsmen Vest"
+    },
+    {
+      "id": "0x3F8B767C",
+      "kind": "recipe",
+      "english": "Bandit Off-Hand Holster"
+    },
+    {
+      "id": "0x41C8FF69",
+      "kind": "recipe",
+      "english": "Trapper's Cloak"
+    },
+    {
+      "id": "0x42D097FC",
+      "kind": "recipe",
+      "english": "Legendary Coyote Half Chaps"
+    },
+    {
+      "id": "0x444F45DD",
+      "kind": "recipe",
+      "english": "Legendary Elk Range Gloves"
+    },
+    {
+      "id": "0x4668BD60",
+      "kind": "recipe",
+      "english": "Badger Rifleman Gloves"
+    },
+    {
+      "id": "0x49A985D7",
+      "kind": "recipe",
+      "english": "Tomahawk"
+    },
+    {
+      "id": "0x49AA50A7",
+      "kind": "material",
+      "english": "Chicken Feather"
+    },
+    {
+      "id": "0x4B13E766",
+      "kind": "recipe",
+      "english": "Legendary Bison Batwing Chaps"
+    },
+    {
+      "id": "0x4CCB2BB7",
+      "kind": "recipe",
+      "english": "Boar & Bull Fowler Boots"
+    },
+    {
+      "id": "0x4CDE0BEA",
+      "kind": "recipe",
+      "english": "Explorer Gun Belt"
+    },
+    {
+      "id": "0x4D0CA201",
+      "kind": "material",
+      "english": "Perfect Bear Pelt"
+    },
+    {
+      "id": "0x4D1E264E",
+      "kind": "recipe",
+      "english": "The Marauder"
+    },
+    {
+      "id": "0x4D229596",
+      "kind": "recipe",
+      "english": "No-Man's Vest"
+    },
+    {
+      "id": "0x4E14E705",
+      "kind": "recipe",
+      "english": "Materials Satchel"
+    },
+    {
+      "id": "0x511DE77D",
+      "kind": "material",
+      "english": "Woodpecker Feather"
+    },
+    {
+      "id": "0x51F09978",
+      "kind": "material",
+      "english": "Songbird Feather"
+    },
+    {
+      "id": "0x5358D14A",
+      "kind": "recipe",
+      "english": "Explorer Holster"
+    },
+    {
+      "id": "0x57266169",
+      "kind": "material",
+      "english": "Rooster Feather"
+    },
+    {
+      "id": "0x5763AD17",
+      "kind": "material",
+      "english": "Perfect Sheep Hide"
+    },
+    {
+      "id": "0x5812069D",
+      "kind": "recipe",
+      "english": "Ox Fringed Shotgun Chaps"
+    },
+    {
+      "id": "0x585116FB",
+      "kind": "recipe",
+      "english": "Raccoon Mountain Hat"
+    },
+    {
+      "id": "0x5A0673C0",
+      "kind": "recipe",
+      "english": "Moose Antlers"
+    },
+    {
+      "id": "0x5B21B527",
+      "kind": "material",
+      "english": "Legendary Cougar Pelt"
+    },
+    {
+      "id": "0x5B5541C0",
+      "kind": "recipe",
+      "english": "Survivalist Bandolier"
+    },
+    {
+      "id": "0x5B81CB0F",
+      "kind": "recipe",
+      "english": "Legendary Coyote Mountain Hat"
+    },
+    {
+      "id": "0x5BE33D1D",
+      "kind": "recipe",
+      "english": "Valuables Satchel"
+    },
+    {
+      "id": "0x6032870A",
+      "kind": "recipe",
+      "english": "Two Toned Moccasins"
+    },
+    {
+      "id": "0x6048B751",
+      "kind": "recipe",
+      "english": "Buck Riding Gloves"
+    },
+    {
+      "id": "0x61DC64F7",
+      "kind": "material",
+      "english": "Perfect Wolf Carcass"
+    },
+    {
+      "id": "0x61E654EF",
+      "kind": "material",
+      "english": "Legendary Fox Pelt"
+    },
+    {
+      "id": "0x626B555C",
+      "kind": "recipe",
+      "english": "Bison Gambler's Hat"
+    },
+    {
+      "id": "0x63F90F27",
+      "kind": "material",
+      "english": "Perfect Iguana Skin"
+    },
+    {
+      "id": "0x648DB0C0",
+      "kind": "recipe",
+      "english": "The Trophy Buck"
+    },
+    {
+      "id": "0x64DCF194",
+      "kind": "recipe",
+      "english": "Rustic Vest"
+    },
+    {
+      "id": "0x65842E31",
+      "kind": "recipe",
+      "english": "Moose Range Gloves"
+    },
+    {
+      "id": "0x66DA1DF4",
+      "kind": "recipe",
+      "english": "Native Accessory"
+    },
+    {
+      "id": "0x6890DD33",
+      "kind": "recipe",
+      "english": "The Desperado"
+    },
+    {
+      "id": "0x68B00B9F",
+      "kind": "recipe",
+      "english": "Boar Riding Gloves"
+    },
+    {
+      "id": "0x694A52D4",
+      "kind": "recipe",
+      "english": "Legendary Panther Range Gloves"
+    },
+    {
+      "id": "0x6AF284B7",
+      "kind": "recipe",
+      "english": "Snake Skin Cavalry Gloves"
+    },
+    {
+      "id": "0x6B0C8C15",
+      "kind": "material",
+      "english": "Perfect Ram Hide"
+    },
+    {
+      "id": "0x6C857105",
+      "kind": "recipe",
+      "english": "Ram Sombrero"
+    },
+    {
+      "id": "0x6D597A84",
+      "kind": "recipe",
+      "english": "Grenadier Hat"
+    },
+    {
+      "id": "0x6DEBEC73",
+      "kind": "material",
+      "english": "Goose Feather"
+    },
+    {
+      "id": "0x6E15B1D9",
+      "kind": "material",
+      "english": "Perfect Pronghorn Carcass"
+    },
+    {
+      "id": "0x6F463C85",
+      "kind": "recipe",
+      "english": "Elk Riding Gloves"
+    },
+    {
+      "id": "0x6FE8F76B",
+      "kind": "recipe",
+      "english": "Explorer Bandolier"
+    },
+    {
+      "id": "0x70F4720A",
+      "kind": "recipe",
+      "english": "Cover Scent Lotion"
+    },
+    {
+      "id": "0x710B8C63",
+      "kind": "recipe",
+      "english": "Legendary Ram Batwing Chaps"
+    },
+    {
+      "id": "0x727D970B",
+      "kind": "recipe",
+      "english": "Legendary Alligator Gambler's Hat"
+    },
+    {
+      "id": "0x73000D4B",
+      "kind": "recipe",
+      "english": "Herbivore Bait"
+    },
+    {
+      "id": "0x739D76A1",
+      "kind": "recipe",
+      "english": "Ram Shotgun Coat"
+    },
+    {
+      "id": "0x73ADFC62",
+      "kind": "recipe",
+      "english": "Skunk Mountain Hat"
+    },
+    {
+      "id": "0x741C2CF4",
+      "kind": "recipe",
+      "english": "Javelina Moccasins"
+    },
+    {
+      "id": "0x7508CA92",
+      "kind": "material",
+      "english": "Perfect Collared Peccary Pig Pelt"
+    },
+    {
+      "id": "0x755F3AFE",
+      "kind": "material",
+      "english": "Perfect Panther Pelt"
+    },
+    {
+      "id": "0x78935679",
+      "kind": "material",
+      "english": "Perfect Muskrat Pelt"
+    },
+    {
+      "id": "0x78945008",
+      "kind": "material",
+      "english": "Legendary White Bison Pelt"
+    },
+    {
+      "id": "0x79069109",
+      "kind": "recipe",
+      "english": "Survivalist Off-Hand Holster"
+    },
+    {
+      "id": "0x795E4034",
+      "kind": "recipe",
+      "english": "Huntsman Accessory"
+    },
+    {
+      "id": "0x7B3487C0",
+      "kind": "recipe",
+      "english": "Pioneer Accessory"
+    },
+    {
+      "id": "0x7B8DA3D9",
+      "kind": "recipe",
+      "english": "Horseman Holster"
+    },
+    {
+      "id": "0x7C3D43CA",
+      "kind": "recipe",
+      "english": "Weapons Expert Off-Hand Holster"
+    },
+    {
+      "id": "0x7C407083",
+      "kind": "material",
+      "english": "Money"
+    },
+    {
+      "id": "0x7CDFD715",
+      "kind": "recipe",
+      "english": "Pigskin Rifleman Gloves"
+    },
+    {
+      "id": "0x7D795D72",
+      "kind": "recipe",
+      "english": "Rattlesnake Vaquero Saddle"
+    },
+    {
+      "id": "0x7DB8E633",
+      "kind": "material",
+      "english": "Legendary Boar Pelt"
+    },
+    {
+      "id": "0x7DBBF737",
+      "kind": "recipe",
+      "english": "Rat Flat Cap"
+    },
+    {
+      "id": "0x7F624F7D",
+      "kind": "recipe",
+      "english": "Lean-to Cow Hide Ground Cover"
+    },
+    {
+      "id": "0x7FEA9DBA",
+      "kind": "recipe",
+      "english": "Horseman Gun Belt"
+    },
+    {
+      "id": "0x80770CFF",
+      "kind": "recipe",
+      "english": "The Mountain Man"
+    },
+    {
+      "id": "0x8197ED62",
+      "kind": "recipe",
+      "english": "Sharpshooter Holster"
+    },
+    {
+      "id": "0x81A90B40",
+      "kind": "recipe",
+      "english": "Boar Skin Table Cover"
+    },
+    {
+      "id": "0x82835B7F",
+      "kind": "recipe",
+      "english": "Bull Fringed Shotgun Chaps"
+    },
+    {
+      "id": "0x83786739",
+      "kind": "recipe",
+      "english": "Alligator Skull"
+    },
+    {
+      "id": "0x85E47B6C",
+      "kind": "material",
+      "english": "Eagle Feather"
+    },
+    {
+      "id": "0x86F2C5DE",
+      "kind": "recipe",
+      "english": "Muskrat Cavalry Hat"
+    },
+    {
+      "id": "0x883181CA",
+      "kind": "recipe",
+      "english": "Horseman Bandolier"
+    },
+    {
+      "id": "0x89137A7E",
+      "kind": "recipe",
+      "english": "Legendary White Bison Hat"
+    },
+    {
+      "id": "0x8AF24615",
+      "kind": "recipe",
+      "english": "Skunk Trapper Boots"
+    },
+    {
+      "id": "0x8B0CD608",
+      "kind": "recipe",
+      "english": "Legendary White Bison Coat"
+    },
+    {
+      "id": "0x8BE9DC6F",
+      "kind": "recipe",
+      "english": "Legendary Pronghorn Range Gloves"
+    },
+    {
+      "id": "0x8BEB5141",
+      "kind": "material",
+      "english": "Blue Jay Feather"
+    },
+    {
+      "id": "0x9055FBEC",
+      "kind": "recipe",
+      "english": "Principal Vest"
+    },
+    {
+      "id": "0x91395440",
+      "kind": "material",
+      "english": "Perfect Boar Pelt"
+    },
+    {
+      "id": "0x9200EEFA",
+      "kind": "recipe",
+      "english": "Coyote Scout Jacket"
+    },
+    {
+      "id": "0x923775A8",
+      "kind": "recipe",
+      "english": "Legendary Wolf Batwing Chaps"
+    },
+    {
+      "id": "0x92B3B4BC",
+      "kind": "recipe",
+      "english": "Legendary Fox Moccasins"
+    },
+    {
+      "id": "0x95389BDE",
+      "kind": "material",
+      "english": "Perfect Cougar Pelt"
+    },
+    {
+      "id": "0x96C9B9A4",
+      "kind": "recipe",
+      "english": "The Bounty Hunter"
+    },
+    {
+      "id": "0x971306DE",
+      "kind": "recipe",
+      "english": "Scavenger Accessory"
+    },
+    {
+      "id": "0x97BF4614",
+      "kind": "recipe",
+      "english": "Survivalist Holster"
+    },
+    {
+      "id": "0x986E0F1B",
+      "kind": "recipe",
+      "english": "Judicious Accessory"
+    },
+    {
+      "id": "0x9C588EEB",
+      "kind": "recipe",
+      "english": "Legendary Bear Head Hat"
+    },
+    {
+      "id": "0x9C77E68D",
+      "kind": "recipe",
+      "english": "Majestic Accessory"
+    },
+    {
+      "id": "0x9C7D5A0F",
+      "kind": "recipe",
+      "english": "Herbalist Off-Hand Holster"
+    },
+    {
+      "id": "0x9DBFA8AC",
+      "kind": "material",
+      "english": "Perfect Goat Hide"
+    },
+    {
+      "id": "0x9E4AD291",
+      "kind": "recipe",
+      "english": "Throwing Knife"
+    },
+    {
+      "id": "0x9E8501E3",
+      "kind": "recipe",
+      "english": "Predator Bait"
+    },
+    {
+      "id": "0x9F2344FD",
+      "kind": "material",
+      "english": "Perfect Alligator Skin"
+    },
+    {
+      "id": "0xA008F495",
+      "kind": "material",
+      "english": "Perfect Squirrel Pelt"
+    },
+    {
+      "id": "0xA020FAE6",
+      "kind": "recipe",
+      "english": "Boar Skin Rug"
+    },
+    {
+      "id": "0xA1CA0708",
+      "kind": "recipe",
+      "english": "Provisions Satchel"
+    },
+    {
+      "id": "0xA267420C",
+      "kind": "recipe",
+      "english": "Legendary Boar & Bison Fowlers"
+    },
+    {
+      "id": "0xA2D5BB36",
+      "kind": "recipe",
+      "english": "Sharpshooter Bandolier"
+    },
+    {
+      "id": "0xA3F67E93",
+      "kind": "material",
+      "english": "Perfect Pronghorn Hide"
+    },
+    {
+      "id": "0xA5869EBC",
+      "kind": "material",
+      "english": "Legendary Coyote Pelt"
+    },
+    {
+      "id": "0xA5E972D7",
+      "kind": "recipe",
+      "english": "Tomahawk"
+    },
+    {
+      "id": "0xA7E79553",
+      "kind": "recipe",
+      "english": "Stalker Accessory"
+    },
+    {
+      "id": "0xAA95CF24",
+      "kind": "recipe",
+      "english": "Country Vest"
+    },
+    {
+      "id": "0xAB430AE8",
+      "kind": "recipe",
+      "english": "Tonics Satchel"
+    },
+    {
+      "id": "0xAB941800",
+      "kind": "recipe",
+      "english": "The Stalker"
+    },
+    {
+      "id": "0xAB9C65F4",
+      "kind": "recipe",
+      "english": "Sheepskin Vest"
+    },
+    {
+      "id": "0xACB037A3",
+      "kind": "material",
+      "english": "Vulture Feather"
+    },
+    {
+      "id": "0xAD678539",
+      "kind": "recipe",
+      "english": "Beaver Drifter Hat"
+    },
+    {
+      "id": "0xADCE8C80",
+      "kind": "recipe",
+      "english": "Weapons Expert Bandolier"
+    },
+    {
+      "id": "0xAED5E9BC",
+      "kind": "recipe",
+      "english": "The Night Wrangler"
+    },
+    {
+      "id": "0xB098CDF9",
+      "kind": "material",
+      "english": "Perfect Elk Pelt"
+    },
+    {
+      "id": "0xB0C4AD75",
+      "kind": "recipe",
+      "english": "Pronghorn Skull"
+    },
+    {
+      "id": "0xB39B919E",
+      "kind": "recipe",
+      "english": "Snake Bulldogger Hat"
+    },
+    {
+      "id": "0xB4B8749B",
+      "kind": "recipe",
+      "english": "Ox Hide Rug"
+    },
+    {
+      "id": "0xB5802A5F",
+      "kind": "recipe",
+      "english": "Alligator Ranch Cutter Saddle"
+    },
+    {
+      "id": "0xB60B6DD8",
+      "kind": "material",
+      "english": "Loon Feather"
+    },
+    {
+      "id": "0xB7F16340",
+      "kind": "recipe",
+      "english": "Survivalist Gun Belt"
+    },
+    {
+      "id": "0xB92EB910",
+      "kind": "material",
+      "english": "Perfect Ram Carcass"
+    },
+    {
+      "id": "0xB993216D",
+      "kind": "material",
+      "english": "Raven Feather"
+    },
+    {
+      "id": "0xBA0D6076",
+      "kind": "recipe",
+      "english": "Billy Vest"
+    },
+    {
+      "id": "0xBA4EF0B9",
+      "kind": "recipe",
+      "english": "Legendary Elk Half Chaps"
+    },
+    {
+      "id": "0xBBA13AFC",
+      "kind": "recipe",
+      "english": "Bear Fringed Shotgun Chaps"
+    },
+    {
+      "id": "0xBBBB14C1",
+      "kind": "recipe",
+      "english": "Pronghorn Leather Table Tops"
+    },
+    {
+      "id": "0xBBF0D5E8",
+      "kind": "recipe",
+      "english": "Legendary Bear Coat"
+    },
+    {
+      "id": "0xBDCFAF4F",
+      "kind": "recipe",
+      "english": "Deer Pelt Half Chaps"
+    },
+    {
+      "id": "0xBDD4D09D",
+      "kind": "recipe",
+      "english": "Glorious Accessory"
+    },
+    {
+      "id": "0xBE4CA786",
+      "kind": "material",
+      "english": "Perfect Pig Hide"
+    },
+    {
+      "id": "0xC014C1C2",
+      "kind": "recipe",
+      "english": "Legendary Bison Vest"
+    },
+    {
+      "id": "0xC05F8E61",
+      "kind": "material",
+      "english": "Owl Feather"
+    },
+    {
+      "id": "0xC24749A2",
+      "kind": "material",
+      "english": "Perfect Deer Pelt"
+    },
+    {
+      "id": "0xC3A3D2B5",
+      "kind": "recipe",
+      "english": "Homestead Accessory"
+    },
+    {
+      "id": "0xC3B3D66B",
+      "kind": "recipe",
+      "english": "Master Hunter Off-Hand Holster"
+    },
+    {
+      "id": "0xC473970E",
+      "kind": "recipe",
+      "english": "Rugged Wrangler Vest"
+    },
+    {
+      "id": "0xC4EA99AA",
+      "kind": "recipe",
+      "english": "Herbalist Gun Belt"
+    },
+    {
+      "id": "0xC5206B67",
+      "kind": "material",
+      "english": "Legendary Tatanka Bison Pelt"
+    },
+    {
+      "id": "0xC5459A31",
+      "kind": "recipe",
+      "english": "Legendary Beaver Cavalry Gloves"
+    },
+    {
+      "id": "0xC5E2D11E",
+      "kind": "recipe",
+      "english": "Legendary Bear Roper"
+    },
+    {
+      "id": "0xC66C79E1",
+      "kind": "recipe",
+      "english": "Squirrel Flat Cap"
+    },
+    {
+      "id": "0xC76C46D9",
+      "kind": "recipe",
+      "english": "Panther Trail Saddle"
+    },
+    {
+      "id": "0xC7A9A76F",
+      "kind": "recipe",
+      "english": "Legendary Ram Rifleman Gloves"
+    },
+    {
+      "id": "0xC7E0B325",
+      "kind": "recipe",
+      "english": "Fox Mountain Hat"
+    },
+    {
+      "id": "0xC7EFA080",
+      "kind": "material",
+      "english": "Condor Feather"
+    },
+    {
+      "id": "0xC7F0E174",
+      "kind": "recipe",
+      "english": "Sharpshooter Off-Hand Holster"
+    },
+    {
+      "id": "0xC8F3B672",
+      "kind": "material",
+      "english": "Perfect Rabbit Pelt"
+    },
+    {
+      "id": "0xC9887117",
+      "kind": "recipe",
+      "english": "Wolf Coat"
+    },
+    {
+      "id": "0xC9B12985",
+      "kind": "recipe",
+      "english": "Deer Cavalry Hat"
+    },
+    {
+      "id": "0xCA338DCE",
+      "kind": "material",
+      "english": "Robin Feather"
+    },
+    {
+      "id": "0xCA4316DD",
+      "kind": "recipe",
+      "english": "Moose Batwing Chaps"
+    },
+    {
+      "id": "0xCA73B790",
+      "kind": "recipe",
+      "english": "Gun Oil"
+    },
+    {
+      "id": "0xCB06E38D",
+      "kind": "material",
+      "english": "Legendary Buck Pelt"
+    },
+    {
+      "id": "0xCBE5DE6F",
+      "kind": "recipe",
+      "english": "Legendary Moose Moccasins"
+    },
+    {
+      "id": "0xCC03C967",
+      "kind": "recipe",
+      "english": "Legendary Moose Hunting Jacket"
+    },
+    {
+      "id": "0xCD70FF85",
+      "kind": "recipe",
+      "english": "Elk Antlers"
+    },
+    {
+      "id": "0xCDA1C15A",
+      "kind": "material",
+      "english": "Perfect Cow Hide"
+    },
+    {
+      "id": "0xCE127491",
+      "kind": "recipe",
+      "english": "Big Horn Ram Skull"
+    },
+    {
+      "id": "0xCE847162",
+      "kind": "recipe",
+      "english": "Ingredients Satchel"
+    },
+    {
+      "id": "0xD006CD59",
+      "kind": "recipe",
+      "english": "Scout Fire Ground Cover"
+    },
+    {
+      "id": "0xD0A84ABB",
+      "kind": "material",
+      "english": "Perfect Coyote Pelt"
+    },
+    {
+      "id": "0xD225CCA0",
+      "kind": "recipe",
+      "english": "Boar Mother Hubbard Saddle"
+    },
+    {
+      "id": "0xD377E160",
+      "kind": "recipe",
+      "english": "Gambler Bandolier"
+    },
+    {
+      "id": "0xD4319786",
+      "kind": "material",
+      "english": "Legendary Ram Hide"
+    },
+    {
+      "id": "0xD443568D",
+      "kind": "recipe",
+      "english": "Master Hunter Bandolier"
+    },
+    {
+      "id": "0xD44722FD",
+      "kind": "recipe",
+      "english": "Plantation Slouch Hat"
+    },
+    {
+      "id": "0xD5905CEE",
+      "kind": "recipe",
+      "english": "Pronghorn Flop Hat"
+    },
+    {
+      "id": "0xD61C45AE",
+      "kind": "material",
+      "english": "Perfect Buck Pelt"
+    },
+    {
+      "id": "0xD6CF1472",
+      "kind": "material",
+      "english": "Pheasant Feather"
+    },
+    {
+      "id": "0xD705C729",
+      "kind": "material",
+      "english": "Legendary Moose Pelt"
+    },
+    {
+      "id": "0xD8950135",
+      "kind": "material",
+      "english": "Turkey Feather"
+    },
+    {
+      "id": "0xDA1C7ADC",
+      "kind": "recipe",
+      "english": "Moccasins"
+    },
+    {
+      "id": "0xDC99106D",
+      "kind": "recipe",
+      "english": "Legend of the East Satchel"
+    },
+    {
+      "id": "0xDD3438B1",
+      "kind": "recipe",
+      "english": "Weapons Expert Holster"
+    },
+    {
+      "id": "0xDD60D28F",
+      "kind": "recipe",
+      "english": "Moose Half Chaps"
+    },
+    {
+      "id": "0xDE333016",
+      "kind": "recipe",
+      "english": "Explorer Off-Hand Holster"
+    },
+    {
+      "id": "0xDE5A2905",
+      "kind": "recipe",
+      "english": "Bear Dakota Saddle"
+    },
+    {
+      "id": "0xDEE7942F",
+      "kind": "recipe",
+      "english": "Iguana Big Valley Hat"
+    },
+    {
+      "id": "0xDFA86A70",
+      "kind": "recipe",
+      "english": "Legendary Pronghorn Coat"
+    },
+    {
+      "id": "0xE15570B1",
+      "kind": "material",
+      "english": "Legendary Bear Pelt"
+    },
+    {
+      "id": "0xE3A38EF1",
+      "kind": "material",
+      "english": "Perfect Opossum Pelt"
+    },
+    {
+      "id": "0xE4636436",
+      "kind": "material",
+      "english": "Perfect Badger Pelt"
+    },
+    {
+      "id": "0xE46B39ED",
+      "kind": "recipe",
+      "english": "Huntsman Vest"
+    },
+    {
+      "id": "0xE4CA44D0",
+      "kind": "recipe",
+      "english": "Coyote Gambler's Hat"
+    },
+    {
+      "id": "0xE56257BC",
+      "kind": "recipe",
+      "english": "Master Hunter Gun Belt"
+    },
+    {
+      "id": "0xE57B776F",
+      "kind": "material",
+      "english": "Legendary Alligator Skin"
+    },
+    {
+      "id": "0xE7B39B3D",
+      "kind": "material",
+      "english": "Elk Antler"
+    },
+    {
+      "id": "0xEB4AEB74",
+      "kind": "recipe",
+      "english": "Legendary Alligator Fowlers"
+    },
+    {
+      "id": "0xECC59D6D",
+      "kind": "recipe",
+      "english": "The Bear Hunter"
+    },
+    {
+      "id": "0xED0395BE",
+      "kind": "recipe",
+      "english": "Rococo Accessory"
+    },
+    {
+      "id": "0xEDC3437D",
+      "kind": "material",
+      "english": "Perfect Raccoon Pelt"
+    },
+    {
+      "id": "0xEFEB63AC",
+      "kind": "material",
+      "english": "Perfect Rat Pelt"
+    },
+    {
+      "id": "0xF1C1EBD2",
+      "kind": "recipe",
+      "english": "Bear Grenadier Hat"
+    },
+    {
+      "id": "0xF1D41DEC",
+      "kind": "material",
+      "english": "Perfect Bison Pelt"
+    },
+    {
+      "id": "0xF2992228",
+      "kind": "recipe",
+      "english": "Campfire Log Seat Cover"
+    },
+    {
+      "id": "0xF305AD79",
+      "kind": "material",
+      "english": "Perfect Moose Pelt"
+    },
+    {
+      "id": "0xF4F2C17D",
+      "kind": "recipe",
+      "english": "Elk Flop Hat"
+    },
+    {
+      "id": "0xF5861CC8",
+      "kind": "recipe",
+      "english": "Rat Infantry Hardee Hat"
+    },
+    {
+      "id": "0xF5A60D53",
+      "kind": "recipe",
+      "english": "Legendary Alligator Vest"
+    },
+    {
+      "id": "0xF6FFA49F",
+      "kind": "recipe",
+      "english": "The Dreamcatcher"
+    },
+    {
+      "id": "0xF70C1DE0",
+      "kind": "material",
+      "english": "Legendary Beaver Pelt"
+    },
+    {
+      "id": "0xF72FB942",
+      "kind": "recipe",
+      "english": "Cougar Pelt Covered Chest"
+    },
+    {
+      "id": "0xF805D3D9",
+      "kind": "recipe",
+      "english": "Badger Mountain Hat"
+    },
+    {
+      "id": "0xF9DB919D",
+      "kind": "material",
+      "english": "Legendary Pronghorn Hide"
+    },
+    {
+      "id": "0xFB5FF58F",
+      "kind": "recipe",
+      "english": "Bandit Gun Belt"
+    },
+    {
+      "id": "0xFBB3435E",
+      "kind": "recipe",
+      "english": "Legendary Panther Cloak"
+    },
+    {
+      "id": "0xFCD328D3",
+      "kind": "material",
+      "english": "Perfect Bull Hide"
+    },
+    {
+      "id": "0xFDDEB0C0",
+      "kind": "recipe",
+      "english": "Gambler Holster"
+    },
+    {
+      "id": "0xFE17FB41",
+      "kind": "material",
+      "english": "Hawk Feather"
+    },
+    {
+      "id": "0xFE2DFD30",
+      "kind": "recipe",
+      "english": "Workman's Pride Boots"
+    },
+    {
+      "id": "0xFF3B18DD",
+      "kind": "recipe",
+      "english": "Weapons Expert Gun Belt"
+    },
+    {
+      "id": "0xFF88D22A",
+      "kind": "recipe",
+      "english": "Hanging Bones"
+    },
+    {
+      "id": "0xFFB98288",
+      "kind": "recipe",
+      "english": "The Bronco Buster"
+    },
+    {
+      "id": "0xFFE50F1F",
+      "kind": "material",
+      "english": "Oriole Feather"
+    }
+  ],
+  "challengeObjectives": [
+    {
+      "id": "0x000DC536",
+      "objective": "Hold up 5 townsfolk.",
+      "officialEnglishLabel": "Hold up 5 townsfolk"
+    },
+    {
+      "id": "0x030A5C63",
+      "objective": "Win 3 games of Five Finger Fillet.",
+      "officialEnglishLabel": "Win 3 games of Five Finger Fillet"
+    },
+    {
+      "id": "0x05788B42",
+      "objective": "Pick 15 different herb species.",
+      "officialEnglishLabel": "Pick 15 different species of herb"
+    },
+    {
+      "id": "0x078F17C0",
+      "objective": "Kill 4 enemies at once with a single stick of dynamite.",
+      "officialEnglishLabel": "Kill 4 enemies at the same time with a single stick of dynamite"
+    },
+    {
+      "id": "0x095248E3",
+      "objective": "Rob the cash registers in 4 shops in one day.",
+      "officialEnglishLabel": "Rob the cash register in any 4 shops in one day"
+    },
+    {
+      "id": "0x12F89A73",
+      "objective": "Catch 3 small fish without using a fishing rod.",
+      "officialEnglishLabel": "Catch 3 small fish without using a Fishing Rod"
+    },
+    {
+      "id": "0x13412498",
+      "objective": "Win 5 hands of Poker.",
+      "officialEnglishLabel": "Win 5 hands of Poker"
+    },
+    {
+      "id": "0x14B13101",
+      "objective": "Shoot 3 people's hats off in one Dead Eye use.",
+      "officialEnglishLabel": "Shoot 3 people's hats off with the same Dead Eye"
+    },
+    {
+      "id": "0x186CBA37",
+      "objective": "Kill 3 enemies in 10 seconds using only throwing knives.",
+      "officialEnglishLabel": "Kill 3 enemies in 10 seconds using only throwing knives"
+    },
+    {
+      "id": "0x191684F3",
+      "objective": "Use bait to lure and kill one herbivore and one predator.",
+      "officialEnglishLabel": "Use bait to lure and kill a predator and herbivore consecutively"
+    },
+    {
+      "id": "0x2C766017",
+      "objective": "Kill a grizzly without taking damage, using only throwing knives.",
+      "officialEnglishLabel": "Kill a Grizzly Bear without taking damage, using only throwing knives"
+    },
+    {
+      "id": "0x2CEDCE42",
+      "objective": "Kill 3 flying birds.",
+      "officialEnglishLabel": "Kill 3 flying birds"
+    },
+    {
+      "id": "0x2FC752B6",
+      "objective": "Kill 5 rabbits from horseback.",
+      "officialEnglishLabel": "Kill 5 Rabbits from horseback"
+    },
+    {
+      "id": "0x34F59E1C",
+      "objective": "Catch a fish weighing at least 19 pounds.",
+      "officialEnglishLabel": "Catch a fish that weighs at least 19 lbs."
+    },
+    {
+      "id": "0x42E5FD7F",
+      "objective": "Rob 5 trains without dying or being caught.",
+      "officialEnglishLabel": "Complete 5 train robberies without dying or being caught"
+    },
+    {
+      "id": "0x44742542",
+      "objective": "Craft dynamite, fire, improved, poison and small-game arrows.",
+      "officialEnglishLabel": "Craft a Dynamite, Fire, Improved, Poison, and Small Game Arrow"
+    },
+    {
+      "id": "0x44B07848",
+      "objective": "Craft and use 5 Special Miracle Tonics.",
+      "officialEnglishLabel": "Craft and use 5 Special Miracle Tonics"
+    },
+    {
+      "id": "0x4C02C4DC",
+      "objective": "Steal 7 wagons and sell them to the Emerald Ranch Fence.",
+      "officialEnglishLabel": "Steal 7 wagons and sell them to the Fence at Emerald Ranch"
+    },
+    {
+      "id": "0x4CE03295",
+      "objective": "Kill 3 flying birds with 3 consecutive long-scoped rifle shots.",
+      "officialEnglishLabel": "Kill 3 flying birds with 3 consecutive long scoped rifle shots"
+    },
+    {
+      "id": "0x4EA1E738",
+      "objective": "Pick 6 Yarrow.",
+      "officialEnglishLabel": "Pick 6 Yarrow"
+    },
+    {
+      "id": "0x525A284D",
+      "objective": "Use Oleander Sage to craft 6 poison weapons.",
+      "officialEnglishLabel": "Use Oleander to craft 6 poison weapons"
+    },
+    {
+      "id": "0x558A50DE",
+      "objective": "Find a treasure map.",
+      "officialEnglishLabel": "Find a treasure map"
+    },
+    {
+      "id": "0x5639238B",
+      "objective": "Kill 3 enemies with a knife.",
+      "officialEnglishLabel": "Kill 3 enemies with a knife"
+    },
+    {
+      "id": "0x59EBC852",
+      "objective": "Pick 5 mushrooms and feed them to your horse.",
+      "officialEnglishLabel": "Pick 5 mushrooms and feed them to your horse"
+    },
+    {
+      "id": "0x5D5848EF",
+      "objective": "Get 7 headshots in a row.",
+      "officialEnglishLabel": "Get 7 headshots in a row"
+    },
+    {
+      "id": "0x60222477",
+      "objective": "Kill an opossum while it is playing possum.",
+      "officialEnglishLabel": "Kill an Opossum playing possum"
+    },
+    {
+      "id": "0x614C7540",
+      "objective": "Find and kill the legendary panther Giaguaro.",
+      "officialEnglishLabel": "Find and kill the Legendary Panther 'Giaguaro'"
+    },
+    {
+      "id": "0x647C4895",
+      "objective": "Kill 9 predators from horseback.",
+      "officialEnglishLabel": "Kill 9 predators from horseback"
+    },
+    {
+      "id": "0x67E6AFC9",
+      "objective": "Hogtie someone and leave them on railroad tracks 3 times.",
+      "officialEnglishLabel": "Hogtie someone and leave them on the railroad 3 times"
+    },
+    {
+      "id": "0x69C28668",
+      "objective": "Craft 7 items using Sage.",
+      "officialEnglishLabel": "Craft 7 items using Sage as an ingredient"
+    },
+    {
+      "id": "0x6BC67993",
+      "objective": "Win 3 Dominoes rounds without drawing, against 2 or fewer opponents.",
+      "officialEnglishLabel": "Win 3 rounds of Dominoes without drawing any tiles against 2 or fewer opponents"
+    },
+    {
+      "id": "0x6C5F1ACD",
+      "objective": "Find a treasure.",
+      "officialEnglishLabel": "Find a treasure"
+    },
+    {
+      "id": "0x6E6B1F49",
+      "objective": "Kill 7 enemies from horseback without dismounting.",
+      "officialEnglishLabel": "Kill 7 enemies from horseback without dismounting"
+    },
+    {
+      "id": "0x71066145",
+      "objective": "Kill 6 animals without switching or reloading your weapon.",
+      "officialEnglishLabel": "Kill 6 animals without switching or reloading your weapon"
+    },
+    {
+      "id": "0x7C90C23F",
+      "objective": "Kill 9 unaware enemies from behind using a bow.",
+      "officialEnglishLabel": "Kill 9 unaware enemies from behind, using the Bow"
+    },
+    {
+      "id": "0x7DB0C0AC",
+      "objective": "Jump over 3 obstacles within 15 seconds.",
+      "officialEnglishLabel": "Jump over 3 obstacles in 15 seconds"
+    },
+    {
+      "id": "0x8037BA67",
+      "objective": "Ride from Valentine to Rhodes in under 5 minutes.",
+      "officialEnglishLabel": "Ride from Valentine to Rhodes in less than five minutes"
+    },
+    {
+      "id": "0x8A551157",
+      "objective": "Ride Van Horn to Blackwater in under 17 minutes without touching water.",
+      "officialEnglishLabel": "Ride from Van Horn to Blackwater in under 17 minutes without touching any water"
+    },
+    {
+      "id": "0x8F3F2BFC",
+      "objective": "Kill 5 cougars with your bow, then skin them.",
+      "officialEnglishLabel": "Kill 5 Cougars with your Bow, then skin them"
+    },
+    {
+      "id": "0x9051D976",
+      "objective": "Skin 3 black bears or grizzlies.",
+      "officialEnglishLabel": "Skin 3 Black or Grizzly Bears"
+    },
+    {
+      "id": "0x93BE048C",
+      "objective": "Build a $250 bounty in one state.",
+      "officialEnglishLabel": "Amass $250 bounty in one state"
+    },
+    {
+      "id": "0xA4C378F7",
+      "objective": "Kill 10 enemies with a shotgun using crafted ammunition.",
+      "officialEnglishLabel": "Kill 10 enemies with a shotgun using crafted ammo"
+    },
+    {
+      "id": "0xA6D73E56",
+      "objective": "Craft 9 items using Indian Tobacco.",
+      "officialEnglishLabel": "Craft 9 items using Indian Tobacco as an ingredient"
+    },
+    {
+      "id": "0xAAA8ECD4",
+      "objective": "Collect 3 perfect rabbit pelts.",
+      "officialEnglishLabel": "Collect 3 perfect quality Rabbit pelts"
+    },
+    {
+      "id": "0xAB913FC9",
+      "objective": "Donate 5 animals to camp or the Trapper.",
+      "officialEnglishLabel": "Hand 5 animals into Camp or Trapper"
+    },
+    {
+      "id": "0xADA0C1DA",
+      "objective": "Rob $50 in cash and valuables from townsfolk and travellers.",
+      "officialEnglishLabel": "Rob $50 worth of cash and valuables from townsfolk and travelers"
+    },
+    {
+      "id": "0xB0410780",
+      "objective": "Win 3 hands of Poker in a row.",
+      "officialEnglishLabel": "Win 3 hands of Poker in a row"
+    },
+    {
+      "id": "0xB154F2FD",
+      "objective": "Ride Strawberry to Saint Denis in under 9 minutes without touching water.",
+      "officialEnglishLabel": "Ride from Strawberry to Saint Denis in under 9 minutes without touching any water"
+    },
+    {
+      "id": "0xB61448D2",
+      "objective": "Kill an enemy from 80 feet away with a tomahawk.",
+      "officialEnglishLabel": "Kill an enemy at least 80 feet away with a thrown tomahawk"
+    },
+    {
+      "id": "0xBA40BCB0",
+      "objective": "Win 3 games of Dominoes in a row.",
+      "officialEnglishLabel": "Win 3 games of Dominoes in a row"
+    },
+    {
+      "id": "0xC1EF2289",
+      "objective": "Catch 3 Bluegill.",
+      "officialEnglishLabel": "Catch 3 Bluegill fish"
+    },
+    {
+      "id": "0xC52C7140",
+      "objective": "Disarm 3 enemies without reloading or switching weapons.",
+      "officialEnglishLabel": "Disarm 3 enemies without reloading or switching your weapon"
+    },
+    {
+      "id": "0xCF98C439",
+      "objective": "Call an animal and get a clean kill 5 times.",
+      "officialEnglishLabel": "Call an animal and get a clean kill 5 times"
+    },
+    {
+      "id": "0xD010951F",
+      "objective": "Steal 5 horses and sell them at the Clemens Cove Horse Fence.",
+      "officialEnglishLabel": "Steal 5 horses and sell them to the Horse Fence at Clemens Cove"
+    },
+    {
+      "id": "0xD7278EDC",
+      "objective": "Track 10 animal species with your binoculars.",
+      "officialEnglishLabel": "Track 10 different animal species using your Binoculars"
+    },
+    {
+      "id": "0xD7F57301",
+      "objective": "Trample 5 animals while on horseback.",
+      "officialEnglishLabel": "Trample 5 animals while on horseback"
+    },
+    {
+      "id": "0xDF97FEEB",
+      "objective": "Rob 2 coaches or return 2 stolen coaches to a Fence.",
+      "officialEnglishLabel": "Rob any 2 coaches or return any 2 stolen coaches to the fence"
+    },
+    {
+      "id": "0xE2F9785F",
+      "objective": "Craft a homing and improved tomahawk, volatile dynamite and volatile fire bottle.",
+      "officialEnglishLabel": "Craft a Homing Tomahawk, Improved Tomahawk, Volatile Dynamite, and Volatile Fire Bottle"
+    },
+    {
+      "id": "0xE3A98C4B",
+      "objective": "Kill 5 animals with a Varmint Rifle.",
+      "officialEnglishLabel": "Kill 5 animals using a Varmint Rifle"
+    },
+    {
+      "id": "0xE8FE979A",
+      "objective": "Kill 4 enemies in a row by throwing and retrieving the same tomahawk.",
+      "officialEnglishLabel": "Kill 4 consecutive enemies by throwing and retrieving the same tomahawk"
+    },
+    {
+      "id": "0xEB2BD700",
+      "objective": "Skin 3 deer.",
+      "officialEnglishLabel": "Skin 3 Deer"
+    },
+    {
+      "id": "0xEBF6E5BF",
+      "objective": "Kill 3 birds of prey using only a tomahawk.",
+      "officialEnglishLabel": "Kill 3 birds of prey using only a tomahawk"
+    },
+    {
+      "id": "0xEDF51468",
+      "objective": "Kill 8 small-game animals with consecutive small-game arrow shots.",
+      "officialEnglishLabel": "Kill 8 small game with consecutive shots, using Small Game Arrows"
+    },
+    {
+      "id": "0xEFE784F2",
+      "objective": "Kill 5 mounted enemies with one throwing knife per kill.",
+      "officialEnglishLabel": "Kill 5 mounted enemies, using one throwing knife per kill"
+    },
+    {
+      "id": "0xF18DCA9C",
+      "objective": "Break every wild horse breed.",
+      "officialEnglishLabel": "Break every wild horse breed"
+    },
+    {
+      "id": "0xF48019F7",
+      "objective": "Season and cook all 11 types of meat.",
+      "officialEnglishLabel": "Season and cook all 11 types of meat"
+    },
+    {
+      "id": "0xF56993F9",
+      "objective": "Kill 5 flying birds while aboard a moving train.",
+      "officialEnglishLabel": "Kill 5 flying birds while on a moving train"
+    },
+    {
+      "id": "0xFE33A1C3",
+      "objective": "Rob or return 3 coaches in one day.",
+      "officialEnglishLabel": "Rob any 3 coaches or return any 3 stolen coaches to the fence in a day"
+    }
+  ],
+  "bytesByLocale": {
+    "en-US": 8558,
+    "fr-FR": 11338,
+    "de-DE": 10220,
+    "it-IT": 10614,
+    "es-ES": 10945,
+    "pt-BR": 9942,
+    "pl-PL": 10389,
+    "ru-RU": 17479,
+    "ko-KR": 10679,
+    "zh-TW": 9150,
+    "ja-JP": 12376,
+    "es-MX": 10987,
+    "zh-CN": 8526
+  }
+}

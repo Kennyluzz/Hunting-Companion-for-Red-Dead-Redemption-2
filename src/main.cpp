@@ -1,4 +1,4 @@
-// Hunting Companion 1.0.0
+// Hunting Companion 1.10.0-rc1
 // Read-only RDR2 Story Mode companion for Pearson, Trapper, challenges, and gear.
 //
 // The companion reads game catalog, inventory, vendor-storage, and challenge-rank
@@ -6,14 +6,19 @@
 // progress, inventory, transactions, vendor stock, and save data are never changed.
 
 #include <windows.h>
+#include "localization.hpp"
+#include "cjk_overlay.hpp"
+#include "embedded_challenge_objective_hashes.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <cwchar>
 #include <iterator>
 #include <cstdio>
 #include <type_traits>
+#include <string>
 
 namespace {
 using ScriptMainFn = void (*)();
@@ -107,11 +112,25 @@ constexpr std::uint64_t kDrawSprite = 0xC9884ECADE94CB34ull;
 constexpr std::uint64_t kGetScreenResolution = 0x66773C92835D0909ull;
 constexpr std::uint64_t kDrawRect = 0x405224591DF02025ull;
 constexpr std::uint64_t kVarString = 0xFA925AC00EB830B9ull;
+// Resolve a Rockstar label hash through the game's own active language table.
+constexpr std::uint64_t kGetStringFromHashKey = 0xBD5DD5EAE2B6CE14ull;
 constexpr std::uint64_t kBgDisplayText = 0x16794E044C9EFB58ull;
 constexpr std::uint64_t kBgSetTextScale = 0xA1253A3C870B6843ull;
 constexpr std::uint64_t kBgSetTextColor = 0x16FA5CE47F184F1Eull;
+constexpr std::uint64_t kSetTextCentre = 0xBE5261939FBECB8Cull;
 constexpr std::uint64_t kChalGetNumRanksCompleted = 0x58CB53DB63F84DE9ull;
 constexpr std::uint64_t kChalGetMaxRanks = 0x58CB53DB63F84DEAull;
+// Rockstar's current in-game interface language (0-12). This is used only
+// for the companion's Auto language setting; an explicit companion locale wins.
+constexpr std::uint64_t kGetCurrentLanguage = 0xDB917DA5C6835FCCull;
+// Stable Rockstar localization label hashes for ItemDatabase entries.
+// Resolve them through the game's native string table or the companion-selected
+// official game-language table when that locale differs from the active game.
+constexpr std::uint64_t kInventoryGetItemDescriptionHash = 0xA4550FE9C512E3DDull;
+constexpr std::uint64_t kItemDbLocalizationGetNumLabelTypes = 0xCEC6A41E8910486Aull;
+constexpr std::uint64_t kItemDbLocalizationGetNumValues = 0x49885D82A13EEAEAull;
+constexpr std::uint64_t kItemDbLocalizationGetType = 0xCABF5D41D0073D4Aull;
+constexpr std::uint64_t kItemDbLocalizationGetValue = 0x9AE5610FDCED6EA7ull;
 constexpr int kExpectedChallengeRankCount = 10;
 constexpr std::uint64_t kMoneyHash = 0x7C407083u;
 constexpr std::uint32_t kDefaultMenuKey = VK_F8;
@@ -129,6 +148,14 @@ constexpr std::uint32_t kPearsonStorageSlot = 0x550898DEu;
 constexpr std::uint32_t kTrapperGiveStorageSlot = 0xAEEE1782u;
 constexpr std::uint32_t kCharacterSlot = 0x4F31C2D3u;
 constexpr std::uint32_t kSlotNone = 0xA1212100u;
+
+// These two Pearson catalog records are internal, unlabelled placeholders,
+// not player-facing recipes. Pearson itself remains fully supported.
+constexpr std::uint32_t kPearsonUnlabelledItem1 = 0xC998B07Cu;
+constexpr std::uint32_t kPearsonUnlabelledItem2 = 0xF9C120CDu;
+constexpr bool is_pearson_unlabelled_placeholder(std::uint32_t itemHash) noexcept {
+    return itemHash == kPearsonUnlabelledItem1 || itemHash == kPearsonUnlabelledItem2;
+}
 
 constexpr int kMaxShopItems = 2048;
 constexpr int kMaxCostRows = 64;
@@ -274,6 +301,26 @@ constexpr auto kChallengeDefinitions = std::array{
     }},
 };
 
+// Resolve the next-rank objective from Rockstar's official locale table whenever
+// the game has a stable label ID for it. Only the 14 companion-specific composite
+// objectives use the exact whole-sentence .lang dictionary fallback.
+const char* localized_challenge_objective(const char* sourceObjective) noexcept {
+    if (sourceObjective == nullptr || sourceObjective[0] == '\0') return "";
+    const auto* first = std::begin(hunting_companion::embedded_challenge::kObjectiveHashes);
+    const auto* last = std::end(hunting_companion::embedded_challenge::kObjectiveHashes);
+    const auto* found = std::lower_bound(first, last, sourceObjective,
+        [](const hunting_companion::embedded_challenge::ObjectiveHash& entry,
+           const char* objective) {
+            return std::strcmp(entry.objective, objective) < 0;
+        });
+    if (found != last && std::strcmp(found->objective, sourceObjective) == 0) {
+        if (const char* official = hunting_companion::official_item_string(found->labelHash)) {
+            return official;
+        }
+    }
+    return hunting_companion::ui_text(sourceObjective);
+}
+
 constexpr bool all_challenge_objectives_defined() noexcept {
     for (const auto& challenge : kChallengeDefinitions) {
         for (const char* objective : challenge.rankObjectives) {
@@ -379,7 +426,6 @@ constexpr RecipeIdentity kRecipeIdentities[] = {
     RecipeIdentity{0xB0C4AD75u, 0x1F5EEA44u, "Pronghorn Skull"},
     RecipeIdentity{0xB4B8749Bu, 0x1F5EEA44u, "Ox Hide Rug"},
     RecipeIdentity{0xBBBB14C1u, 0x1F5EEA44u, "Pronghorn Leather Table Tops"},
-    RecipeIdentity{0xC998B07Cu, 0x1F5EEA44u, "Unlabelled Pearson item (C998B07C)"},
     RecipeIdentity{0xCD70FF85u, 0x1F5EEA44u, "Elk Antlers"},
     RecipeIdentity{0xCE127491u, 0x1F5EEA44u, "Big Horn Ram Skull"},
     RecipeIdentity{0xCE847162u, 0xDCD17F1Fu, "Ingredients Satchel"},
@@ -387,7 +433,6 @@ constexpr RecipeIdentity kRecipeIdentities[] = {
     RecipeIdentity{0xDC99106Du, 0xDCD17F1Fu, "Legend of the East Satchel"},
     RecipeIdentity{0xF2992228u, 0x1F5EEA44u, "Campfire Log Seat Cover"},
     RecipeIdentity{0xF72FB942u, 0x1F5EEA44u, "Cougar Pelt Covered Chest"},
-    RecipeIdentity{0xF9C120CDu, 0xDC708275u, "Unlabelled Pearson item (F9C120CD)"},
     RecipeIdentity{0xFF88D22Au, 0x1F5EEA44u, "Hanging Bones"},
     RecipeIdentity{0x036F1224u, 0x29A49A30u, "Wilderness Vest"},
     RecipeIdentity{0x04AFD7FEu, 0x851EBBD3u, "Beaver Mountain Hat"},
@@ -732,14 +777,98 @@ struct VendorState {
     std::size_t recipeCount{};
 };
 
+constexpr std::size_t kMaxLocalizedItemNames = 1024;
+struct LocalizedItemName {
+    std::uint32_t itemHash{};
+    std::uint32_t labelHash{};
+    // Copy the native result immediately: Rockstar's native string buffer is
+    // transient and must not be retained as a pointer across native calls.
+    char text[256]{};
+};
+struct LocalizedItemNameCache {
+    std::array<LocalizedItemName, kMaxLocalizedItemNames> entries{};
+    std::size_t count{};
+};
+
 struct TrackerState {
     VendorState pearson{};
     VendorState trapper{};
     std::array<ChallengeProgress, kChallengeCount> challenges{};
+    LocalizedItemNameCache localizedNames{};
     bool ready{};
 };
 TrackerState g_tracker{};
 SRWLOCK g_trackerLock = SRWLOCK_INIT;
+
+// Visible scan telemetry: expose the exact initialization stage and bounded
+// progress so slow vendor scans do not look like a permanently frozen menu.
+enum class ScanStage : LONG {
+    Idle = 0, ResolvePlayer, PearsonCatalog, TrapperCatalog,
+    PearsonStock, TrapperStock, ChallengeRanks, Complete, Failed
+};
+volatile LONG g_scanStage = static_cast<LONG>(ScanStage::Idle);
+volatile LONG g_scanLastWorkStage = static_cast<LONG>(ScanStage::Idle);
+volatile LONG g_scanCurrent = 0;
+volatile LONG g_scanTotal = 0;
+volatile LONG g_scanStartedTick = 0;
+volatile LONG g_scanLastProgressTick = 0;
+volatile LONG g_scanError = 0;
+int g_detectedGameLanguage = -1;
+
+void scan_heartbeat() noexcept {
+    InterlockedExchange(&g_scanLastProgressTick, static_cast<LONG>(GetTickCount()));
+}
+
+void set_scan_stage(ScanStage stage, int total = 0) noexcept {
+    InterlockedExchange(&g_scanCurrent, 0);
+    InterlockedExchange(&g_scanTotal, std::max(0, total));
+    scan_heartbeat();
+    if (stage != ScanStage::Idle && stage != ScanStage::Complete && stage != ScanStage::Failed) {
+        InterlockedExchange(&g_scanLastWorkStage, static_cast<LONG>(stage));
+    }
+    InterlockedExchange(&g_scanStage, static_cast<LONG>(stage));
+}
+
+void set_scan_progress(int current) noexcept {
+    const int total = InterlockedCompareExchange(&g_scanTotal, 0, 0);
+    InterlockedExchange(&g_scanCurrent, std::clamp(current, 0, std::max(0, total)));
+    scan_heartbeat();
+}
+
+const char* scan_stage_label(ScanStage stage) noexcept {
+    switch (stage) {
+        case ScanStage::ResolvePlayer: return "CHECKING STORY MODE INVENTORY";
+        case ScanStage::PearsonCatalog: return "READING PEARSON RECIPE CATALOG";
+        case ScanStage::TrapperCatalog: return "READING TRAPPER RECIPE CATALOG";
+        case ScanStage::PearsonStock: return "COUNTING PEARSON DONATION STOCK";
+        case ScanStage::TrapperStock: return "COUNTING TRAPPER DONATION STOCK";
+        case ScanStage::ChallengeRanks: return "READING CHALLENGE RANKS";
+        case ScanStage::Complete: return "CATALOG READY";
+        case ScanStage::Failed: return "CATALOG READ COULD NOT COMPLETE";
+        case ScanStage::Idle: default: return "WAITING FOR STORY MODE";
+    }
+}
+
+const char* game_language_name(int language) noexcept {
+    // IDs documented by RDR2 GET_CURRENT_LANGUAGE.
+    static constexpr const char* kNames[] = {
+        "English", "French", "German", "Italian", "Spanish (Spain)",
+        "Portuguese (Brazil)", "Polish", "Russian", "Korean",
+        "Chinese (Traditional)", "Japanese", "Spanish (Mexico)",
+        "Chinese (Simplified)"
+    };
+    return (language >= 0 && language < static_cast<int>(std::size(kNames)))
+        ? hunting_companion::ui_text(kNames[language]) : "Unknown / unsupported";
+}
+
+const char* game_language_locale(int language) noexcept {
+    static constexpr const char* kLocales[] = {
+        "en-US", "fr-FR", "de-DE", "it-IT", "es-ES", "pt-BR", "pl-PL",
+        "ru-RU", "ko-KR", "zh-TW", "ja-JP", "es-MX", "zh-CN"
+    };
+    return (language >= 0 && language < static_cast<int>(std::size(kLocales)))
+        ? kLocales[language] : "unknown";
+}
 
 class TrackerReadLock {
 public:
@@ -749,6 +878,136 @@ public:
     TrackerReadLock& operator=(const TrackerReadLock&) = delete;
 };
 
+// Discover the stable Rockstar label hash for an ItemDatabase item and ask
+// Rockstar for the exact localized phrase. GET_STRING_FROM_HASH_KEY reads the
+// game's currently active official language table; this is the primary path
+// and needs no external translation mod or language pack. If the companion is
+// pinned to a different language, use the matching compact Rockstar table
+// embedded in this ASI instead of leaking the game's currently active language.
+void remember_official_item_label(LocalizedItemNameCache& cache,
+                                  std::uint32_t itemHash) noexcept {
+    if (itemHash == 0 || itemHash == kMoneyHash) return;
+    for (std::size_t i = 0; i < cache.count; ++i) {
+        if (cache.entries[i].itemHash == itemHash) return;
+    }
+    if (cache.count >= cache.entries.size()) return;
+
+    std::uint32_t selectedLabelHash = 0;
+    char resolvedText[sizeof(LocalizedItemName::text)]{};
+    const bool companionUsesGameLanguage =
+        hunting_companion::active_ui_language() == g_detectedGameLanguage;
+
+    auto acceptLabel = [&](std::uint32_t labelHash) noexcept -> bool {
+        if (labelHash == 0) return false;
+        const char* candidate = nullptr;
+        if (companionUsesGameLanguage) {
+            candidate = invoke_native<const char*>(kGetStringFromHashKey, labelHash);
+        } else {
+            candidate = hunting_companion::official_item_string(labelHash);
+        }
+        if (candidate == nullptr || candidate[0] == '\0') return false;
+        const std::size_t length = std::strlen(candidate);
+        // Only compact display labels are valid here. Reject descriptions,
+        // prompt markup, and multi-line text so a secondary label cannot
+        // flood a recipe/material row.
+        if (length == 0 || length >= sizeof(resolvedText) ||
+            std::strchr(candidate, '\n') != nullptr ||
+            std::strchr(candidate, '\r') != nullptr ||
+            std::strchr(candidate, '~') != nullptr) return false;
+        for (std::size_t i = 0; i < length; ++i) {
+            if (static_cast<unsigned char>(candidate[i]) < 0x20) return false;
+        }
+        if (std::strchr(candidate, '.') != nullptr ||
+            std::strchr(candidate, '!') != nullptr ||
+            std::strchr(candidate, '?') != nullptr) return false;
+        std::memcpy(resolvedText, candidate, length);
+        resolvedText[length] = '\0';
+        selectedLabelHash = labelHash;
+        return true;
+    };
+
+    const std::uint32_t descriptionHash = invoke_native<std::uint32_t>(
+        kInventoryGetItemDescriptionHash, itemHash);
+    bool resolved = acceptLabel(descriptionHash);
+    if (!resolved) resolved = acceptLabel(itemHash);
+    if (!resolved) {
+        const int rawTypeCount = invoke_native<int>(
+            kItemDbLocalizationGetNumLabelTypes, itemHash);
+        const int typeCount = std::clamp(rawTypeCount, 0, 32);
+        for (int typeIndex = 0; typeIndex < typeCount && !resolved; ++typeIndex) {
+            const std::uint32_t labelType = invoke_native<std::uint32_t>(
+                kItemDbLocalizationGetType, itemHash, typeIndex);
+            if (labelType == 0) continue;
+            const int rawValueCount = invoke_native<int>(
+                kItemDbLocalizationGetNumValues, itemHash, labelType);
+            const int valueCount = std::clamp(rawValueCount, 0, 32);
+            for (int valueIndex = 0; valueIndex < valueCount && !resolved; ++valueIndex) {
+                const std::uint32_t valueHash = invoke_native<std::uint32_t>(
+                    kItemDbLocalizationGetValue, itemHash, labelType, valueIndex);
+                resolved = acceptLabel(valueHash);
+            }
+        }
+    }
+
+    LocalizedItemName& entry = cache.entries[cache.count++];
+    entry.itemHash = itemHash;
+    if (resolved) {
+        entry.labelHash = selectedLabelHash;
+        std::memcpy(entry.text, resolvedText, std::strlen(resolvedText) + 1);
+    }
+}
+
+const char* localized_item_name(const TrackerState& state,
+                                std::uint32_t itemHash) noexcept {
+    if (itemHash == 0) return nullptr;
+
+    // RecipeIdentity.itemHash and MaterialName.hash are the exact Rockstar
+    // localization IDs used to build the 290-entry embedded catalogue.
+    // Resolve that stable ID first. ItemDatabase can expose a secondary label
+    // hash for the same inventory object; relying on that secondary value can
+    // miss the embedded row and leave a stale English/native-language buffer.
+    // This direct lookup is also independent of the background scan cache, so
+    // a companion locale switch changes every known item on the very next draw.
+    if (const char* selected =
+            hunting_companion::official_item_string(itemHash)) {
+        return selected;
+    }
+
+    for (std::size_t i = 0; i < state.localizedNames.count; ++i) {
+        const LocalizedItemName& entry = state.localizedNames.entries[i];
+        if (entry.itemHash != itemHash) continue;
+
+        // Keep the stable Rockstar label hash, not the localized text buffer.
+        // Resolving it on every draw means a companion-language change takes
+        // effect immediately, even while the optional background rescan runs.
+        if (entry.labelHash != 0) {
+            if (const char* selected =
+                    hunting_companion::official_item_string(entry.labelHash)) {
+                return selected;
+            }
+        }
+
+        // Native text is a safe fallback only when the companion follows the
+        // active game language. Never leak another game language into a pinned
+        // companion locale.
+        if (hunting_companion::active_ui_language() == g_detectedGameLanguage &&
+            entry.text[0] != '\0') {
+            return entry.text;
+        }
+        return nullptr;
+    }
+    return nullptr;
+}
+
+const char* recipe_display_name(const RecipeEntry& recipe) noexcept {
+    const char* officialName = localized_item_name(g_tracker, recipe.itemHash);
+    return officialName != nullptr ? officialName : recipe.name;
+}
+
+const char* display_material_name(std::uint32_t materialHash) noexcept {
+    const char* officialName = localized_item_name(g_tracker, materialHash);
+    return officialName != nullptr ? officialName : find_material_name(materialHash);
+}
 
 void add_requirement(VendorDemand& vendor, std::uint32_t materialHash, int amount) noexcept {
     if (materialHash == 0 || amount <= 0) return;
@@ -784,7 +1043,8 @@ int player_owned_count(int inventoryId, std::uint32_t itemHash) noexcept {
 
 void read_recipe_cost_rows(VendorDemand& vendor, RecipeEntry& recipe,
                            std::uint32_t recipeHash, std::uint32_t costTypeHash,
-                           bool isBundle, bool includeInVendorDemand) noexcept {
+                           bool isBundle, bool includeInVendorDemand,
+                           LocalizedItemNameCache& localizedNames) noexcept {
     if (recipeHash == 0 || costTypeHash == 0) return;
     const int rawCount = isBundle
         ? invoke_native<int>(kItemDatabaseGetBundleAcquireCostsCountFromCost, recipeHash, costTypeHash)
@@ -799,6 +1059,7 @@ void read_recipe_cost_rows(VendorDemand& vendor, RecipeEntry& recipe,
             const std::uint32_t materialHash = static_cast<std::uint32_t>(row[0] & 0xffffffffu);
             const int amount = static_cast<std::int32_t>(static_cast<std::uint32_t>(row[1] & 0xffffffffu));
             if (materialHash != 0 && amount > 0) {
+                remember_official_item_label(localizedNames, materialHash);
                 add_recipe_cost(recipe, materialHash, amount);
                 recipe.hasAnyCosts = true;
                 // Money is a purchase cost, not a donated animal material.
@@ -808,27 +1069,75 @@ void read_recipe_cost_rows(VendorDemand& vendor, RecipeEntry& recipe,
             }
         }
         g_api.wait(0);
+        scan_heartbeat();
     }
 }
 
 void scan_vendor_catalog(VendorState& state, std::uint32_t shopHash,
                          std::uint32_t costTypeHash, std::uint32_t promoCostTypeHash,
-                         int inventoryId) noexcept {
+                         int inventoryId, ScanStage stage,
+                         LocalizedItemNameCache& localizedNames) noexcept {
     state = {};
     VendorDemand& vendor = state.demand;
     const int rawCount = invoke_native<int>(kItemDatabaseGetShopItemsCount, shopHash);
-    if (rawCount < 0 || rawCount > kMaxShopItems) return;
+    if (rawCount < 0 || rawCount > kMaxShopItems) {
+        InterlockedExchange(&g_scanError, rawCount < 0 ? 2 : 3);
+        set_scan_stage(ScanStage::Failed, rawCount);
+        return;
+    }
+    set_scan_stage(stage, rawCount);
     const bool isTrapper = (shopHash == kShopTrapper);
     for (int index = 0; index < rawCount; ++index) {
+        set_scan_progress(index);
         std::array<std::uint64_t, 3> itemInfo{};
         const int ok = invoke_native<int>(kItemDatabaseGetShopItemInfo, shopHash, index, itemInfo.data());
         if (!ok) {
             g_api.wait(0);
+            scan_heartbeat();
+            set_scan_progress(index + 1);
+            continue;
+        }
+        const std::uint32_t itemHash = static_cast<std::uint32_t>(itemInfo[0] & 0xffffffffu);
+        const std::uint32_t bundleHash = static_cast<std::uint32_t>(itemInfo[1] & 0xffffffffu);
+
+        // Pearson remains available; only its two opaque internal placeholder
+        // records are excluded from the recipe list and scan totals.
+        if (shopHash == kShopPearson && is_pearson_unlabelled_placeholder(itemHash)) {
+            set_scan_progress(index + 1);
+            g_api.wait(0);
+            scan_heartbeat();
             continue;
         }
         ++vendor.scannedItems;
-        const std::uint32_t itemHash = static_cast<std::uint32_t>(itemInfo[0] & 0xffffffffu);
-        const std::uint32_t bundleHash = static_cast<std::uint32_t>(itemInfo[1] & 0xffffffffu);
+
+        // Record the stable ItemDatabase label ID for the selected companion
+        // locale, including catalogue entries outside the curated identity set.
+        remember_official_item_label(localizedNames, itemHash);
+        const RecipeIdentity* identity = find_recipe_identity(itemHash);
+
+        // Do not expose uncurated rows with fabricated names or hexadecimal
+        // hashes. A non-curated row is only useful if we can resolve its real
+        // Rockstar name from the selected locale's embedded table, either by
+        // the stable item hash or by the secondary ItemDatabase label hash.
+        bool hasEmbeddedOfficialName =
+            hunting_companion::official_item_string(itemHash) != nullptr;
+        if (!hasEmbeddedOfficialName) {
+            for (std::size_t labelIndex = 0; labelIndex < localizedNames.count; ++labelIndex) {
+                const LocalizedItemName& cached = localizedNames.entries[labelIndex];
+                if (cached.itemHash == itemHash && cached.labelHash != 0 &&
+                    hunting_companion::official_item_string(cached.labelHash) != nullptr) {
+                    hasEmbeddedOfficialName = true;
+                    break;
+                }
+            }
+        }
+        if (identity == nullptr && !hasEmbeddedOfficialName) {
+            set_scan_progress(index + 1);
+            g_api.wait(0);
+            scan_heartbeat();
+            continue;
+        }
+
         const int itemOwned = player_owned_count(inventoryId, itemHash);
         const int bundleOwned = player_owned_count(inventoryId, bundleHash);
 
@@ -836,90 +1145,133 @@ void scan_vendor_catalog(VendorState& state, std::uint32_t shopHash,
         recipe.itemHash = itemHash;
         recipe.bundleHash = bundleHash;
         recipe.owned = itemOwned > 0 || bundleOwned > 0;
-        if (const RecipeIdentity* identity = find_recipe_identity(itemHash)) {
+        if (identity != nullptr) {
             recipe.categoryHash = identity->categoryHash;
             std::snprintf(recipe.name, sizeof(recipe.name), "%s", identity->name);
         } else {
-            std::snprintf(recipe.name, sizeof(recipe.name), "Unknown recipe %08X", itemHash);
+            // The row has already been validated against the embedded table;
+            // its visible text is resolved by recipe_display_name(). Keep no
+            // English placeholder or internal hash in the cached record.
+            recipe.name[0] = '\0';
         }
 
         int directRows = itemHash != 0
             ? invoke_native<int>(kItemDatabaseGetAcquireCostsCountFromCostType, itemHash, costTypeHash)
             : 0;
         if (directRows > 0) {
-            read_recipe_cost_rows(vendor, recipe, itemHash, costTypeHash, false, !recipe.owned);
+            read_recipe_cost_rows(vendor, recipe, itemHash, costTypeHash, false, !recipe.owned, localizedNames);
         } else if (isTrapper && promoCostTypeHash != 0 && itemHash != 0) {
             const int promoRows = invoke_native<int>(
                 kItemDatabaseGetAcquireCostsCountFromCostType, itemHash, promoCostTypeHash);
             if (promoRows > 0) {
-                read_recipe_cost_rows(vendor, recipe, itemHash, promoCostTypeHash, false, !recipe.owned);
+                read_recipe_cost_rows(vendor, recipe, itemHash, promoCostTypeHash, false, !recipe.owned, localizedNames);
             }
         }
         if (bundleHash != 0) {
             const int bundleRows = invoke_native<int>(
                 kItemDatabaseGetBundleAcquireCostsCountFromCost, bundleHash, costTypeHash);
             if (bundleRows > 0) {
-                read_recipe_cost_rows(vendor, recipe, bundleHash, costTypeHash, true, !recipe.owned);
+                read_recipe_cost_rows(vendor, recipe, bundleHash, costTypeHash, true, !recipe.owned, localizedNames);
             }
         }
         if (!recipe.owned && recipe.hasAnyCosts) ++vendor.unownedRecipes;
         if (state.recipeCount < state.recipes.size()) {
             state.recipes[state.recipeCount++] = recipe;
         }
+        set_scan_progress(index + 1);
         g_api.wait(0);
+        scan_heartbeat();
     }
     vendor.ready = true;
+    set_scan_progress(rawCount);
 }
 
 bool build_tracker_state() noexcept {
+    InterlockedExchange(&g_scanStartedTick, static_cast<LONG>(GetTickCount()));
+    InterlockedExchange(&g_scanError, 0);
+    set_scan_stage(ScanStage::ResolvePlayer, 3);
+
     const int playerPed = invoke_native<int>(kPlayerPedId);
-    if (playerPed == 0) return false;
+    set_scan_progress(1);
+    if (playerPed == 0) {
+        InterlockedExchange(&g_scanError, 1);
+        set_scan_stage(ScanStage::Failed);
+        return false;
+    }
     const int inventoryId = invoke_native<int>(kInventoryGetInventoryIdFromPed, playerPed);
-    if (inventoryId < 0) return false;
+    set_scan_progress(2);
+    if (inventoryId < 0) {
+        InterlockedExchange(&g_scanError, 4);
+        set_scan_stage(ScanStage::Failed);
+        return false;
+    }
 
     Guid emptyParent{};
     Guid rootGuid{};
     if (!get_guid_from_item(inventoryId, &emptyParent, kCharacterSlot, kSlotNone, &rootGuid) ||
-        !guid_is_valid(&rootGuid)) return false;
+        !guid_is_valid(&rootGuid)) {
+        InterlockedExchange(&g_scanError, 5);
+        set_scan_stage(ScanStage::Failed);
+        return false;
+    }
+    set_scan_progress(3);
 
     VendorState pearson{};
     VendorState trapper{};
-    scan_vendor_catalog(pearson, kShopPearson, kCostCraftingPearson, 0, inventoryId);
+    LocalizedItemNameCache localizedNames{};
+    scan_vendor_catalog(pearson, kShopPearson, kCostCraftingPearson, 0,
+                        inventoryId, ScanStage::PearsonCatalog, localizedNames);
+    if (static_cast<ScanStage>(InterlockedCompareExchange(&g_scanStage, 0, 0)) == ScanStage::Failed) {
+        return false;
+    }
     scan_vendor_catalog(trapper, kShopTrapper, kCostCraftingTrapper,
-                        kCostCraftingTrapperPromo, inventoryId);
-    if (!pearson.demand.ready || !trapper.demand.ready) return false;
+                        kCostCraftingTrapperPromo, inventoryId, ScanStage::TrapperCatalog,
+                        localizedNames);
+    if (static_cast<ScanStage>(InterlockedCompareExchange(&g_scanStage, 0, 0)) == ScanStage::Failed) {
+        return false;
+    }
+    if (!pearson.demand.ready || !trapper.demand.ready) {
+        InterlockedExchange(&g_scanError, 6);
+        set_scan_stage(ScanStage::Failed);
+        return false;
+    }
 
+    set_scan_stage(ScanStage::PearsonStock, static_cast<int>(pearson.demand.count));
     for (std::size_t i = 0; i < pearson.demand.count; ++i) {
         auto& material = pearson.demand.materials[i];
         material.vendorStock = vendor_material_count(inventoryId, &rootGuid,
                                                       material.hash, kPearsonStorageSlot);
         material.stillNeeded = std::max(0, material.totalRequired - material.vendorStock);
+        set_scan_progress(static_cast<int>(i + 1));
         g_api.wait(0);
+        scan_heartbeat();
     }
+    set_scan_stage(ScanStage::TrapperStock, static_cast<int>(trapper.demand.count));
     for (std::size_t i = 0; i < trapper.demand.count; ++i) {
         auto& material = trapper.demand.materials[i];
         material.vendorStock = vendor_material_count(inventoryId, &rootGuid,
                                                       material.hash, kTrapperGiveStorageSlot);
         material.stillNeeded = std::max(0, material.totalRequired - material.vendorStock);
+        set_scan_progress(static_cast<int>(i + 1));
         g_api.wait(0);
+        scan_heartbeat();
     }
 
     // Read the game's own challenge rank totals. These calls do not advance,
     // reset, or otherwise modify challenge progress. Validate each category
     // against its expected rank count before publishing it to the UI.
+    set_scan_stage(ScanStage::ChallengeRanks, static_cast<int>(kChallengeCount));
     std::array<ChallengeProgress, kChallengeCount> challenges{};
     for (std::size_t i = 0; i < kChallengeDefinitions.size(); ++i) {
         const std::uint32_t challengeHash = joaat(kChallengeDefinitions[i].rootHashName);
         const int maxRanks = invoke_native<int>(kChalGetMaxRanks, challengeHash);
         const int completed = invoke_native<int>(kChalGetNumRanksCompleted, challengeHash);
-        // Preserve the raw native results even when validation fails. The UI
-        // can then show exactly what the game returned instead of hiding the
-        // evidence behind a generic unavailable message.
         challenges[i] = ChallengeProgress{completed, maxRanks, false};
         if (maxRanks == kExpectedChallengeRankCount &&
             completed >= 0 && completed <= maxRanks) {
             challenges[i].available = true;
         }
+        set_scan_progress(static_cast<int>(i + 1));
         g_api.wait(0);
     }
 
@@ -927,8 +1279,10 @@ bool build_tracker_state() noexcept {
     g_tracker.pearson = pearson;
     g_tracker.trapper = trapper;
     g_tracker.challenges = challenges;
+    g_tracker.localizedNames = localizedNames;
     g_tracker.ready = true;
     ReleaseSRWLockExclusive(&g_trackerLock);
+    set_scan_stage(ScanStage::Complete);
     return true;
 }
 
@@ -1077,20 +1431,22 @@ bool get_hud_icon_layout(HudIconLayout* layout) noexcept {
     // normalized HUD drawing convention.
     constexpr float kIconHeight = 0.042f;
     constexpr float kGapHeight = 0.010f;
-    constexpr float kIconRowRightEdge = 0.876f;
+    constexpr float kTargetPromptRightEdge = 0.972f;
+    constexpr float kTargetPromptTopEdge = 0.755f;
+    constexpr float kPromptIconGap = 0.012f;
     const float heightOverWidth = static_cast<float>(screenHeight) /
                                   static_cast<float>(screenWidth);
     layout->height = kIconHeight;
     layout->width = kIconHeight * heightOverWidth;
     const float gap = kGapHeight * heightOverWidth;
 
-    // Fixed vendor slots: Pearson on the left, Trapper on the right. The row
-    // is aligned with the lower action-prompt stack, just above the vanilla
-    // animal-name separator.
-    const float rightCenter = kIconRowRightEdge - layout->width * 0.5f;
+    // Anchor the pair to the lower-right native interaction-prompt column.
+    // They remain above the weapon/info/track prompts and animal-name line,
+    // instead of competing with localized prompt text of varying lengths.
+    const float rightCenter = kTargetPromptRightEdge - layout->width * 0.5f;
     layout->trapperCenterX = rightCenter;
     layout->pearsonCenterX = rightCenter - layout->width - gap;
-    layout->centerY = 0.891f;
+    layout->centerY = kTargetPromptTopEdge - layout->height * 0.5f - kPromptIconGap;
     return true;
 }
 
@@ -1169,13 +1525,16 @@ DWORD g_menuHotkey = kDefaultMenuKey;
 bool g_refreshWorkerRegistered{};
 volatile LONG g_refreshRequested = 1;
 char g_iniPath[MAX_PATH]{};
+char g_moduleDirectory[MAX_PATH]{};
+wchar_t g_moduleDirectoryW[MAX_PATH]{};
+int g_uiLanguageOverride = -1; // -1 follows the RDR2 language; 0-12 pins a UI locale.
 
 VendorState& active_vendor() noexcept {
     return g_menu.trapper ? g_tracker.trapper : g_tracker.pearson;
 }
 
 const char* active_vendor_name() noexcept {
-    return g_menu.trapper ? "TRAPPER" : "PEARSON";
+    return g_menu.trapper ? "Trapper" : "Pearson";
 }
 
 const char* category_label(bool trapper, std::uint32_t hash) noexcept {
@@ -1188,6 +1547,20 @@ const char* category_label(bool trapper, std::uint32_t hash) noexcept {
 }
 
 void initialise_ini_path() noexcept {
+    wchar_t modulePathW[MAX_PATH]{};
+    const DWORD wideLength = GetModuleFileNameW(g_module, modulePathW, MAX_PATH);
+    if (wideLength > 0 && wideLength < MAX_PATH) {
+        wchar_t* wideSlash = std::wcsrchr(modulePathW, L'\\');
+        wchar_t* wideAltSlash = std::wcsrchr(modulePathW, L'/');
+        if (wideAltSlash != nullptr && (wideSlash == nullptr || wideAltSlash > wideSlash))
+            wideSlash = wideAltSlash;
+        if (wideSlash != nullptr) {
+            *(wideSlash + 1) = L'\0';
+            std::wcsncpy(g_moduleDirectoryW, modulePathW, MAX_PATH - 1);
+            g_moduleDirectoryW[MAX_PATH - 1] = L'\0';
+        }
+    }
+
     char modulePath[MAX_PATH]{};
     const DWORD length = GetModuleFileNameA(g_module, modulePath, MAX_PATH);
     if (length == 0 || length >= MAX_PATH) return;
@@ -1196,6 +1569,7 @@ void initialise_ini_path() noexcept {
     if (altSlash != nullptr && (slash == nullptr || altSlash > slash)) slash = altSlash;
     if (slash == nullptr) return;
     *(slash + 1) = '\0';
+    std::snprintf(g_moduleDirectory, sizeof(g_moduleDirectory), "%s", modulePath);
     std::snprintf(g_iniPath, sizeof(g_iniPath), "%sHuntingCompanion.ini", modulePath);
 }
 
@@ -1207,10 +1581,17 @@ void load_configuration() noexcept {
     }
     const UINT key = GetPrivateProfileIntA("General", "MenuKey", kDefaultMenuKey, g_iniPath);
     g_menuHotkey = (key > 0 && key < 256) ? key : kDefaultMenuKey;
-    // Ensure a usable INI exists even when the user has not opened Settings yet.
+    const UINT configuredLanguage = GetPrivateProfileIntA(
+        "General", "UILanguage", 0xFFFFFFFFu, g_iniPath);
+    g_uiLanguageOverride = configuredLanguage == 0xFFFFFFFFu
+        ? -1 : (configuredLanguage < 13u ? static_cast<int>(configuredLanguage) : -1);
+    // Ensure usable configuration defaults exist even before Settings is opened.
     char value[16]{};
     std::snprintf(value, sizeof(value), "%u", static_cast<unsigned>(g_menuHotkey));
     WritePrivateProfileStringA("General", "MenuKey", value, g_iniPath);
+    char languageValue[16]{};
+    std::snprintf(languageValue, sizeof(languageValue), "%d", g_uiLanguageOverride);
+    WritePrivateProfileStringA("General", "UILanguage", languageValue, g_iniPath);
 }
 
 void save_menu_hotkey() noexcept {
@@ -1218,6 +1599,83 @@ void save_menu_hotkey() noexcept {
     char value[16]{};
     std::snprintf(value, sizeof(value), "%u", static_cast<unsigned>(g_menuHotkey));
     WritePrivateProfileStringA("General", "MenuKey", value, g_iniPath);
+}
+
+void save_ui_language() noexcept {
+    if (g_iniPath[0] == '\0') return;
+    char value[16]{};
+    std::snprintf(value, sizeof(value), "%d", g_uiLanguageOverride);
+    WritePrivateProfileStringA("General", "UILanguage", value, g_iniPath);
+}
+
+// ---- CJK overlay integration ---------------------------------------------
+// The language the user asked for: an explicit pick, or the game's own.
+int requested_language() noexcept {
+    return g_uiLanguageOverride >= 0 ? g_uiLanguageOverride : g_detectedGameLanguage;
+}
+
+// CJK text needs the overlay only when the game itself is NOT running in that
+// language; otherwise the game's own fonts already contain the glyphs.
+bool needs_overlay(int language) noexcept {
+    // Overlay when the companion language is CJK but the game is not in it, or when the
+    // game runs in a CJK language (whose native fonts lack accented Latin letters and
+    // Cyrillic) and the companion language is anything else.
+    if (language == g_detectedGameLanguage) return false;
+    return hunting_companion::uses_cjk_font(language) ||
+           hunting_companion::uses_cjk_font(g_detectedGameLanguage);
+}
+
+// The language that can really be drawn right now. If the user picked a CJK
+// language but the overlay is not available (not Vulkan, hook failed, still
+// starting), fall back to English instead of showing empty squares.
+int effective_language() noexcept {
+    const int wanted = requested_language();
+    if (needs_overlay(wanted) && !hunting_companion::overlay::ready()) return 0;
+    return wanted;
+}
+
+bool overlay_fallback_active() noexcept {
+    return effective_language() != requested_language();
+}
+
+void apply_effective_language() noexcept {
+    const int effective = effective_language();
+    if (effective != hunting_companion::active_ui_language()) {
+        hunting_companion::load_ui_localization(g_detectedGameLanguage, effective);
+    }
+    hunting_companion::overlay::set_language(effective);
+}
+
+// Read once at attach time (the hooks must be installed before the game starts
+// Vulkan, which is earlier than ScriptMain runs).
+hunting_companion::overlay::Settings make_overlay_settings() noexcept {
+    initialise_ini_path();
+    hunting_companion::overlay::Settings settings;
+    if (g_iniPath[0] != '\0') {
+        const int scale = static_cast<int>(GetPrivateProfileIntA("Overlay", "CjkTextScalePercent", 100, g_iniPath));
+        settings.textScale = (scale >= 40 && scale <= 300) ? static_cast<float>(scale) / 100.0f : 1.0f;
+        const int offset = static_cast<int>(GetPrivateProfileIntA("Overlay", "CjkTextYOffsetPermille", 0, g_iniPath));
+        settings.yOffset = (offset >= -100 && offset <= 100) ? static_cast<float>(offset) / 1000.0f : 0.0f;
+        settings.fileLog = GetPrivateProfileIntA("Overlay", "OverlayLog", 0, g_iniPath) != 0;
+        settings.logDirectory = g_moduleDirectory;
+    }
+    return settings;
+}
+
+void change_ui_language(int direction) noexcept {
+    if (direction == 0) return;
+    if (direction > 0) {
+        g_uiLanguageOverride = (g_uiLanguageOverride >= 12) ? -1 : g_uiLanguageOverride + 1;
+    } else {
+        g_uiLanguageOverride = (g_uiLanguageOverride <= -1) ? 12 : g_uiLanguageOverride - 1;
+    }
+    save_ui_language();
+    // Reload immediately; no game restart is needed for the companion UI.
+    apply_effective_language();
+    // Every visible string is resolved against the newly selected immutable
+    // locale table on the very next draw. The ItemDB snapshot stores stable
+    // Rockstar hashes, not localized text, so a background rescan is neither
+    // needed nor desirable here (it used to create a visible delayed refresh).
 }
 
 const char* key_name(DWORD key) noexcept {
@@ -1694,7 +2152,7 @@ int current_page_count() noexcept {
         case MenuPage::ChallengeDetail:
             return reinforced_equipment_count_for_challenge(
                 static_cast<std::size_t>(g_menu.challengeIndex));
-        case MenuPage::Settings: return 2;
+        case MenuPage::Settings: return 3;
         case MenuPage::Closed: return 0;
     }
     return 0;
@@ -1760,6 +2218,11 @@ void update_menu_input() noexcept {
         if (downRepeated) move_selection(1, current_page_count());
         if (key_pressed(VK_PRIOR)) move_selection(-kVisibleMenuRows, current_page_count());
         if (key_pressed(VK_NEXT)) move_selection(kVisibleMenuRows, current_page_count());
+    }
+
+    if (g_menu.page == MenuPage::Settings && g_menu.selection == 1) {
+        if (key_pressed(VK_LEFT)) { change_ui_language(-1); return; }
+        if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_ui_language(1); return; }
     }
 
     if (!key_pressed(VK_RETURN)) return;
@@ -1831,7 +2294,7 @@ void update_menu_input() noexcept {
         case MenuPage::Settings:
             if (g_menu.selection == 0) {
                 g_menu.captureHotkey = true;
-            } else {
+            } else if (g_menu.selection == 2) {
                 g_menu.page = MenuPage::Root;
                 g_menu.selection = 3;
                 g_menu.scroll = 0;
@@ -1856,20 +2319,65 @@ float native_text_scale(float referencePixelHeight) noexcept {
                       0.14f, 0.465f);
 }
 
-void draw_text(const char* text, float x, float y, float referencePixelHeight,
-               int red = 232, int green = 226, int blue = 213, int alpha = 255) noexcept {
+const char* selected_font_face() noexcept {
+    // The game's own catalogue font. Text in a CJK language that the game is not
+    // itself running in cannot use native text (the game has not loaded those
+    // glyphs); draw_text_impl() sends it to the CJK overlay instead. When the
+    // companion language equals the game language the native font is correct.
+    return "$catalog1";
+}
+
+void draw_text_impl(const char* text, float x, float y, float referencePixelHeight,
+                    int red, int green, int blue, int alpha,
+                    bool localize, bool centered = false) noexcept {
     if (text == nullptr || text[0] == '\0') return;
+    if (localize) text = hunting_companion::ui_text(text);
 
-    // Restore the western RDR2 title face. The helper maps design-reference
-    // sizes to practical native scales above. COLOR_STRING is required for
-    // the embedded FONT tag to be interpreted by BG_DISPLAY_TEXT.
-    char richTemplate[768]{};
-    const int written = std::snprintf(richTemplate, sizeof(richTemplate),
-                                      "<FONT FACE='$title'>%s</FONT>", text);
-    if (written <= 0 || static_cast<std::size_t>(written) >= sizeof(richTemplate)) return;
+    // CJK companion language that differs from the game language: the game has no
+    // glyphs for it, so queue the text for the Vulkan/ImGui overlay (own embedded
+    // fonts). Position, size and colour are passed through unchanged.
+    if (needs_overlay(hunting_companion::active_ui_language())) {
+        hunting_companion::overlay::submit(text, x, y, referencePixelHeight,
+                                           red, green, blue, alpha, centered);
+        return;
+    }
 
+    // Native path. Escape HTML metacharacters so a translated label cannot inject
+    // Scaleform markup.
+    char fontMarkup[8192]{};
+    const char* fontFace = selected_font_face();
+    char fontPrefix[96]{};
+    std::snprintf(fontPrefix, sizeof(fontPrefix), "<FONT FACE='%s'>", fontFace);
+    constexpr char kFontSuffix[] = "</FONT>";
+    std::size_t used = std::strlen(fontPrefix);
+    std::memcpy(fontMarkup, fontPrefix, used);
+    bool markupFits = true;
+    for (const char* cursor = text; *cursor != '\0'; ++cursor) {
+        const char* replacement = nullptr;
+        if (*cursor == '&') replacement = "&amp;";
+        else if (*cursor == '<') replacement = "&lt;";
+        else if (*cursor == '>') replacement = "&gt;";
+        const std::size_t amount = replacement != nullptr ? std::strlen(replacement) : 1;
+        if (used + amount + sizeof(kFontSuffix) > sizeof(fontMarkup)) {
+            markupFits = false;
+            break;
+        }
+        if (replacement != nullptr) {
+            std::memcpy(fontMarkup + used, replacement, amount);
+            used += amount;
+        } else {
+            fontMarkup[used++] = *cursor;
+        }
+    }
+    if (markupFits) {
+        std::memcpy(fontMarkup + used, kFontSuffix, sizeof(kFontSuffix));
+    } else {
+        // A very long body string is safer unwrapped than truncated.
+        fontMarkup[0] = '\0';
+    }
+    const char* drawPayload = markupFits ? fontMarkup : text;
     const char* literal = invoke_native<const char*>(kVarString, 10,
-                                                      "LITERAL_STRING", richTemplate);
+                                                      "LITERAL_STRING", drawPayload);
     if (literal == nullptr) return;
     const char* gameString = invoke_native<const char*>(kVarString, 42,
                                                          "COLOR_STRING", 0, literal);
@@ -1880,30 +2388,69 @@ void draw_text(const char* text, float x, float y, float referencePixelHeight,
 
     // Draw each label once; the translucent panel provides contrast.
     invoke_native<void>(kBgSetTextColor, red, green, blue, alpha);
+    invoke_native<void>(kSetTextCentre, centered);
     invoke_native<void>(kBgDisplayText, gameString, x, y);
+    invoke_native<void>(kSetTextCentre, false);
+}
+
+void draw_text(const char* text, float x, float y, float referencePixelHeight,
+               int red = 232, int green = 226, int blue = 213, int alpha = 255) noexcept {
+    draw_text_impl(text, x, y, referencePixelHeight, red, green, blue, alpha, true);
+}
+
+// Item/material labels are already localized by Rockstar's native string table
+// or the selected official game-language table. Bypass phrase dictionaries.
+void draw_text_raw(const char* text, float x, float y, float referencePixelHeight,
+                   int red = 232, int green = 226, int blue = 213, int alpha = 255) noexcept {
+    draw_text_impl(text, x, y, referencePixelHeight, red, green, blue, alpha, false);
 }
 
 // Word-wrap short reference copy to a fixed character budget and line count.
 // This keeps challenge objectives inside the same right edge as the menu rows.
-void draw_wrapped_text(const char* text, float x, float y,
-                       std::size_t maxCharacters, int maxLines,
-                       float lineAdvance, float referencePixelHeight,
-                       int red, int green, int blue, int alpha = 255) noexcept {
+void draw_wrapped_text_impl(const char* text, float x, float y,
+                            std::size_t maxCharacters, int maxLines,
+                            float lineAdvance, float referencePixelHeight,
+                            int red, int green, int blue, int alpha,
+                            bool localize, bool centered = false) noexcept {
     if (text == nullptr || maxCharacters == 0 || maxLines <= 0) return;
+    if (localize) text = hunting_companion::ui_text(text);
+    const bool cjk = hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
+    const std::size_t lineCharacters = cjk ? std::max<std::size_t>(8, maxCharacters / 2)
+                                           : maxCharacters;
     const char* cursor = text;
     for (int lineIndex = 0; lineIndex < maxLines && *cursor != '\0'; ++lineIndex) {
         while (*cursor == ' ') ++cursor;
         if (*cursor == '\0') break;
 
         const std::size_t remaining = std::strlen(cursor);
-        std::size_t count = std::min(remaining, maxCharacters);
-        if (remaining > maxCharacters) {
+        // Count UTF-8 code points, not bytes, so Japanese/Korean/Chinese text
+        // is never split in the middle of a multi-byte character.
+        std::size_t count = 0;
+        std::size_t characters = 0;
+        while (count < remaining && characters < lineCharacters) {
+            const unsigned char lead = static_cast<unsigned char>(cursor[count]);
+            std::size_t bytes = lead < 0x80 ? 1 :
+                (lead & 0xE0) == 0xC0 ? 2 :
+                (lead & 0xF0) == 0xE0 ? 3 :
+                (lead & 0xF8) == 0xF0 ? 4 : 1;
+            if (count + bytes > remaining) bytes = 1;
+            count += bytes;
+            ++characters;
+        }
+        if (count < remaining) {
             std::size_t breakAt = count;
-            while (breakAt > 0 && cursor[breakAt] != ' ') --breakAt;
+            while (breakAt > 0 && cursor[breakAt] != ' ') {
+                --breakAt;
+            }
             if (breakAt > 0) count = breakAt;
+            else if (!cjk) {
+                // For Latin scripts, keep long unbroken tokens intact.
+            }
+            // CJK scripts do not use spaces between words; retaining the
+            // codepoint boundary above is the correct wrap point.
         }
 
-        char line[128]{};
+        char line[320]{};
         count = std::min(count, sizeof(line) - 1);
         std::memcpy(line, cursor, count);
         line[count] = '\0';
@@ -1919,10 +2466,34 @@ void draw_wrapped_text(const char* text, float x, float y,
                 line[safeLength] = '\0';
             }
         }
-        draw_text(line, x, y + static_cast<float>(lineIndex) * lineAdvance,
-                  referencePixelHeight, red, green, blue, alpha);
+        draw_text_impl(line, x, y + static_cast<float>(lineIndex) * lineAdvance,
+                       referencePixelHeight, red, green, blue, alpha, localize, centered);
         cursor = next;
     }
+}
+
+void draw_wrapped_text(const char* text, float x, float y,
+                       std::size_t maxCharacters, int maxLines,
+                       float lineAdvance, float referencePixelHeight,
+                       int red, int green, int blue, int alpha = 255) noexcept {
+    draw_wrapped_text_impl(text, x, y, maxCharacters, maxLines, lineAdvance,
+                           referencePixelHeight, red, green, blue, alpha, true);
+}
+
+void draw_wrapped_text_raw(const char* text, float x, float y,
+                           std::size_t maxCharacters, int maxLines,
+                           float lineAdvance, float referencePixelHeight,
+                           int red, int green, int blue, int alpha = 255) noexcept {
+    draw_wrapped_text_impl(text, x, y, maxCharacters, maxLines, lineAdvance,
+                           referencePixelHeight, red, green, blue, alpha, false);
+}
+
+void draw_wrapped_centered_text(const char* text, float centerX, float y,
+                                std::size_t maxCharacters, int maxLines,
+                                float lineAdvance, float referencePixelHeight,
+                                int red, int green, int blue, int alpha = 255) noexcept {
+    draw_wrapped_text_impl(text, centerX, y, maxCharacters, maxLines, lineAdvance,
+                           referencePixelHeight, red, green, blue, alpha, true, true);
 }
 
 // Shared horizontal bounds for rank bars on category and reinforced-item
@@ -1948,7 +2519,8 @@ void draw_challenge_progress_bar(const ChallengeProgress& progress,
 }
 
 void draw_menu_row(const char* label, const char* status, int row,
-                   int selected, bool accent = false) noexcept {
+                   int selected, bool accent = false,
+                   bool localizeLabel = true) noexcept {
     // Match the header title plate's exact horizontal bounds. Keep row height
     // compact so the list rows remain separate and do not overlap vertically.
     constexpr float kPanelCenter = 0.212f;
@@ -1968,22 +2540,54 @@ void draw_menu_row(const char* label, const char* status, int row,
         draw_rect(kPanelLeft + 0.004f, y + 0.020f, 0.0035f, 0.052f,
                   191, 150, 86, 245);
     }
-    draw_text(label, 0.063f, y, 18.0f,
-              selected ? 255 : (accent ? 235 : 222),
-              selected ? 250 : (accent ? 206 : 216),
-              selected ? 238 : (accent ? 150 : 204));
+    const bool cjkLabel = hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
+    if (cjkLabel || std::strlen(label) > 28) {
+        if (localizeLabel) {
+            draw_wrapped_text(label, 0.063f, y - 0.001f, 36, 2, 0.018f, 12.5f,
+                              selected ? 255 : (accent ? 235 : 222),
+                              selected ? 250 : (accent ? 206 : 216),
+                              selected ? 238 : (accent ? 150 : 204));
+        } else {
+            draw_wrapped_text_raw(label, 0.063f, y - 0.001f, 36, 2, 0.018f, 12.5f,
+                                  selected ? 255 : (accent ? 235 : 222),
+                                  selected ? 250 : (accent ? 206 : 216),
+                                  selected ? 238 : (accent ? 150 : 204));
+        }
+    } else {
+        if (localizeLabel) {
+            draw_text(label, 0.063f, y, 18.0f,
+                      selected ? 255 : (accent ? 235 : 222),
+                      selected ? 250 : (accent ? 206 : 216),
+                      selected ? 238 : (accent ? 150 : 204));
+        } else {
+            draw_text_raw(label, 0.063f, y, 18.0f,
+                          selected ? 255 : (accent ? 235 : 222),
+                          selected ? 250 : (accent ? 206 : 216),
+                          selected ? 238 : (accent ? 150 : 204));
+        }
+    }
     if (status != nullptr && status[0] != '\0') {
         draw_text(status, 0.315f, y + 0.004f, 13.0f,
                   selected ? 245 : 194, selected ? 229 : 184, selected ? 205 : 163);
     }
 }
 
-void draw_menu_header(const char* title, const char* subtitle) noexcept {
+void draw_menu_header(const char* title, const char* subtitle,
+                      bool localizeTitle = true) noexcept {
     draw_rect(0.212f, 0.50f, 0.395f, 0.94f, 0, 0, 0, 226);
     draw_rect(0.212f, 0.095f, 0.365f, 0.125f, 6, 8, 10, 250);
     draw_rect(0.212f, 0.157f, 0.34f, 0.0024f, 180, 150, 96, 235);
     draw_text("HUNTING COMPANION", 0.071f, 0.050f, 22.0f, 240, 232, 215);
-    draw_text(title, 0.071f, 0.112f, 20.0f, 228, 190, 119);
+    const bool cjkTitle = hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
+    if (cjkTitle || std::strlen(title) > 25) {
+        if (localizeTitle) draw_wrapped_text(title, 0.071f, 0.107f, 36, 2, 0.018f, 12.5f,
+                                             220, 184, 112);
+        else draw_wrapped_text_raw(title, 0.071f, 0.107f, 36, 2, 0.018f, 12.5f,
+                                   220, 184, 112);
+    } else {
+        if (localizeTitle) draw_text(title, 0.071f, 0.112f, 20.0f, 228, 190, 119);
+        else draw_text_raw(title, 0.071f, 0.112f, 20.0f, 228, 190, 119);
+    }
     if (subtitle != nullptr) draw_text(subtitle, 0.071f, 0.168f, 14.0f, 196, 190, 176);
 }
 
@@ -1991,13 +2595,14 @@ void draw_menu_footer() noexcept {
     draw_rect(0.212f, 0.895f, 0.36f, 0.0024f, 145, 128, 98, 230);
     draw_text("UP/DOWN Navigate   ENTER Select   BACKSPACE Back", 0.065f, 0.858f, 13.0f, 218, 211, 197);
     char footer[48]{};
-    std::snprintf(footer, sizeof(footer), "%s Close", key_name(g_menuHotkey));
+    std::snprintf(footer, sizeof(footer), hunting_companion::ui_text("%s Close"), key_name(g_menuHotkey));
     draw_text(footer, 0.065f, 0.910f, 12.0f, 190, 184, 170);
 }
 
 void draw_list_page(const char* title, const char* subtitle,
                     int total, const char* (*labelAt)(int, char*, std::size_t),
-                    const char* (*statusAt)(int, char*, std::size_t)) noexcept {
+                    const char* (*statusAt)(int, char*, std::size_t),
+                    bool officialItemLabels = false) noexcept {
     draw_menu_header(title, subtitle);
     const int start = g_menu.scroll;
     const int end = std::min(total, start + kVisibleMenuRows);
@@ -2006,10 +2611,11 @@ void draw_list_page(const char* title, const char* subtitle,
         char status[40]{};
         const char* labelText = labelAt ? labelAt(i, label, sizeof(label)) : "";
         const char* statusText = statusAt ? statusAt(i, status, sizeof(status)) : "";
-        draw_menu_row(labelText, statusText, i - start, i == g_menu.selection);
+        draw_menu_row(labelText, statusText, i - start, i == g_menu.selection,
+                      false, !officialItemLabels);
     }
     char count[48]{};
-    std::snprintf(count, sizeof(count), "%d of %d", total > 0 ? g_menu.selection + 1 : 0, total);
+    std::snprintf(count, sizeof(count), hunting_companion::ui_text("%d of %d"), total > 0 ? g_menu.selection + 1 : 0, total);
     draw_text(count, 0.31f, 0.81f, 12.0f, 170, 164, 150);
     draw_menu_footer();
 }
@@ -2038,7 +2644,9 @@ const char* challenge_row_status(int index, char* buffer, std::size_t size) noex
 const char* challenge_reward_row_label(int index, char*, std::size_t) noexcept {
     const ReinforcedEquipmentInfo* item = reinforced_equipment_for_challenge(
         static_cast<std::size_t>(g_menu.challengeIndex), index);
-    return item != nullptr ? item->itemName : "";
+    if (item == nullptr) return "";
+    const RecipeEntry* recipe = find_trapper_recipe_by_name(item->itemName);
+    return recipe != nullptr ? recipe_display_name(*recipe) : item->itemName;
 }
 
 const char* challenge_reward_row_status(int index, char* buffer, std::size_t size) noexcept {
@@ -2050,7 +2658,7 @@ const char* challenge_reward_row_status(int index, char* buffer, std::size_t siz
     const ChallengeProgress* progress = find_challenge_progress(item->challengeName);
     if (progress == nullptr || !progress->available) return "RANK ?";
     if (progress->ranksCompleted >= static_cast<int>(item->unlockRank)) return "UNLOCKED";
-    std::snprintf(buffer, size, "LOCKED R%u", item->unlockRank);
+    std::snprintf(buffer, size, hunting_companion::ui_text("LOCKED R%u"), item->unlockRank);
     return buffer;
 }
 
@@ -2067,7 +2675,7 @@ const char* category_row_status(int index, char* buffer, std::size_t size) noexc
 const char* recipe_row_label(int index, char*, std::size_t) noexcept {
     if (index < 0 || static_cast<std::size_t>(index) >= g_menuRecipeCount) return "";
     const VendorState& vendor = g_menu.trapper ? g_tracker.trapper : g_tracker.pearson;
-    return vendor.recipes[static_cast<std::size_t>(g_menuRecipeIndices[static_cast<std::size_t>(index)])].name;
+    return recipe_display_name(vendor.recipes[static_cast<std::size_t>(g_menuRecipeIndices[static_cast<std::size_t>(index)])]);
 }
 const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcept {
     if (index < 0 || static_cast<std::size_t>(index) >= g_menuRecipeCount) return "";
@@ -2090,7 +2698,7 @@ const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcep
             ? find_challenge_progress(item->challengeName) : nullptr;
         if (progress == nullptr || !progress->available) return "RANK ?";
         if (progress->ranksCompleted >= static_cast<int>(item->unlockRank)) return "UNLOCKED";
-        std::snprintf(buffer, size, "LOCKED R%u", item->unlockRank);
+        std::snprintf(buffer, size, hunting_companion::ui_text("LOCKED R%u"), item->unlockRank);
         return buffer;
     }
     if (recipe.owned) return "CRAFTED";
@@ -2098,16 +2706,62 @@ const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcep
     for (std::size_t i = 0; i < recipe.costCount; ++i) {
         if (recipe.costs[i].hash != kMoneyHash) { hasAnimal = true; break; }
     }
-    std::snprintf(buffer, size, "%s", hasAnimal ? "MATERIALS" : "OTHER COSTS");
+    std::snprintf(buffer, size, "%s", hunting_companion::ui_text(hasAnimal ? "MATERIALS" : "OTHER COSTS"));
     return buffer;
 }
 
 void draw_settings_page() noexcept {
     draw_menu_header("SETTINGS", "Configuration is saved to HuntingCompanion.ini");
-    char hotkeyLine[80]{};
-    std::snprintf(hotkeyLine, sizeof(hotkeyLine), "Menu hotkey: %s", key_name(g_menuHotkey));
+    char hotkeyLine[128]{};
+    std::snprintf(hotkeyLine, sizeof(hotkeyLine), hunting_companion::ui_text("Menu hotkey: %s"), key_name(g_menuHotkey));
     draw_menu_row(hotkeyLine, "CHANGE", 0, g_menu.selection == 0);
-    draw_menu_row("Back", "", 1, g_menu.selection == 1);
+
+    static constexpr const char* kLanguageNames[] = {
+        "English", "French", "German", "Italian", "Spanish (Spain)",
+        "Portuguese (Brazil)", "Polish", "Russian", "Korean",
+        "Chinese (Traditional)", "Japanese", "Spanish (Mexico)",
+        "Chinese (Simplified)"
+    };
+    const int selectedLanguage = g_uiLanguageOverride >= 0
+        ? g_uiLanguageOverride : g_detectedGameLanguage;
+    const char* interfaceName = g_uiLanguageOverride < 0
+        ? hunting_companion::ui_text("Auto (RDR2)")
+        : hunting_companion::ui_text(kLanguageNames[g_uiLanguageOverride]);
+    draw_menu_row("Interface language", interfaceName, 1, g_menu.selection == 1);
+    draw_menu_row("Back", "", 2, g_menu.selection == 2);
+
+    char languageLine[256]{};
+    std::snprintf(languageLine, sizeof(languageLine), hunting_companion::ui_text("RDR2 language: %s (%s)"),
+                  game_language_name(g_detectedGameLanguage),
+                  game_language_locale(g_detectedGameLanguage));
+    draw_text(languageLine, 0.071f, 0.405f, 12.5f, 192, 186, 171);
+    char interfaceLine[256]{};
+    std::snprintf(interfaceLine, sizeof(interfaceLine),
+                  hunting_companion::ui_text("Companion interface: %s (%s)"),
+                  game_language_name(selectedLanguage),
+                  hunting_companion::ui_locale());
+    draw_text(interfaceLine, 0.071f, 0.444f, 11.0f, 160, 154, 142);
+    draw_text("LEFT/RIGHT or ENTER changes the companion language.",
+              0.071f, 0.480f, 10.0f, 160, 154, 142);
+    if (overlay_fallback_active()) {
+        // Only shown while the UI is in English (the fallback), so it is not translated.
+        static constexpr char kOverlayFallbackNotice[] =
+            "CJK overlay not ready (Vulkan only): showing English.";
+        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.498f, 10.0f, 224, 160, 120);
+    }
+    const std::size_t officialCount = hunting_companion::loaded_official_string_count();
+    char officialStatus[160]{};
+    if (officialCount > 0) {
+        std::snprintf(officialStatus, sizeof(officialStatus),
+                      hunting_companion::ui_text("Official Rockstar language entries loaded: %llu"),
+                      static_cast<unsigned long long>(officialCount));
+        draw_wrapped_text(officialStatus, 0.071f, 0.514f, 52, 2, 0.014f, 9.5f, 145, 194, 157);
+    } else {
+        std::snprintf(officialStatus, sizeof(officialStatus),
+                      hunting_companion::ui_text("Official item-name data unavailable for %s; English names used."),
+                      hunting_companion::ui_text(hunting_companion::locale_name(selectedLanguage)));
+        draw_wrapped_text(officialStatus, 0.071f, 0.514f, 52, 2, 0.014f, 9.5f, 220, 174, 128);
+    }
     if (g_menu.captureHotkey) {
         draw_rect(0.212f, 0.52f, 0.34f, 0.12f, 0, 0, 0, 245);
         draw_text("PRESS A KEY TO ASSIGN THE MENU HOTKEY", 0.083f, 0.49f, 16.0f, 230, 205, 150);
@@ -2129,18 +2783,19 @@ void draw_challenge_detail() noexcept {
                   16.0f, 224, 177, 133);
         char nativeResult[96]{};
         std::snprintf(nativeResult, sizeof(nativeResult),
-                      "NATIVE RETURNED: %d COMPLETED / %d MAX (EXPECTED MAX 10)",
+                      hunting_companion::ui_text("NATIVE RETURNED: %d COMPLETED / %d MAX (EXPECTED MAX 10)"),
                       progress.ranksCompleted, progress.maxRanks);
         draw_text(nativeResult, 0.071f, 0.292f, 12.0f, 224, 211, 188);
         char rootLine[96]{};
-        std::snprintf(rootLine, sizeof(rootLine), "CATEGORY ROOT: %s",
+        std::snprintf(rootLine, sizeof(rootLine),
+                      hunting_companion::ui_text("CATEGORY ROOT: %s"),
                       definition.rootHashName);
         draw_text(rootLine, 0.071f, 0.337f, 11.0f, 190, 184, 170);
         draw_text("Check Story Mode state and ScriptHook compatibility.",
                   0.071f, 0.379f, 11.0f, 190, 184, 170);
     } else {
         char rankLine[64]{};
-        std::snprintf(rankLine, sizeof(rankLine), "RANKS COMPLETED: %d / %d",
+        std::snprintf(rankLine, sizeof(rankLine), hunting_companion::ui_text("RANKS COMPLETED: %d / %d"),
                       progress.ranksCompleted, progress.maxRanks);
         draw_text(rankLine, 0.071f, 0.226f, 17.0f, 236, 219, 185);
 
@@ -2155,13 +2810,17 @@ void draw_challenge_detail() noexcept {
                               225, 218, 202);
         } else {
             char activeRank[64]{};
-            std::snprintf(activeRank, sizeof(activeRank), "CURRENT RANK: %d / %d",
+            std::snprintf(activeRank, sizeof(activeRank), hunting_companion::ui_text("CURRENT RANK: %d / %d"),
                           progress.ranksCompleted + 1, progress.maxRanks);
             draw_text(activeRank, 0.071f, 0.281f, 13.0f, 215, 202, 177);
             draw_text("NEXT RANK OBJECTIVE", 0.071f, 0.326f,
                       11.0f, 220, 184, 112);
-            const char* objective = definition.rankObjectives[progress.ranksCompleted];
-            draw_wrapped_text(objective, 0.071f, 0.350f, 48, 2, 0.028f, 13.0f,
+            const char* objective = localized_challenge_objective(
+                definition.rankObjectives[progress.ranksCompleted]);
+            // Translated objectives can be longer than the concise English source.
+            // Three bounded lines prevent French/German/Portuguese copy from being
+            // truncated while leaving clear space above the progress bar.
+            draw_wrapped_text(objective, 0.071f, 0.350f, 48, 3, 0.022f, 12.5f,
                               225, 218, 202);
         }
 
@@ -2179,7 +2838,8 @@ void draw_challenge_detail() noexcept {
         char status[40]{};
         const char* labelText = challenge_reward_row_label(i, label, sizeof(label));
         const char* statusText = challenge_reward_row_status(i, status, sizeof(status));
-        draw_menu_row(labelText, statusText, i + 6, i == g_menu.selection);
+        draw_menu_row(labelText, statusText, i + 6, i == g_menu.selection,
+                      false, false);
     }
     draw_menu_footer();
 }
@@ -2191,7 +2851,7 @@ void draw_recipe_detail() noexcept {
     const GarmentSetDefinition* garmentSet = selected_garment_set();
     const ReinforcedEquipmentInfo* reinforced = g_menu.trapper ? find_reinforced_equipment(recipe->name) : nullptr;
     if (reinforced != nullptr) {
-        draw_menu_header(recipe->name, "REINFORCED EQUIPMENT / CHALLENGE REWARD");
+        draw_menu_header(recipe_display_name(*recipe), "REINFORCED EQUIPMENT / CHALLENGE REWARD", false);
         const ChallengeProgress* progress = find_challenge_progress(reinforced->challengeName);
         const bool unlocked = progress != nullptr && progress->available &&
             progress->ranksCompleted >= static_cast<int>(reinforced->unlockRank);
@@ -2209,12 +2869,12 @@ void draw_recipe_detail() noexcept {
         draw_text(price, 0.315f, 0.282f, 15.0f, 235, 224, 200);
         draw_text("UNLOCK REQUIREMENT", 0.071f, 0.350f, 14.0f, 220, 184, 112);
         char requirement[128]{};
-        std::snprintf(requirement, sizeof(requirement), "Complete the %s Challenge Rank %u.",
-                      reinforced->challengeName, reinforced->unlockRank);
+        std::snprintf(requirement, sizeof(requirement), hunting_companion::ui_text("Complete the %s Challenge Rank %u."),
+                      hunting_companion::ui_text(reinforced->challengeName), reinforced->unlockRank);
         draw_text(requirement, 0.071f, 0.402f, 14.0f, 235, 224, 200);
         if (progress != nullptr && progress->available) {
             char ranks[64]{};
-            std::snprintf(ranks, sizeof(ranks), "RANKS COMPLETED: %d / %d",
+            std::snprintf(ranks, sizeof(ranks), hunting_companion::ui_text("RANKS COMPLETED: %d / %d"),
                           progress->ranksCompleted, progress->maxRanks);
             draw_text(ranks, 0.071f, 0.474f, 14.0f, 214, 207, 190);
 
@@ -2227,14 +2887,14 @@ void draw_recipe_detail() noexcept {
             } else {
                 char currentRank[64]{};
                 std::snprintf(currentRank, sizeof(currentRank),
-                              "CURRENT RANK: %d / %d",
+                              hunting_companion::ui_text("CURRENT RANK: %d / %d"),
                               progress->ranksCompleted + 1, progress->maxRanks);
                 draw_text(currentRank, 0.071f, 0.510f, 12.0f, 215, 202, 177);
                 draw_text("NEXT RANK OBJECTIVE", 0.071f, 0.546f,
                           11.0f, 220, 184, 112);
                 if (challenge != nullptr) {
-                    const char* objective =
-                        challenge->rankObjectives[progress->ranksCompleted];
+                    const char* objective = localized_challenge_objective(
+                        challenge->rankObjectives[progress->ranksCompleted]);
                     draw_wrapped_text(objective, 0.071f, 0.568f,
                                       48, 2, 0.024f, 12.0f,
                                       225, 218, 202);
@@ -2255,13 +2915,14 @@ void draw_recipe_detail() noexcept {
         draw_menu_footer();
         return;
     }
-    draw_menu_header(recipe->name, garmentSet != nullptr ? "GARMENT SET / INDIVIDUAL PIECES" :
-                     (g_menu.trapper ? "TRAPPER RECIPE" : "PEARSON RECIPE"));
+    draw_menu_header(recipe_display_name(*recipe), garmentSet != nullptr ? "GARMENT SET / INDIVIDUAL PIECES" :
+                     (g_menu.trapper ? "TRAPPER RECIPE" : "PEARSON RECIPE"), false);
     if (garmentSet != nullptr) {
         draw_text("COMPONENT GARMENTS AND THEIR CATALOG MATERIAL COSTS", 0.071f, 0.215f,
                   14.0f, 220, 184, 112);
-        draw_text("Donated counts use shared Trapper stock; they are not reserved per piece.",
-                  0.071f, 0.258f, 11.0f, 188, 184, 174);
+        draw_wrapped_centered_text(
+            "Donated counts use shared Trapper stock; they are not reserved per piece.",
+            0.212f, 0.250f, 49, 2, 0.019f, 11.0f, 188, 184, 174);
         DetailLine lines[64]{};
         const std::size_t lineCount = build_detail_lines(recipe, lines, std::size(lines));
         constexpr int kDetailRows = 8;
@@ -2275,8 +2936,10 @@ void draw_recipe_detail() noexcept {
                 draw_rect(0.0315f, y + 0.018f, 0.0035f, 0.048f, 191, 150, 86, 245);
             }
             if (line.heading) {
-                draw_text(line.componentName ? line.componentName : "Unknown garment",
-                          0.071f, y, 14.0f, 236, 198, 139);
+                const char* componentName = line.component != nullptr
+                    ? recipe_display_name(*line.component)
+                    : (line.componentName ? line.componentName : "Unknown garment");
+                draw_text_raw(componentName, 0.071f, y, 14.0f, 236, 198, 139);
                 if (line.component != nullptr) {
                     draw_text(line.component->owned ? "CRAFTED" : "TO CRAFT", 0.315f, y + 0.002f,
                               11.0f, line.component->owned ? 130 : 210,
@@ -2286,14 +2949,15 @@ void draw_recipe_detail() noexcept {
                     draw_text("NOT IN CATALOG", 0.290f, y + 0.002f, 10.0f, 205, 145, 120);
                 }
             } else if (line.cost != nullptr && line.component != nullptr) {
-                const char* material = find_material_name(line.cost->hash);
+                const char* material = display_material_name(line.cost->hash);
                 char label[112]{};
                 if (material != nullptr) std::snprintf(label, sizeof(label), "    %s", material);
                 else std::snprintf(label, sizeof(label), "    Material %08X", line.cost->hash);
-                draw_text(label, 0.078f, y, 13.0f, 224, 218, 205);
+                draw_wrapped_text_raw(label, 0.078f, y - 0.001f, 32, 2, 0.017f, 11.0f,
+                                      224, 218, 205);
                 char right[32]{};
                 if (line.component->owned) {
-                    std::snprintf(right, sizeof(right), "Recipe cost: %d", line.cost->amount);
+                    std::snprintf(right, sizeof(right), hunting_companion::ui_text("Recipe cost: %d"), line.cost->amount);
                 } else {
                     const MaterialNeed* need = find_vendor_material(vendor.demand, line.cost->hash);
                     const int donated = need ? std::min(need->vendorStock, line.cost->amount) : 0;
@@ -2329,15 +2993,16 @@ void draw_recipe_detail() noexcept {
         if (cost.hash == kMoneyHash) continue;
         if (visible < start) { ++visible; continue; }
         if (visible >= start + maxRows) { ++visible; continue; }
-        const char* name = find_material_name(cost.hash);
+        const char* name = display_material_name(cost.hash);
         char label[128]{};
         if (name == nullptr) std::snprintf(label, sizeof(label), "Material %08X", cost.hash);
         else std::snprintf(label, sizeof(label), "%s", name);
         const float y = 0.330f + static_cast<float>(visible - start) * 0.060f;
         if (recipe->owned) {
             char right[32]{};
-            std::snprintf(right, sizeof(right), "Recipe cost: %d", cost.amount);
-            draw_text(label, 0.071f, y, 17.0f, 222, 216, 203);
+            std::snprintf(right, sizeof(right), hunting_companion::ui_text("Recipe cost: %d"), cost.amount);
+            draw_wrapped_text_raw(label, 0.071f, y - 0.001f, 32, 2, 0.018f, 11.5f,
+                                  222, 216, 203);
             draw_text(right, 0.305f, y, 15.0f, 187, 180, 164);
         } else {
             const MaterialNeed* need = find_vendor_material(vendor.demand, cost.hash);
@@ -2345,7 +3010,8 @@ void draw_recipe_detail() noexcept {
             const int donated = need ? std::min(need->vendorStock, total) : 0;
             char right[32]{};
             std::snprintf(right, sizeof(right), "%d/%d", donated, total);
-            draw_text(label, 0.071f, y, 17.0f, 240, 234, 222);
+            draw_wrapped_text_raw(label, 0.071f, y - 0.001f, 32, 2, 0.018f, 11.5f,
+                                  240, 234, 222);
             draw_text(right, 0.305f, y, 18.0f,
                       total > 0 && donated >= total ? 130 : 218,
                       total > 0 && donated >= total ? 205 : 185,
@@ -2368,8 +3034,76 @@ void draw_recipe_detail() noexcept {
         }
     }
     if (!recipe->owned) {
-        draw_text("Vendor stock is pooled; the same materials can appear in other recipes.",
-                  0.071f, 0.805f, 12.0f, 174, 168, 154);
+        draw_wrapped_centered_text(
+            "Vendor stock is pooled; the same materials can appear in other recipes.",
+            0.212f, 0.744f, 31, 3, 0.018f, 11.0f, 174, 168, 154);
+    }
+    draw_menu_footer();
+}
+
+void draw_scan_progress() noexcept {
+    const ScanStage stage = static_cast<ScanStage>(
+        InterlockedCompareExchange(&g_scanStage, 0, 0));
+    const int current = InterlockedCompareExchange(&g_scanCurrent, 0, 0);
+    const int total = InterlockedCompareExchange(&g_scanTotal, 0, 0);
+    const int error = InterlockedCompareExchange(&g_scanError, 0, 0);
+    const ScanStage lastWorkStage = static_cast<ScanStage>(
+        InterlockedCompareExchange(&g_scanLastWorkStage, 0, 0));
+    const DWORD started = static_cast<DWORD>(InterlockedCompareExchange(&g_scanStartedTick, 0, 0));
+    const DWORD lastProgress = static_cast<DWORD>(InterlockedCompareExchange(&g_scanLastProgressTick, 0, 0));
+    const DWORD now = GetTickCount();
+    const DWORD elapsedSeconds = started != 0 ? (now - started) / 1000u : 0u;
+    const DWORD stalledSeconds = lastProgress != 0 ? (now - lastProgress) / 1000u : 0u;
+
+    draw_menu_header("HUNTING COMPANION", "INITIALIZING READ-ONLY CATALOG");
+    draw_text(scan_stage_label(stage), 0.071f, 0.235f, 15.0f, 225, 193, 145);
+    if (stage == ScanStage::Failed) {
+        const char* reason = "The game did not expose the required Story Mode inventory.";
+        if (error == 2) reason = "The shop catalog returned an invalid item count.";
+        else if (error == 3) reason = "The shop catalog exceeds the safe scan limit.";
+        else if (error == 4 || error == 5) reason = "The player inventory is not ready yet.";
+        else if (error == 6) reason = "The vendor catalogs could not be read completely.";
+        draw_wrapped_text(reason, 0.071f, 0.282f, 48, 2, 0.030f, 12.0f,
+                          197, 188, 174);
+        char stoppedLine[96]{};
+        std::snprintf(stoppedLine, sizeof(stoppedLine), hunting_companion::ui_text("Last stage: %s"),
+                      scan_stage_label(lastWorkStage));
+        draw_text(stoppedLine, 0.071f, 0.350f, 10.5f, 184, 176, 160);
+        char elapsedLine[64]{};
+        std::snprintf(elapsedLine, sizeof(elapsedLine), hunting_companion::ui_text("Elapsed: %lu seconds"),
+                      static_cast<unsigned long>(elapsedSeconds));
+        draw_text(elapsedLine, 0.071f, 0.385f, 10.5f, 184, 176, 160);
+        draw_text("Close and reopen the compendium to retry after Story Mode loads.",
+                  0.071f, 0.425f, 10.5f, 174, 167, 153);
+    } else {
+        char progressLine[64]{};
+        if (total > 0) std::snprintf(progressLine, sizeof(progressLine), "%d / %d", current, total);
+        else std::snprintf(progressLine, sizeof(progressLine), "Preparing...");
+        draw_text(progressLine, 0.071f, 0.285f, 13.0f, 222, 214, 198);
+        const float width = kMenuProgressBarWidth;
+        const float left = kMenuContentLeft;
+        draw_rect(left + width * 0.5f, 0.355f, width, 0.014f, 54, 51, 47, 235);
+        if (total > 0 && current > 0) {
+            const float ratio = std::clamp(static_cast<float>(current) /
+                                           static_cast<float>(total), 0.0f, 1.0f);
+            const float fill = width * ratio;
+            draw_rect(left + fill * 0.5f, 0.355f, fill, 0.014f,
+                      65, 166, 119, 250);
+        }
+        char elapsedLine[64]{};
+        std::snprintf(elapsedLine, sizeof(elapsedLine), hunting_companion::ui_text("Elapsed: %lu seconds"),
+                      static_cast<unsigned long>(elapsedSeconds));
+        draw_text(elapsedLine, 0.071f, 0.397f, 10.5f, 169, 163, 150);
+        draw_text("The scan yields between game queries; please allow it to finish.",
+                  0.071f, 0.438f, 10.5f, 169, 163, 150);
+        if (stalledSeconds >= 20u) {
+            char stalledLine[80]{};
+            std::snprintf(stalledLine, sizeof(stalledLine),
+                          hunting_companion::ui_text("No scan progress for %lu seconds"), static_cast<unsigned long>(stalledSeconds));
+            draw_text(stalledLine, 0.071f, 0.482f, 11.0f, 225, 174, 128);
+            draw_wrapped_text("If it persists, report this stage and test once with other HUD or inventory mods disabled.",
+                              0.071f, 0.520f, 54, 2, 0.032f, 10.5f, 185, 176, 160);
+        }
     }
     draw_menu_footer();
 }
@@ -2377,8 +3111,7 @@ void draw_recipe_detail() noexcept {
 void draw_menu() noexcept {
     if (g_menu.page == MenuPage::Closed) return;
     if (!g_tracker.ready) {
-        draw_menu_header("LOADING CATALOG", "Reading vendor recipes and donated materials...");
-        draw_menu_footer();
+        draw_scan_progress();
         return;
     }
     switch (g_menu.page) {
@@ -2387,7 +3120,8 @@ void draw_menu() noexcept {
             break;
         case MenuPage::Categories: {
             char subtitle[80]{};
-            std::snprintf(subtitle, sizeof(subtitle), "%s - Select a category", active_vendor_name());
+            std::snprintf(subtitle, sizeof(subtitle), hunting_companion::ui_text("%s - Select a category"),
+                          hunting_companion::ui_text(active_vendor_name()));
             draw_list_page("CATEGORIES", subtitle, static_cast<int>(g_menuCategoryCount),
                            category_row_label, category_row_status);
             break;
@@ -2395,9 +3129,10 @@ void draw_menu() noexcept {
         case MenuPage::Recipes: {
             char subtitle[96]{};
             std::snprintf(subtitle, sizeof(subtitle), "%s / %s",
-                          active_vendor_name(), category_label(g_menu.trapper, g_menu.categoryHash));
+                          hunting_companion::ui_text(active_vendor_name()),
+                          hunting_companion::ui_text(category_label(g_menu.trapper, g_menu.categoryHash)));
             draw_list_page("RECIPES", subtitle, static_cast<int>(g_menuRecipeCount),
-                           recipe_row_label, recipe_row_status);
+                           recipe_row_label, recipe_row_status, true);
             break;
         }
         case MenuPage::Detail: draw_recipe_detail(); break;
@@ -2431,6 +3166,11 @@ void TrackerRefreshMain() {
 
 void ScriptMain() {
     load_configuration();
+    g_detectedGameLanguage = invoke_native<int>(kGetCurrentLanguage);
+    // First load is unconditional: the tables start empty even when the effective
+    // language is already the default (English).
+    hunting_companion::load_ui_localization(g_detectedGameLanguage, effective_language());
+    hunting_companion::overlay::set_language(effective_language());
 
     // Fallback for ScriptHook builds without the additional-thread export:
     // refresh on compendium open, never on a timer.
@@ -2447,11 +3187,16 @@ void ScriptMain() {
         if (!g_refreshWorkerRegistered && InterlockedExchange(&g_refreshRequested, 0) != 0) {
             build_tracker_state();
         }
+        // The overlay may become ready (or unavailable) at any time; keep the
+        // companion language consistent with what can actually be drawn.
+        apply_effective_language();
+        hunting_companion::overlay::begin_frame();
         {
             TrackerReadLock trackerReadLock;
             update_hud();
             draw_menu();
         }
+        hunting_companion::overlay::end_frame();
         g_api.wait(0);
     }
 }
@@ -2461,6 +3206,10 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(module);
         g_module = module;
+        // Hook Vulkan as early as possible: the overlay can only follow a VkInstance
+        // that is created after the hooks are in place. Does nothing visible unless
+        // a CJK companion language is chosen while the game runs in another language.
+        hunting_companion::overlay::install(module, make_overlay_settings());
         if (!resolve_script_hook()) return FALSE;
         if (g_api.registerAdditionalThread != nullptr) {
             // Set the flag before registration so ScriptMain always takes the

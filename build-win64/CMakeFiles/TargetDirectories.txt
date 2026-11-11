@@ -1,3 +1,0 @@
-/run/media/kennyluz/Storage/Downloads&Backup/Red Dead Redemption 2/2026/HuntingCompanion-1.0.0/build-win64/CMakeFiles/HuntingCompanion.dir
-/run/media/kennyluz/Storage/Downloads&Backup/Red Dead Redemption 2/2026/HuntingCompanion-1.0.0/build-win64/CMakeFiles/edit_cache.dir
-/run/media/kennyluz/Storage/Downloads&Backup/Red Dead Redemption 2/2026/HuntingCompanion-1.0.0/build-win64/CMakeFiles/rebuild_cache.dir
