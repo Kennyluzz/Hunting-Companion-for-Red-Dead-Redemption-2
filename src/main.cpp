@@ -2926,17 +2926,6 @@ void build_crafting_uses_list() noexcept {
     }
 }
 
-CraftingUseReadiness selected_crafting_use_readiness() noexcept {
-    if (g_menu.craftingUseIndex < 0 ||
-        static_cast<std::size_t>(g_menu.craftingUseIndex) >= g_craftingUseCount)
-        return CraftingUseReadiness::UsesHaul;
-    const CraftingUseEntry& entry = g_craftingUseEntries[static_cast<std::size_t>(g_menu.craftingUseIndex)];
-    const RecipeEntry* recipe = crafting_use_recipe(entry);
-    return recipe != nullptr
-        ? crafting_use_readiness(crafting_use_vendor(entry), *recipe)
-        : CraftingUseReadiness::UsesHaul;
-}
-
 const char* crafting_use_readiness_label(CraftingUseReadiness readiness) noexcept {
     switch (readiness) {
         // Both mean "what you hold (plus vendor stock) covers the animal parts";
@@ -3925,7 +3914,6 @@ const char* root_row_status(int index, char*, std::size_t) noexcept {
     if (index != 2) return "";
     return root_item_disabled(index) ? "NO HAUL" : "AVAILABLE";
 }
-const char* no_status(int, char*, std::size_t) noexcept { return ""; }
 
 const char* crafting_use_row_label(int index, char* buffer, std::size_t size) noexcept {
     if (index < 0 || static_cast<std::size_t>(index) >= g_craftingUseCount) return "";
