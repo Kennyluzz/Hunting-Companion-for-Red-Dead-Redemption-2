@@ -1731,7 +1731,7 @@ constexpr MenuFont kMenuFonts[] = {
     {"$body1", "BODY 1", 0.94f},
     {"$title1", "TITLE", 0.74f},
     {"$ledger", "LEDGER", 0.92f},
-    // Plain faces the game keeps available in every language (per its fontmap);
+    // Plain faces the game keeps available in every language (per its font table);
     // candidates for drawing a language the game itself is not running in.
     {"$Font2", "STANDARD", 0.92f},
     {"$util", "UTILITY", 0.92f},
