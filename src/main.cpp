@@ -1569,7 +1569,7 @@ void update_current_haul() noexcept {
         if (isPelt || isPed) add_entity_animal_materials(entity, 1, isPelt);
     }
 
-    // Use the saddle horse even when Arthur is standing beside it.
+    // Use the saddle horse even when the player is standing beside it.
     const int playerId = invoke_native<int>(kPlayerId);
     const int horse = invoke_native<int>(kGetSaddleHorseForPlayer, playerId);
     if (horse != 0 && invoke_native<int>(kDoesEntityExist, horse) != 0) {
@@ -1941,7 +1941,7 @@ void update_hud() noexcept {
 
 // -----------------------------------------------------------------------------
 // In-game compendium menu. The menu reads the same vendor storage snapshot as
-// the hunting HUD. It never counts Arthur's carried animal materials.
+// the hunting HUD. It never counts the player's carried animal materials.
 // -----------------------------------------------------------------------------
 
 enum class MenuPage {
@@ -4171,7 +4171,7 @@ void draw_recipe_detail() noexcept {
         draw_text("This item is already in your owned catalog.", 0.071f, 0.270f, 13.0f);
     } else {
         draw_text("DONATED / NEEDED FOR THIS RECIPE", 0.071f, 0.215f, 16.0f, 220, 184, 112);
-        draw_text("Counts use vendor donation stock, not Arthur's inventory.", 0.071f, 0.258f, 12.0f, 188, 184, 174);
+        draw_text("Counts use vendor donation stock, not your inventory.", 0.071f, 0.258f, 12.0f, 188, 184, 174);
     }
 
     int visible = 0;
@@ -4240,7 +4240,7 @@ void draw_crafting_uses_page() noexcept {
         draw_text("Try another pelt or animal part.",
                   0.071f, 0.385f, 11.5f, 170, 164, 150);
     }
-    draw_text("Counts include Arthur, satchel and saddle horse.",
+    draw_text("Counts include what you carry, your satchel and saddle horse.",
               0.071f, 0.790f, 10.5f, 160, 154, 142);
 }
 
