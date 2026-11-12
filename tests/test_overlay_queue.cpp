@@ -60,6 +60,25 @@ int main() {
     assert(color_channel(128, true) >= 54 && color_channel(128, true) <= 56);  // 0.2158 * 255 = 55
     assert(color_channel(232, true) < 232);
 
+    // HDR10 targets: white lands at the paper-white level (far below full signal),
+    // and non-HDR targets keep the old behaviour.
+    assert(target_encoding(false, 0) == TargetEncoding::Plain);
+    assert(target_encoding(true, 0) == TargetEncoding::SrgbFormat);
+    assert(target_encoding(false, kColorSpaceHdr10St2084) == TargetEncoding::Hdr10Pq);
+    assert(near(pq_encode(10000.f), 1.f) && pq_encode(0.f) < 0.001f);
+    assert(pq_encode(100.f) > 0.50f && pq_encode(100.f) < 0.52f);  // 100 nits = 0.508
+    {
+        std::uint8_t out[3];
+        encode_color(255, 255, 255, TargetEncoding::Hdr10Pq, 230.f, out);
+        assert(out[0] == out[1] && out[1] == out[2] && out[0] > 140 && out[0] < 160);
+        encode_color(0, 0, 0, TargetEncoding::Hdr10Pq, 230.f, out);
+        assert(out[0] == 0 && out[1] == 0 && out[2] == 0);
+        encode_color(145, 194, 157, TargetEncoding::Hdr10Pq, 230.f, out);
+        assert(out[1] > out[2] && out[1] > out[0]);  // green stays dominant
+        encode_color(232, 100, 7, TargetEncoding::Plain, 230.f, out);
+        assert(out[0] == 232 && out[1] == 100 && out[2] == 7);
+    }
+
     // Language -> font slot (0 JP, 1 KR, 2 SC, 3 TC); everything else has none.
     assert(cjk_font_slot(10) == 0 && cjk_font_slot(8) == 1 && cjk_font_slot(12) == 2 && cjk_font_slot(9) == 3);
     for (int lang : {0, 1, 2, 3, 4, 5, 6, 7, 11, -1, 13}) assert(cjk_font_slot(lang) == -1);

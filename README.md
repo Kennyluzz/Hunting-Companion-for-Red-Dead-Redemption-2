@@ -105,8 +105,11 @@ letters when the game itself is in a CJK language). No files are created. Set
 `[Overlay] OverlayLog=1` in the ini for diagnostics, and `CjkTextScalePercent` /
 `CjkTextYOffsetPermille` to adjust size and position.
 
-Limitations: Vulkan only; HDR is not specially handled; overlay text is drawn
-over the finished frame, so later native UI cannot cover it.
+When the game runs in HDR (HDR10), overlay colours are converted so the text
+matches the game's own; `CjkHdrPaperWhiteNits` sets how bright white text is.
+
+Limitations: Vulkan only; overlay text is drawn over the finished frame, so
+later native UI cannot cover it.
 
 ## Data sources
 

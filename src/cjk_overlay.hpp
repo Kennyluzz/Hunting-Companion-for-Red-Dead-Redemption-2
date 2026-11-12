@@ -18,6 +18,7 @@ namespace hunting_companion::overlay {
 struct Settings {
     float textScale = 1.0f;       // ini: CjkTextScalePercent / 100
     float yOffset = 0.0f;         // ini: CjkTextYOffsetPermille / 1000, fraction of screen height
+    float hdrPaperWhiteNits = 230.0f;  // ini: CjkHdrPaperWhiteNits, brightness of white text in HDR
     bool fileLog = false;         // ini: OverlayLog=1 writes HuntingCompanion.overlay.log
     const char* logDirectory = nullptr;  // directory for the optional log file
 };

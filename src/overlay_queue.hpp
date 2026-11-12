@@ -149,6 +149,66 @@ inline std::uint8_t color_channel(std::uint8_t c, bool srgbTarget) {
     return static_cast<std::uint8_t>(v);
 }
 
+// How the swapchain expects colour values to be encoded.
+enum class TargetEncoding {
+    Plain,       // 8/10-bit UNORM, sRGB-encoded values written as they are
+    SrgbFormat,  // *_SRGB format or linear scRGB: hand over linear values
+    Hdr10Pq,     // HDR10 (BT.2020 primaries, ST 2084 "PQ" curve)
+};
+
+// Vulkan colour-space values (VkColorSpaceKHR), kept numeric so this header
+// stays free of Vulkan includes.
+constexpr int kColorSpaceHdr10St2084 = 1000104008;
+constexpr int kColorSpaceExtendedSrgbLinear = 1000104002;
+constexpr int kColorSpaceBt2020Linear = 1000104007;
+
+inline TargetEncoding target_encoding(bool srgbFormat, int colorSpace) {
+    if (colorSpace == kColorSpaceHdr10St2084) return TargetEncoding::Hdr10Pq;
+    if (srgbFormat || colorSpace == kColorSpaceExtendedSrgbLinear ||
+        colorSpace == kColorSpaceBt2020Linear) return TargetEncoding::SrgbFormat;
+    return TargetEncoding::Plain;
+}
+
+inline float pq_encode(float nits) {
+    // SMPTE ST 2084 inverse EOTF; input in cd/m2, output 0..1.
+    constexpr float m1 = 0.1593017578125f, m2 = 78.84375f;
+    constexpr float c1 = 0.8359375f, c2 = 18.8515625f, c3 = 18.6875f;
+    float l = nits / 10000.f;
+    if (l < 0.f) l = 0.f;
+    if (l > 1.f) l = 1.f;
+    const float p = std::pow(l, m1);
+    return std::pow((c1 + c2 * p) / (1.f + c3 * p), m2);
+}
+
+// Converts one sRGB text colour into the values the swapchain expects. Without
+// this an HDR game shows overlay text far brighter and more saturated than the
+// game's own text, because sRGB numbers are read as HDR10 signal levels.
+inline void encode_color(std::uint8_t r, std::uint8_t g, std::uint8_t b,
+                         TargetEncoding encoding, float paperWhiteNits,
+                         std::uint8_t out[3]) {
+    if (encoding != TargetEncoding::Hdr10Pq) {
+        const bool linear = encoding == TargetEncoding::SrgbFormat;
+        out[0] = color_channel(r, linear);
+        out[1] = color_channel(g, linear);
+        out[2] = color_channel(b, linear);
+        return;
+    }
+    const float lr = srgb_to_linear(static_cast<float>(r) / 255.f);
+    const float lg = srgb_to_linear(static_cast<float>(g) / 255.f);
+    const float lb = srgb_to_linear(static_cast<float>(b) / 255.f);
+    // BT.709 -> BT.2020 primaries.
+    const float wide[3] = {
+        0.6274f * lr + 0.3293f * lg + 0.0433f * lb,
+        0.0691f * lr + 0.9195f * lg + 0.0114f * lb,
+        0.0164f * lr + 0.0880f * lg + 0.8956f * lb,
+    };
+    for (int i = 0; i < 3; ++i) {
+        float v = pq_encode(wide[i] * paperWhiteNits) * 255.f + 0.5f;
+        if (v > 255.f) v = 255.f;
+        out[i] = static_cast<std::uint8_t>(v);
+    }
+}
+
 // Companion language index -> which embedded font to use.
 // 8 ko-KR, 9 zh-TW, 10 ja-JP, 12 zh-CN (same numbering as the rest of the mod).
 constexpr int kLatinFontSlot = 4;

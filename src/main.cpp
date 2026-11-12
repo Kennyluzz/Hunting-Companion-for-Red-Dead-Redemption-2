@@ -2154,6 +2154,8 @@ hunting_companion::overlay::Settings make_overlay_settings() noexcept {
         settings.textScale = (scale >= 40 && scale <= 300) ? static_cast<float>(scale) / 100.0f : 1.0f;
         const int offset = static_cast<int>(GetPrivateProfileIntA("Overlay", "CjkTextYOffsetPermille", 0, g_iniPath));
         settings.yOffset = (offset >= -100 && offset <= 100) ? static_cast<float>(offset) / 1000.0f : 0.0f;
+        const int paperWhite = static_cast<int>(GetPrivateProfileIntA("Overlay", "CjkHdrPaperWhiteNits", 230, g_iniPath));
+        settings.hdrPaperWhiteNits = (paperWhite >= 80 && paperWhite <= 1000) ? static_cast<float>(paperWhite) : 230.0f;
         settings.fileLog = GetPrivateProfileIntA("Overlay", "OverlayLog", 0, g_iniPath) != 0;
         settings.logDirectory = g_moduleDirectory;
     }
@@ -3714,7 +3716,7 @@ const char* challenge_reward_row_status(int index, char* buffer, std::size_t siz
     const ChallengeProgress* progress = find_challenge_progress(item->challengeName);
     if (progress == nullptr || !progress->available) return "RANK ?";
     if (progress->ranksCompleted >= static_cast<int>(item->unlockRank)) return "UNLOCKED";
-    std::snprintf(buffer, size, hunting_companion::ui_text("LOCKED R%u"), item->unlockRank);
+    std::snprintf(buffer, size, hunting_companion::ui_text("RANK %u"), item->unlockRank);
     return buffer;
 }
 
@@ -3754,7 +3756,7 @@ const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcep
             ? find_challenge_progress(item->challengeName) : nullptr;
         if (progress == nullptr || !progress->available) return "RANK ?";
         if (progress->ranksCompleted >= static_cast<int>(item->unlockRank)) return "UNLOCKED";
-        std::snprintf(buffer, size, hunting_companion::ui_text("LOCKED R%u"), item->unlockRank);
+        std::snprintf(buffer, size, hunting_companion::ui_text("RANK %u"), item->unlockRank);
         return buffer;
     }
     if (recipe.owned) return "CRAFTED";

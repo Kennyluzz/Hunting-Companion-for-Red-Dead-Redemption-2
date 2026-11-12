@@ -108,6 +108,7 @@ struct Swap {
     VkDevice device = VK_NULL_HANDLE;
     VkSwapchainKHR handle = VK_NULL_HANDLE;
     VkFormat format = VK_FORMAT_UNDEFINED;
+    VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
     VkExtent2D extent{};
     bool canRender = false;       // swapchain images have COLOR_ATTACHMENT usage
     bool failed = false;
@@ -483,7 +484,8 @@ void build_imgui_frame(const std::vector<TextCmd>& cmds, const Swap& s) noexcept
     const float boost = slot_size_boost(slot);
     if (font) {
         const float W = io.DisplaySize.x, H = io.DisplaySize.y;
-        const bool srgb = is_srgb(s.format);
+        const TargetEncoding encoding =
+            target_encoding(is_srgb(s.format), static_cast<int>(s.colorSpace));
         ImDrawList* dl = ImGui::GetBackgroundDrawList();
         for (const TextCmd& c : cmds) {
             if (c.empty()) continue;
@@ -493,8 +495,11 @@ void build_imgui_frame(const std::vector<TextCmd>& cmds, const Swap& s) noexcept
                 const ImVec2 size = font->CalcTextSizeA(px, FLT_MAX, 0.0f, c.text);
                 pos.x = left_edge(pos.x, size.x, true);
             }
-            const ImU32 col = IM_COL32(color_channel(c.r, srgb), color_channel(c.g, srgb),
-                                       color_channel(c.b, srgb), c.a);
+            std::uint8_t rgb[3];
+            encode_color(static_cast<std::uint8_t>(c.r), static_cast<std::uint8_t>(c.g),
+                         static_cast<std::uint8_t>(c.b), encoding,
+                         g_settings.hdrPaperWhiteNits, rgb);
+            const ImU32 col = IM_COL32(rgb[0], rgb[1], rgb[2], c.a);
             dl->AddText(font, px, pos, col, c.text);
         }
     }
@@ -639,6 +644,7 @@ VkResult on_create_swapchain(PFN_vkCreateSwapchainKHR real, VkDevice device,
     s.device = device;
     s.handle = *out;
     s.format = ci->imageFormat;
+    s.colorSpace = ci->imageColorSpace;
     s.extent = ci->imageExtent;
     s.canRender = canRender;
     if (!load_device_fns(device)) {
@@ -652,8 +658,9 @@ VkResult on_create_swapchain(PFN_vkCreateSwapchainKHR real, VkDevice device,
             s.failed = true;
         }
     }
-    hc_log("vkCreateSwapchainKHR observed: %ux%u format %d, %zu images, drawable=%d",
-           s.extent.width, s.extent.height, static_cast<int>(s.format), s.images.size(),
+    hc_log("vkCreateSwapchainKHR observed: %ux%u format %d colour space %d, %zu images, drawable=%d",
+           s.extent.width, s.extent.height, static_cast<int>(s.format),
+           static_cast<int>(s.colorSpace), s.images.size(),
            s.canRender && !s.failed);
     g->swaps[*out] = std::move(s);
     return r;
