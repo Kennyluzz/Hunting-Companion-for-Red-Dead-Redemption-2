@@ -3647,9 +3647,10 @@ void draw_wrapped_centered_text(const char* text, float centerX, float y,
 }
 
 // Shared horizontal bounds for rank bars on category and reinforced-item
-// detail pages. The right edge is the exact right edge of draw_menu_row plates.
+// detail pages. In the 1.20 look rows have no plates, so the bar ends where the
+// divider lines end, well inside the panel's rough painted edge.
 constexpr float kMenuContentLeft = 0.071f;
-constexpr float kMenuRewardRowRight = 0.212f + 0.365f * 0.5f;
+constexpr float kMenuRewardRowRight = 0.212f + 0.345f * 0.5f;
 constexpr float kMenuProgressBarWidth = kMenuRewardRowRight - kMenuContentLeft;
 
 void draw_challenge_progress_bar(const ChallengeProgress& progress,
