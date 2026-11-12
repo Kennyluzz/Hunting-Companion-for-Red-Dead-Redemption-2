@@ -1814,7 +1814,6 @@ bool wrap_to_width(const char* text, float size, float correction, float maxWidt
 }
 
 bool g_showWeaponIcons = true;       // toggled from Settings or the icons hotkey
-bool g_useWheelAmmoIcons = true;     // ammo icons from the weapon wheel's own texture set
 
 void draw_text_impl(const char* text, float x, float y, float referencePixelHeight,
                     int red, int green, int blue, int alpha,
@@ -1825,31 +1824,6 @@ struct RecommendationIcon {
     const char* sprite;
     const char* label;   // untranslated key; translated when drawn
 };
-
-// The weapon wheel draws its ammunition-type icons from the "ui_hud" texture set.
-const char* wheel_ammo_sprite(const char* inventoryName) noexcept {
-    struct Entry { const char* inventory; const char* wheel; };
-    static constexpr Entry kEntries[] = {
-        {"ammo_arrow_improved", "arrow_type_improved"},
-        {"ammo_arrow_poison", "arrow_type_poison"},
-        {"ammo_arrow_small_game", "arrow_type_small_game"},
-        {"ammo_bullet_normal", "bullet_normal"},
-        {"ammo_bullet_high_velocity", "bullet_high_velocity"},
-        {"ammo_bullet_express", "bullet_express"},
-    };
-    if (inventoryName == nullptr) return nullptr;
-    for (const Entry& entry : kEntries) {
-        if (std::strcmp(entry.inventory, inventoryName) == 0) return entry.wheel;
-    }
-    return nullptr;
-}
-
-bool hud_texture_dictionary_ready() noexcept {
-    constexpr const char* kHudTextureDictionary = "ui_hud";
-    if (invoke_native<int>(kHasStreamedTextureDictLoaded, kHudTextureDictionary) != 0) return true;
-    invoke_native<void>(kRequestStreamedTextureDict, kHudTextureDictionary, false);
-    return false;
-}
 
 void draw_icon_with_shadow(const RecommendationIcon& icon, float centerX, float centerY,
                            float width, float height) noexcept {
@@ -1886,17 +1860,13 @@ void draw_hunting_recommendation_icons(
     constexpr std::size_t kMaxRows = 6;
     IconRow rows[kMaxRows]{};
     std::size_t rowCount = 0;
-    const bool wheelAmmo = g_useWheelAmmoIcons && hud_texture_dictionary_ready();
     for (std::size_t choiceIndex = recommendation.choiceCount; choiceIndex-- > 0;) {
         const auto& choice = recommendation.choices[choiceIndex];
         RecommendationIcon items[1 + 4]{};
         std::size_t itemCount = 0;
         items[itemCount++] = RecommendationIcon{"inventory_items", choice.texture, choice.label};
         for (std::size_t ammo = 0; ammo < choice.ammoCount && itemCount < std::size(items); ++ammo) {
-            const char* wheelSprite = wheelAmmo ? wheel_ammo_sprite(choice.ammo[ammo].texture) : nullptr;
-            items[itemCount++] = wheelSprite != nullptr
-                ? RecommendationIcon{"ui_hud", wheelSprite, choice.ammo[ammo].label}
-                : RecommendationIcon{"inventory_items", choice.ammo[ammo].texture, choice.ammo[ammo].label};
+            items[itemCount++] = RecommendationIcon{"inventory_items", choice.ammo[ammo].texture, choice.ammo[ammo].label};
         }
         for (std::size_t first = 0; first < itemCount && rowCount < kMaxRows; first += 2) {
             IconRow& row = rows[rowCount++];
@@ -2089,7 +2059,6 @@ void load_configuration() noexcept {
     const UINT iconsKey = GetPrivateProfileIntA("General", "WeaponIconsKey", kDefaultIconsKey, g_iniPath);
     g_iconsHotkey = (iconsKey > 0 && iconsKey < 256) ? iconsKey : kDefaultIconsKey;
     g_showWeaponIcons = GetPrivateProfileIntA("General", "ShowWeaponIcons", 1, g_iniPath) != 0;
-    g_useWheelAmmoIcons = GetPrivateProfileIntA("General", "UseWheelAmmoIcons", 1, g_iniPath) != 0;
     const UINT configuredLanguage = GetPrivateProfileIntA(
         "General", "UILanguage", 0xFFFFFFFFu, g_iniPath);
     g_uiLanguageOverride = configuredLanguage == 0xFFFFFFFFu
@@ -2128,7 +2097,6 @@ void save_icons_settings() noexcept {
     std::snprintf(value, sizeof(value), "%u", static_cast<unsigned>(g_iconsHotkey));
     WritePrivateProfileStringA("General", "WeaponIconsKey", value, g_iniPath);
     WritePrivateProfileStringA("General", "ShowWeaponIcons", g_showWeaponIcons ? "1" : "0", g_iniPath);
-    WritePrivateProfileStringA("General", "UseWheelAmmoIcons", g_useWheelAmmoIcons ? "1" : "0", g_iniPath);
 }
 
 void save_ui_language() noexcept {
@@ -3084,7 +3052,7 @@ int current_page_count() noexcept {
         case MenuPage::ChallengeDetail:
             return reinforced_equipment_count_for_challenge(
                 static_cast<std::size_t>(g_menu.challengeIndex));
-        case MenuPage::Settings: return 7;
+        case MenuPage::Settings: return 6;
         case MenuPage::Closed: return 0;
     }
     return 0;
@@ -3214,13 +3182,6 @@ void update_menu_input() noexcept {
             return;
         }
     }
-    if (g_menu.page == MenuPage::Settings && g_menu.selection == 4) {
-        if (key_pressed(VK_LEFT) || key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) {
-            g_useWheelAmmoIcons = !g_useWheelAmmoIcons;
-            save_icons_settings();
-            return;
-        }
-    }
     if (g_menu.page == MenuPage::Settings && g_menu.selection == 1) {
         if (key_pressed(VK_LEFT)) { change_ui_language(-1); return; }
         if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_ui_language(1); return; }
@@ -3310,7 +3271,7 @@ void update_menu_input() noexcept {
                 g_menu.captureHotkey = true;
             } else if (g_menu.selection == 2) {
                 g_menu.captureFilterHotkey = true;
-            } else if (g_menu.selection == 5) {
+            } else if (g_menu.selection == 4) {
                 g_menu.captureIconsHotkey = true;
             } else if (g_menu.selection == 5) {
                 g_menu.page = MenuPage::Root;
@@ -3702,7 +3663,10 @@ const char* root_label(int index, char*, std::size_t) noexcept {
     return (index >= 0 && index < 6) ? labels[index] : "";
 }
 bool root_item_disabled(int index) noexcept {
-    return index == 2 && (!g_currentHaul.ready || !current_haul_has_any());
+    // Satchel materials alone (antlers, claws...) count as haul, so gate on
+    // the recipe list itself: no matching uncrafted recipe means nothing to open.
+    return index == 2 && (!g_currentHaul.ready || !current_haul_has_any() ||
+                          g_craftingUseCount == 0);
 }
 const char* root_row_status(int index, char*, std::size_t) noexcept {
     if (index != 2) return "";
@@ -3826,33 +3790,31 @@ void draw_settings_page() noexcept {
     draw_menu_row(filterKeyLine, "CHANGE", 2, g_menu.selection == 2);
     draw_menu_row("Weapon/ammo icons", g_showWeaponIcons ? "SHOWN" : "HIDDEN", 3,
                   g_menu.selection == 3);
-    draw_menu_row("Ammo icon set", g_useWheelAmmoIcons ? "WEAPON WHEEL" : "INVENTORY", 4,
-                  g_menu.selection == 4);
     char iconsKeyLine[128]{};
     std::snprintf(iconsKeyLine, sizeof(iconsKeyLine),
                   hunting_companion::ui_text("Weapon/ammo icons key: %s"), key_name(g_iconsHotkey));
-    draw_menu_row(iconsKeyLine, "CHANGE", 5, g_menu.selection == 5);
-    draw_menu_row("Back", "", 6, g_menu.selection == 6);
+    draw_menu_row(iconsKeyLine, "CHANGE", 4, g_menu.selection == 4);
+    draw_menu_row("Back", "", 5, g_menu.selection == 5);
 
-    // The seven rows end near y = 0.65, so the information block starts below them.
+    // The six rows end near y = 0.59, so the information block starts below them.
     char languageLine[256]{};
     std::snprintf(languageLine, sizeof(languageLine), hunting_companion::ui_text("RDR2 language: %s (%s)"),
                   game_language_name(g_detectedGameLanguage),
                   game_language_locale(g_detectedGameLanguage));
-    draw_text(languageLine, 0.071f, 0.684f, 12.5f, 192, 186, 171);
+    draw_text(languageLine, 0.071f, 0.625f, 12.5f, 192, 186, 171);
     char interfaceLine[256]{};
     std::snprintf(interfaceLine, sizeof(interfaceLine),
                   hunting_companion::ui_text("Companion interface: %s (%s)"),
                   game_language_name(selectedLanguage),
                   hunting_companion::ui_locale());
-    draw_text(interfaceLine, 0.071f, 0.714f, 11.0f, 160, 154, 142);
+    draw_text(interfaceLine, 0.071f, 0.660f, 11.0f, 160, 154, 142);
     draw_wrapped_text("LEFT/RIGHT or ENTER changes the companion language.",
-                      0.071f, 0.742f, 52, 2, 0.026f, 10.0f, 160, 154, 142);
+                      0.071f, 0.692f, 52, 2, 0.026f, 10.0f, 160, 154, 142);
     if (overlay_fallback_active()) {
         // Only shown while the UI is in English (the fallback), so it is not translated.
         static constexpr char kOverlayFallbackNotice[] =
             "CJK overlay not ready (Vulkan only): showing English.";
-        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.792f, 10.0f, 224, 160, 120);
+        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.752f, 10.0f, 224, 160, 120);
     }
     const std::size_t officialCount = hunting_companion::loaded_official_string_count();
     char officialStatus[160]{};
@@ -3860,12 +3822,12 @@ void draw_settings_page() noexcept {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official Rockstar language entries loaded: %llu"),
                       static_cast<unsigned long long>(officialCount));
-        draw_wrapped_text(officialStatus, 0.071f, 0.814f, 52, 2, 0.022f, 9.5f, 145, 194, 157);
+        draw_wrapped_text(officialStatus, 0.071f, 0.780f, 52, 2, 0.026f, 9.5f, 145, 194, 157);
     } else {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official item-name data unavailable for %s; English names used."),
                       hunting_companion::ui_text(hunting_companion::locale_name(selectedLanguage)));
-        draw_wrapped_text(officialStatus, 0.071f, 0.814f, 52, 2, 0.022f, 9.5f, 220, 174, 128);
+        draw_wrapped_text(officialStatus, 0.071f, 0.780f, 52, 2, 0.026f, 9.5f, 220, 174, 128);
     }
     if (g_menu.captureHotkey || g_menu.captureFilterHotkey || g_menu.captureIconsHotkey) {
         draw_rect(0.212f, 0.52f, 0.34f, 0.12f, 0, 0, 0, 245);

@@ -68,8 +68,9 @@ if "SET_GAME_PAUSED" in SOURCE or "kSetGamePaused" in SOURCE:
 for forbidden in ("REMOVE_INVENTORY_ITEM", "CLEAR_PELT_FROM_HORSE", "SET_PELT_FOR_HORSE"):
     if forbidden in SOURCE:
         raise AssertionError(f"Crafting Uses must not mutate inventory/cargo: {forbidden}")
-if "VERSION 1.15.0" not in CMAKE:
-    raise AssertionError("CMake version is not 1.15.0")
+VERSION = (ROOT / "VERSION.txt").read_text(encoding="utf-8").strip()
+if f"VERSION {VERSION} " not in CMAKE:
+    raise AssertionError("CMake project version does not match VERSION.txt")
 
 locales = ("en-US","fr-FR","de-DE","it-IT","es-ES","pt-BR","pl-PL","ru-RU","ko-KR","zh-TW","ja-JP","es-MX","zh-CN")
 keys = ("Crafting Uses","NO HAUL","AVAILABLE","CRAFTING USES","READY AFTER DONATION",
@@ -82,3 +83,6 @@ for locale in locales:
             raise AssertionError(f"{locale}: missing localization key {key}")
 
 print("PASS: read-only player/horse haul scan, submenu gating, recipe filtering, readiness and 13-locale contracts.")
+
+if "g_craftingUseCount == 0);" not in SOURCE:
+    raise AssertionError("Crafting Uses row must be disabled when no recipe matches the haul")

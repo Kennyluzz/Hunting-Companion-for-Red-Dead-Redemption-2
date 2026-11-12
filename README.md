@@ -11,8 +11,7 @@ ScriptHookRDR2 plugin (`HuntingCompanion.asi`).
 - **Animal indicators:** when you focus an animal, see whether it can supply a
   material still needed by an unowned Pearson or Trapper recipe.
 - **Weapon and ammo suggestions:** icons and names of the weapon and ammunition
-  that give the cleanest kill for the focused animal, using the weapon wheel's
-  own ammunition icons. Toggle them from Settings or with a hotkey.
+  that give the cleanest kill for the focused animal. Toggle them from Settings or with a hotkey.
 - **Pearson and Trapper:** browse recipes, required materials, ownership and
   donation-stock counts, with a "craftable now" filter.
 - **Crafting Uses:** lists the uncrafted recipes that can use the pelts and

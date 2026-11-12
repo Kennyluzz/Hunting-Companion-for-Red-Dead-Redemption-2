@@ -99,8 +99,8 @@ if "SET_GAME_PAUSED" in SOURCE or "kSetGamePaused" in SOURCE:
     raise AssertionError("The explicitly rejected pause feature was added")
 if "key_pressed(VK_SPACE)" in SOURCE:
     raise AssertionError("Craftable filter still uses a hard-coded Space key")
-if 'MenuPage::Settings: return 7' not in SOURCE:
-    raise AssertionError("Settings page count does not include all settings rows")
+if 'MenuPage::Settings: return 6' not in SOURCE:
+    raise AssertionError("Settings page count does not include the filter-key option")
 if 'if (count > 0)' not in SOURCE[SOURCE.index("// Keep new/unknown catalog groups visible"):SOURCE.index("void build_menu_recipe_list")]:
     raise AssertionError("Empty unknown categories can still be displayed")
 if 'if ((!needsPearson && !needsTrapper) || !blip_texture_dictionary_ready()) return;' not in SOURCE:
@@ -116,8 +116,9 @@ if "cost.hash == kMoneyHash" in craftable_block:
     raise AssertionError("Cash must not block Craftable Now")
 if "src/embedded_hunting_recommendations.hpp" not in CMAKE:
     raise AssertionError("CMake does not include the generated recommendation header")
-if "VERSION 1.15.0" not in CMAKE:
-    raise AssertionError("CMake project version is not 1.15.0")
+VERSION = (ROOT / "VERSION.txt").read_text(encoding="utf-8").strip()
+if f"VERSION {VERSION} " not in CMAKE:
+    raise AssertionError("CMake project version does not match VERSION.txt")
 
 locales = ("en-US","fr-FR","de-DE","it-IT","es-ES","pt-BR","pl-PL","ru-RU","ko-KR","zh-TW","ja-JP","es-MX","zh-CN")
 for locale in locales:
