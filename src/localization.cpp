@@ -2,7 +2,9 @@
 #include "official_strings.hpp"
 #include "embedded_languages.hpp"
 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 
 #include <algorithm>
@@ -53,10 +55,15 @@ void trim_ascii(std::string& value) {
 
 const Translation* find_translation(const char* key) noexcept {
     if (key == nullptr) return nullptr;
-    for (std::size_t i = 0; i < g_translationCount; ++i) {
-        if (std::strcmp(g_translations[i].key, key) == 0) return &g_translations[i];
-    }
-    return nullptr;
+    // The table is sorted by key once per language load; this runs for every
+    // visible string on every frame.
+    const Translation* first = g_translations.data();
+    const Translation* last = first + g_translationCount;
+    const Translation* found = std::lower_bound(first, last, key,
+        [](const Translation& entry, const char* wanted) noexcept {
+            return std::strcmp(entry.key, wanted) < 0;
+        });
+    return found != last && std::strcmp(found->key, key) == 0 ? found : nullptr;
 }
 } // namespace
 
@@ -97,6 +104,10 @@ void load_ui_localization(int gameLanguage, int uiLanguageOverride) noexcept {
                 std::snprintf(destination->key, sizeof(destination->key), "%s", key.c_str());
                 std::snprintf(destination->value, sizeof(destination->value), "%s", value.c_str());
             }
+            std::sort(g_translations.begin(), g_translations.begin() + g_translationCount,
+                      [](const Translation& a, const Translation& b) noexcept {
+                          return std::strcmp(a.key, b.key) < 0;
+                      });
         } catch (...) {
             g_translations = {};
             g_translationCount = 0;

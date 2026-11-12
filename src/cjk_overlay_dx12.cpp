@@ -5,8 +5,8 @@
 // DXGI swapchain, and just before each Present draws the queued text into the
 // back buffer with Dear ImGui's DirectX 12 backend.
 //
-// STATUS: written and type-checked against the mingw-w64 headers, but never run
-// on DirectX 12. To keep the risk low it
+// STATUS: experimental. Confirmed working once under Proton (DirectX 12
+// translated by vkd3d); not yet tested on native Windows. To keep the risk low it
 //   * creates no Direct3D objects until there is CJK text to draw,
 //   * turns itself off for the rest of the session after any failure,
 //   * writes HuntingCompanion.overlay.log only when [Overlay] OverlayLog=1.

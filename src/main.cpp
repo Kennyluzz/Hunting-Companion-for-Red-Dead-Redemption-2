@@ -96,6 +96,7 @@ Return invoke_native(std::uint64_t hash, Args... args) noexcept {
 constexpr std::uint64_t kPlayerPedId = 0x096275889B8E0EE0ull;
 constexpr std::uint64_t kPlayerId = 0x217E9DC48139933Dull;
 constexpr std::uint64_t kGetSaddleHorseForPlayer = 0xB48050D326E9A2F3ull;
+constexpr std::uint64_t kGetPeltFromHorse = 0x0CEEB6F4780B1F2Full;
 constexpr std::uint64_t kGetCarriedAttachedInfoForSlot = 0x608BC6A6AACD5036ull;
 constexpr std::uint64_t kFindAllAttachedCarriableEntities = 0xB5ACE8B23A438EC0ull;
 constexpr std::uint64_t kCreateItemset = 0xA1AF16083320065Aull;
@@ -1439,6 +1440,7 @@ struct CurrentHaulMaterial {
     int inventoryCount{};
     int carriedCount{};
     int horseCount{};
+    int stowedPeltCount{};  // scratch: pelts in the horse's stowed-pelt list
 };
 struct CurrentHaulState {
     std::array<CurrentHaulMaterial, kMaxMaterials> materials{};
@@ -1474,7 +1476,8 @@ void add_current_haul_count(std::uint32_t hash, int amount, int source) noexcept
     }
     CurrentHaulMaterial& material = g_currentHaul.materials[static_cast<std::size_t>(index)];
     int* destination = source == 0 ? &material.inventoryCount :
-                       source == 1 ? &material.carriedCount : &material.horseCount;
+                       source == 1 ? &material.carriedCount :
+                       source == 2 ? &material.horseCount : &material.stowedPeltCount;
     *destination = std::min(1000000, *destination + amount);
 }
 
@@ -1587,6 +1590,21 @@ void update_current_haul() noexcept {
                 if (isPelt || isPed) add_entity_animal_materials(entity, 2, isPelt);
             }
             invoke_native<void>(kDestroyItemset, itemSet);
+        }
+
+        // Small and medium pelts are not attached entities: the horse keeps them
+        // in its own stowed-pelt list (the satchel's Horse Cargo tab), whose
+        // entries are the pelts' inventory item hashes. A large pelt may show up
+        // both here and as an attached entity, so take the larger of the two
+        // counts instead of adding them.
+        for (int index = 0; index < 32; ++index) {
+            const std::uint32_t pelt = invoke_native<std::uint32_t>(kGetPeltFromHorse, horse, index);
+            if (pelt != 0) add_current_haul_count(pelt, 1, 3);
+        }
+        for (std::size_t i = 0; i < g_currentHaul.count; ++i) {
+            CurrentHaulMaterial& material = g_currentHaul.materials[i];
+            material.horseCount = std::max(material.horseCount, material.stowedPeltCount);
+            material.stowedPeltCount = 0;
         }
     }
 }
@@ -2908,21 +2926,12 @@ void build_crafting_uses_list() noexcept {
     }
 }
 
-CraftingUseReadiness selected_crafting_use_readiness() noexcept {
-    if (g_menu.craftingUseIndex < 0 ||
-        static_cast<std::size_t>(g_menu.craftingUseIndex) >= g_craftingUseCount)
-        return CraftingUseReadiness::UsesHaul;
-    const CraftingUseEntry& entry = g_craftingUseEntries[static_cast<std::size_t>(g_menu.craftingUseIndex)];
-    const RecipeEntry* recipe = crafting_use_recipe(entry);
-    return recipe != nullptr
-        ? crafting_use_readiness(crafting_use_vendor(entry), *recipe)
-        : CraftingUseReadiness::UsesHaul;
-}
-
 const char* crafting_use_readiness_label(CraftingUseReadiness readiness) noexcept {
     switch (readiness) {
-        case CraftingUseReadiness::ReadyAfterDonation: return "READY AFTER DONATION";
-        case CraftingUseReadiness::AnimalPartsReady: return "ANIMAL PARTS READY";
+        // Both mean "what you hold (plus vendor stock) covers the animal parts";
+        // one recipe also costs money, which is not worth a different label.
+        case CraftingUseReadiness::ReadyAfterDonation:
+        case CraftingUseReadiness::AnimalPartsReady: return "READY AFTER DONATION";
         case CraftingUseReadiness::NeedsOtherMaterials: return "OTHER COSTS NEEDED";
         case CraftingUseReadiness::UsesHaul: return "USES YOUR HAUL";
     }
@@ -3846,7 +3855,7 @@ void draw_menu_footer() noexcept {
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     if (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes) {
         char filterHint[64]{};
-        std::snprintf(filterHint, sizeof(filterHint), "%s: %s",
+        std::snprintf(filterHint, sizeof(filterHint), "%s - %s",
                       key_name(g_filterHotkey), hunting_companion::ui_text("Toggle Filter"));
         draw_text(filterHint, 0.240f, 0.908f, 12.5f,
                   theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
@@ -3872,16 +3881,18 @@ void draw_list_page(const char* title, const char* subtitle,
     }
     char count[48]{};
     std::snprintf(count, sizeof(count), hunting_companion::ui_text("%d of %d"), total > 0 ? g_menu.selection + 1 : 0, total);
-    draw_text(count, 0.31f, 0.808f, 13.5f,
+    draw_text(count, 0.31f, 0.832f, 13.5f,
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     // Scroll arrows appear only while rows are hidden above or below.
     if (menu_textures_ready()) {
         const float arrowWidth = 0.0105f * screen_width_correction();
+        // The two arrow textures sit at different heights inside their sprites;
+        // the y values differ so both appear level with the "n of m" text.
         if (start > 0)
-            draw_sprite(theme::kMenu, theme::kArrowUp, 0.283f, 0.822f, arrowWidth, 0.0187f,
+            draw_sprite(theme::kMenu, theme::kArrowUp, 0.283f, 0.8365f, arrowWidth, 0.0187f,
                         theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 235);
         if (end < total)
-            draw_sprite(theme::kMenu, theme::kArrowDown, 0.297f, 0.822f, arrowWidth, 0.0187f,
+            draw_sprite(theme::kMenu, theme::kArrowDown, 0.297f, 0.8475f, arrowWidth, 0.0187f,
                         theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 235);
     }
     draw_menu_footer();
@@ -3903,7 +3914,6 @@ const char* root_row_status(int index, char*, std::size_t) noexcept {
     if (index != 2) return "";
     return root_item_disabled(index) ? "NO HAUL" : "AVAILABLE";
 }
-const char* no_status(int, char*, std::size_t) noexcept { return ""; }
 
 const char* crafting_use_row_label(int index, char* buffer, std::size_t size) noexcept {
     if (index < 0 || static_cast<std::size_t>(index) >= g_craftingUseCount) return "";
@@ -4358,7 +4368,7 @@ void draw_crafting_uses_page() noexcept {
                   0.071f, 0.385f, 11.5f, 170, 164, 150);
     }
     draw_text("Counts include what you carry, your satchel and saddle horse.",
-              0.071f, 0.790f, 10.5f, 160, 154, 142);
+              0.071f, 0.815f, 10.5f, 160, 154, 142);
 }
 
 void draw_crafting_use_detail() noexcept {
@@ -4605,11 +4615,14 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(module);
         g_module = module;
-        // Hook Vulkan as early as possible: the overlay can only follow a VkInstance
-        // that is created after the hooks are in place. Does nothing visible unless
-        // a CJK companion language is chosen while the game runs in another language.
-        hunting_companion::overlay::install(module, make_overlay_settings());
+        // Without ScriptHook the mod cannot run; bail out before anything is hooked
+        // so the DLL can unload cleanly.
         if (!resolve_script_hook()) return FALSE;
+        // Hook the renderer as early as possible: the overlay can only follow a
+        // swapchain created after the hooks are in place. install() only starts a
+        // worker thread (no hooking under the loader lock) and does nothing visible
+        // unless a CJK companion language is chosen while the game runs in another.
+        hunting_companion::overlay::install(module, make_overlay_settings());
         if (g_api.registerAdditionalThread != nullptr) {
             // Set the flag before registration so ScriptMain always takes the
             // asynchronous path, even if ScriptHook starts the worker eagerly.

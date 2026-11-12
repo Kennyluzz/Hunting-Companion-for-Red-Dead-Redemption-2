@@ -1,73 +1,101 @@
 # Hunting Companion
 
-An in-game hunting and crafting companion for **Red Dead Redemption 2 (Story Mode)**.
-Focus an animal and it tells you what you still need from it, which weapon and
-ammunition give the cleanest kill, and what you can craft with what you are carrying.
+An in-game hunting and crafting companion for **Red Dead Redemption 2 (Story Mode)**,
+built as a single ScriptHookRDR2 plugin (`HuntingCompanion.asi`).
+
+**Just want to play?** Download the mod from
+[Nexus Mods](https://www.nexusmods.com/reddeadredemption2/mods/11452). Install steps,
+controls and options are in [`README-PLAYERS.md`](README-PLAYERS.md), which is also
+the readme shipped in the release zip.
 
 > The mod is AI-coded. The ideas, direction and in-game testing are human; the
 > code was written by AI assistants.
 
-## Features
+This page is for people who want to build or change the mod.
 
-- **Animal indicators:** see whether the animal you are looking at can supply a
-  material that an unowned Pearson or Trapper recipe still needs.
-- **Weapon and ammo suggestions:** icons and names of the weapon and ammunition
-  for a clean kill. Toggle them in Settings or with a hotkey.
-- **Pearson and Trapper:** recipes, required materials, what you own, donation
-  stock, and a "craftable now" filter.
-- **Crafting Uses:** the uncrafted recipes that can use the pelts and parts you are
-  carrying. Greyed out when nothing you carry matches.
-- **Challenges:** live rank totals for all nine Story Mode challenge categories and
-  what the next rank asks for.
-- **Reinforced equipment:** unlock requirements for all 36 bandoliers, gun belts and holsters.
-- **Garment sets:** progress for all 16 Trapper garment sets.
-- **13 languages, switchable in-game:** English, French, German, Italian, Spanish
-  (Spain and Mexico), Brazilian Portuguese, Polish, Russian, Japanese, Korean,
-  Simplified Chinese and Traditional Chinese. Item and challenge names are the
-  game's own.
-- **Menu fonts:** five game fonts to choose from in Settings.
+## Building
 
-The mod only reads game data. It never changes your progress, inventory or saves.
-**Do not use it in Red Dead Online.**
+Target is Windows x64. You need MinGW-w64, CMake and Ninja; it cross-compiles
+from Linux. All third-party sources are vendored in `third_party/`.
 
-## Install
+```bash
+cmake -S . -B build -G Ninja \
+  -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-toolchain.cmake \
+  -DCMAKE_BUILD_TYPE=Release
+cmake --build build --clean-first
+```
 
-1. Install [ScriptHookRDR2](https://www.nexusmods.com/reddeadredemption2/mods/1472) and an [ASI loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases).
-2. Copy `HuntingCompanion.asi` (and optionally `HuntingCompanion.ini`) into the game
-   folder, next to `RDR2.exe`.
-3. Start Story Mode and press **F8**.
+The result is `build/HuntingCompanion.asi`. Use a fresh build directory each time
+so an old CMake cache cannot produce a stale binary.
 
-Everything else is built into the `.asi`. To uninstall, delete the files.
+To make a release zip (the `.asi`, the player readme, the default ini and the licences):
 
-## Controls
+```bash
+python tools/package_release.py build/HuntingCompanion.asi
+```
 
-| Action | Default |
+## Layout
+
+| Path | What it is |
 |---|---|
-| Open / close the menu | F8 |
-| Toggle the "craftable now" filter | `[` |
-| Toggle weapon/ammo icons | `]` |
-| Navigate | Up / Down, Enter, Backspace |
+| `src/main.cpp` | The mod: game natives, recipe and challenge tracking, HUD icons, the menu |
+| `src/localization.*` | Loads the embedded language tables |
+| `src/official_strings.*` | The game's own item and challenge names, per language |
+| `src/cjk_overlay.cpp` | Draws Japanese/Korean/Chinese text on Vulkan |
+| `src/cjk_overlay_dx12.cpp` | The same on DirectX 12 (experimental) |
+| `src/overlay_queue.hpp` | Text queue shared by the script thread and the overlay, plus HDR colour conversion |
+| `src/embedded_*.hpp` | Generated files; do not edit by hand (see below) |
+| `HuntingCompanion-Languages/` | One `.lang` file per language |
+| `data/` | Source data for the generators |
+| `tools/` | Generators, the localisation validator and the release packager |
+| `tests/` | Checks that run without the game |
+| `third_party/` | Dear ImGui, MinHook and the Vulkan headers |
 
-All keys, the language and the menu font can be changed on the in-game Settings
-page. Settings are saved to `HuntingCompanion.ini`.
+## Generated files
 
-## Japanese, Korean and Chinese
+Rerun the generator after changing its input:
 
-If the game itself is set to one of these languages, the mod uses the game's own
-fonts. If you pick one of them in the mod while the game runs in another language,
-the mod draws the text itself, which works on both renderers:
+| Input | Command | Output |
+|---|---|---|
+| `HuntingCompanion-Languages/*.lang` | `python tools/embed_languages.py` | `src/embedded_languages.hpp` |
+| `data/hunting_recommendations.json` | `python tools/embed_hunting_recommendations.py` | `src/embedded_hunting_recommendations.hpp` |
+| `.lang` files and official strings | `python tools/build_cjk_fonts.py --ttc NotoSansCJK-Bold.ttc` | `src/embedded_cjk_fonts.hpp` |
 
-- **Vulkan** (including Linux/Proton): tested and reliable.
-- **DirectX 12:** **experimental.** If it cannot start, the mod shows English instead.
-  If you hit a problem, set `OverlayBackend=1` in `HuntingCompanion.ini` to
-  switch it off, or set `OverlayLog=1`, reproduce the problem, and report it with the
-  generated `HuntingCompanion.overlay.log`.
+After editing a `.lang` file, run both the language and the font generator.
+Otherwise new characters can show up as `?` in Japanese, Korean or Chinese.
+The font generator needs Python's `fontTools` and a copy of `NotoSansCJK-Bold.ttc`.
 
-On HDR displays the text brightness can be tuned with `CjkHdrPaperWhiteNits`.
+## Tests
 
-## Configuration
+None of these need the game:
 
-`HuntingCompanion.ini` is optional; the defaults work. Options are described in the file.
+```bash
+python tools/validate_localizations.py
+python tests/test_catalog_contract.py
+python tests/test_hunting_recommendations.py
+python tests/test_crafting_uses.py
+python tests/test_cjk_font_coverage.py
+python tests/test_overlay_integration.py
+g++ -std=c++17 -pthread -I src tests/test_overlay_queue.cpp -o test_overlay_queue && ./test_overlay_queue
+g++ -std=c++17 -I src src/official_strings.cpp tests/test_official_strings.cpp -o test_official_strings && ./test_official_strings
+```
+
+They check data and wiring only. Anything visible has to be tested in the game.
+
+## How it works
+
+- **Read-only.** The mod only reads game data through script natives. It never
+  changes progress, inventory or saves.
+- **Text.** Menu text is drawn with the game's own fonts. The game only loads
+  Japanese, Korean or Chinese glyphs when it runs in that language, so for those
+  languages on any other game language the text is drawn by an overlay instead:
+  Dear ImGui renders it into the game's swapchain just before each present, using
+  embedded subsets of Noto Sans CJK.
+- **Overlay hooks.** They are installed from a worker thread at load, on Vulkan and
+  DirectX 12. The DirectX 12 renderer creates nothing until there is text to draw
+  and switches itself off for the session after any failure.
+- **Diagnostics.** `OverlayLog=1` in `HuntingCompanion.ini` writes
+  `HuntingCompanion.overlay.log` to the game folder.
 
 ## Credits
 
@@ -83,5 +111,3 @@ The mod's code is MIT-licensed (`LICENSE`). Third-party components keep their ow
 licences (`THIRD-PARTY-NOTICES.md`, `LICENSES/`). Rockstar's text and trademarks are
 not covered by the MIT licence. Hunting Companion is an unofficial fan modification,
 not affiliated with or endorsed by Rockstar Games or Take-Two Interactive.
-
-Building from source: see `BUILDING.md`.

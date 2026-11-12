@@ -2,16 +2,17 @@
 // See cjk_overlay.hpp for the idea and third_party/README.md for the exact
 // dependency versions this file was written against (ImGui 1.91.9).
 //
-// STATUS: written without access to a Windows compiler, the Vulkan SDK or the
-// game. It has NOT been compiled or run. Treat the first build as bring-up:
-// enable OverlayLog=1 in the ini and read the log (or WINEDEBUG=+debugstr).
+// STATUS: the Vulkan path is tested in-game (Proton). For diagnostics set
+// OverlayLog=1 in the ini and read the log (or WINEDEBUG=+debugstr).
 
 #include "cjk_overlay.hpp"
 #include "cjk_overlay_internal.hpp"
 #include "embedded_cjk_fonts.hpp"
 #include "overlay_queue.hpp"
 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 
 #ifndef VK_NO_PROTOTYPES
