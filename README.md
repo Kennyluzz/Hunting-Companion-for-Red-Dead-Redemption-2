@@ -71,8 +71,6 @@ On HDR displays the text brightness can be tuned with `CjkHdrPaperWhiteNits`.
 
 ## Credits
 
-- Weapon and ammo suggestions are based on the Bloxodes Story Mode animal guide
-  (<https://bloxodes.com/wiki/red-dead-redemption-2/animals>).
 - Texture names were checked against the community catalogue
   <https://github.com/femga/rdr3_discoveries>.
 - Built with [Dear ImGui](https://github.com/ocornut/imgui),
