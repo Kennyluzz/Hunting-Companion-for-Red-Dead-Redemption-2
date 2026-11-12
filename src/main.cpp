@@ -3298,7 +3298,66 @@ float native_text_scale(float referencePixelHeight) noexcept {
                       0.14f, 0.465f);
 }
 
+// ---- 1.20 look -------------------------------------------------------------
+// The menu is dressed with the game's own menu artwork. Every textured element
+// has a plain-rectangle fallback, so the menu stays complete while the texture
+// sets are still streaming in (or if one is ever missing).
+namespace theme {
+constexpr int kAccentRed = 168, kAccentGreen = 22, kAccentBlue = 22;   // selection red
+constexpr int kGoldRed = 226, kGoldGreen = 188, kGoldBlue = 118;       // headings
+constexpr int kTextRed = 236, kTextGreen = 230, kTextBlue = 218;       // body text
+constexpr int kMutedRed = 168, kMutedGreen = 161, kMutedBlue = 146;    // hints
+// Game texture sets and textures, and the title font face.
+constexpr const char* kGeneric = "generic_textures";
+constexpr const char* kMenu = "menu_textures";
+constexpr const char* kSelectionBox = "selection_box_bg_1d";
+constexpr const char* kChipBox = "selection_box_bg_1c";
+constexpr const char* kInkPanel = "inkroller_1a";
+constexpr const char* kHeaderPlate = "menu_header_1a";
+constexpr const char* kDivider = "divider_line";
+constexpr const char* kArrowUp = "scroller_arrow_top";
+constexpr const char* kArrowDown = "scroller_arrow_bottom";
+constexpr const char* kTitleFace = "$title1";
+}
+
+const char* g_fontFaceOverride = nullptr;
+struct FontFaceScope {
+    explicit FontFaceScope(const char* face) noexcept : previous(g_fontFaceOverride) {
+        g_fontFaceOverride = face;
+    }
+    ~FontFaceScope() { g_fontFaceOverride = previous; }
+    FontFaceScope(const FontFaceScope&) = delete;
+    FontFaceScope& operator=(const FontFaceScope&) = delete;
+    const char* previous;
+};
+
+bool menu_textures_ready() noexcept {
+    bool ready = true;
+    for (const char* dictionary : {theme::kGeneric, theme::kMenu}) {
+        if (invoke_native<int>(kHasStreamedTextureDictLoaded, dictionary) == 0) {
+            invoke_native<void>(kRequestStreamedTextureDict, dictionary, false);
+            ready = false;
+        }
+    }
+    return ready;
+}
+
+void draw_sprite(const char* dictionary, const char* name, float x, float y,
+                 float width, float height,
+                 int red, int green, int blue, int alpha) noexcept {
+    invoke_native<void>(kDrawSprite, dictionary, name, x, y, width, height, 0.0f,
+                        red, green, blue, alpha, false);
+}
+
+bool ascii_only(const char* text) noexcept {
+    for (; *text != '\0'; ++text) {
+        if (static_cast<unsigned char>(*text) >= 0x80) return false;
+    }
+    return true;
+}
+
 const char* selected_font_face() noexcept {
+    if (g_fontFaceOverride != nullptr) return g_fontFaceOverride;
     // The game's own catalogue font. Text in a CJK language that the game is not
     // itself running in cannot use native text (the game has not loaded those
     // glyphs); draw_text_impl() sends it to the CJK overlay instead. When the
@@ -3528,19 +3587,24 @@ void draw_menu_row(const char* label, const char* status, int row,
     constexpr float kRowHeight = 0.062f;
     const float y = kRowStartY + static_cast<float>(row) * kRowHeight;
 
-    draw_rect(kPanelCenter, y + 0.020f,
-              kPanelWidth, 0.052f,
-              selected ? 108 : (disabled ? 10 : 18),
-              selected ? 96 : (disabled ? 10 : 16),
-              selected ? 78 : (disabled ? 10 : 14),
-              selected ? 235 : (disabled ? 110 : 152));
+    // Only the selected row carries a plate: the game's red selection box.
+    // Other rows are plain text on the panel, separated by a hairline.
+    (void)kPanelLeft;
     if (selected) {
-        draw_rect(kPanelLeft + 0.004f, y + 0.020f, 0.0035f, 0.052f,
-                  191, 150, 86, 245);
+        if (menu_textures_ready()) {
+            draw_sprite(theme::kGeneric, theme::kSelectionBox, kPanelCenter, y + 0.020f,
+                        kPanelWidth, 0.054f,
+                        theme::kAccentRed, theme::kAccentGreen, theme::kAccentBlue, 240);
+        } else {
+            draw_rect(kPanelCenter, y + 0.020f, kPanelWidth, 0.052f,
+                      theme::kAccentRed, theme::kAccentGreen, theme::kAccentBlue, 225);
+        }
+    } else {
+        draw_rect(kPanelCenter, y + 0.0485f, kPanelWidth - 0.012f, 0.0012f, 255, 255, 255, 16);
     }
-    const int labelRed = selected ? 255 : (disabled ? 112 : (accent ? 235 : 222));
-    const int labelGreen = selected ? 250 : (disabled ? 112 : (accent ? 206 : 216));
-    const int labelBlue = selected ? 238 : (disabled ? 112 : (accent ? 150 : 204));
+    const int labelRed = selected ? 255 : (disabled ? 104 : (accent ? theme::kGoldRed : theme::kTextRed));
+    const int labelGreen = selected ? 255 : (disabled ? 104 : (accent ? theme::kGoldGreen : theme::kTextGreen));
+    const int labelBlue = selected ? 255 : (disabled ? 104 : (accent ? theme::kGoldBlue : theme::kTextBlue));
 
     constexpr float kLabelLeft = 0.063f;
     constexpr float kRowRight = kPanelCenter + kPanelWidth * 0.5f - 0.007f;
@@ -3570,9 +3634,9 @@ void draw_menu_row(const char* label, const char* status, int row,
             }
         }
         draw_text_raw(statusText, statusX, y + 0.004f, statusSize,
-                      selected ? 245 : (disabled ? 112 : 194),
-                      selected ? 229 : (disabled ? 112 : 184),
-                      selected ? 205 : (disabled ? 112 : 163));
+                      selected ? 255 : (disabled ? 104 : theme::kGoldRed - 20),
+                      selected ? 240 : (disabled ? 104 : theme::kGoldGreen - 20),
+                      selected ? 225 : (disabled ? 104 : theme::kGoldBlue - 6));
         labelRight = statusX - kStatusGap;
     }
 
@@ -3596,10 +3660,28 @@ void draw_menu_row(const char* label, const char* status, int row,
 
 void draw_menu_header(const char* title, const char* subtitle,
                       bool localizeTitle = true) noexcept {
-    draw_rect(0.212f, 0.50f, 0.395f, 0.94f, 0, 0, 0, 226);
-    draw_rect(0.212f, 0.095f, 0.365f, 0.125f, 6, 8, 10, 250);
-    draw_rect(0.212f, 0.157f, 0.34f, 0.0024f, 180, 150, 96, 235);
-    draw_text("HUNTING COMPANION", 0.071f, 0.050f, 22.0f, 240, 232, 215);
+    const bool textured = menu_textures_ready();
+    if (textured) {
+        // Ink-roller panel (rough painted edges) with the game's menu header plate.
+        draw_rect(0.212f, 0.50f, 0.381f, 0.925f, 0, 0, 0, 150);
+        draw_sprite(theme::kGeneric, theme::kInkPanel, 0.212f, 0.50f, 0.412f, 0.965f, 0, 0, 0, 238);
+        draw_sprite(theme::kGeneric, theme::kHeaderPlate, 0.212f, 0.094f, 0.365f, 0.118f,
+                    255, 255, 255, 255);
+        draw_sprite(theme::kMenu, theme::kDivider, 0.212f, 0.1575f, 0.345f, 0.0042f,
+                    theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 215);
+    } else {
+        draw_rect(0.212f, 0.50f, 0.395f, 0.94f, 0, 0, 0, 232);
+        draw_rect(0.212f, 0.095f, 0.365f, 0.125f, 14, 12, 11, 250);
+        draw_rect(0.212f, 0.157f, 0.34f, 0.0018f,
+                  theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 200);
+    }
+    {
+        // The brand line uses the game's title lettering. That face is only
+        // trusted for plain Latin text; anything else keeps the catalogue font.
+        const char* brand = hunting_companion::ui_text("HUNTING COMPANION");
+        const FontFaceScope titleFace(ascii_only(brand) ? theme::kTitleFace : nullptr);
+        draw_text_raw(brand, 0.071f, 0.046f, 24.0f, 255, 255, 255);
+    }
     const bool cjkTitle = hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
     if (cjkTitle || std::strlen(title) > 25) {
         if (localizeTitle) draw_wrapped_text(title, 0.071f, 0.107f, 36, 2, 0.018f, 12.5f,
@@ -3607,29 +3689,49 @@ void draw_menu_header(const char* title, const char* subtitle,
         else draw_wrapped_text_raw(title, 0.071f, 0.107f, 36, 2, 0.018f, 12.5f,
                                    220, 184, 112);
     } else {
-        if (localizeTitle) draw_text(title, 0.071f, 0.112f, 20.0f, 228, 190, 119);
-        else draw_text_raw(title, 0.071f, 0.112f, 20.0f, 228, 190, 119);
+        if (localizeTitle) draw_text(title, 0.071f, 0.112f, 19.0f,
+                                     theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
+        else draw_text_raw(title, 0.071f, 0.112f, 19.0f,
+                           theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
     }
-    if (subtitle != nullptr) draw_text(subtitle, 0.071f, 0.168f, 14.0f, 196, 190, 176);
+    if (subtitle != nullptr) draw_text(subtitle, 0.071f, 0.168f, 13.0f,
+                                       theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     if (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes) {
-        draw_rect(0.324f, 0.111f, 0.125f, 0.040f, 76, 53, 28, 235);
-        draw_rect(0.324f, 0.092f, 0.125f, 0.002f, 191, 150, 86, 230);
+        if (textured) {
+            draw_sprite(theme::kGeneric, theme::kChipBox, 0.324f, 0.111f, 0.125f, 0.040f,
+                        g_menu.craftableNow ? theme::kAccentRed : 60,
+                        g_menu.craftableNow ? theme::kAccentGreen : 56,
+                        g_menu.craftableNow ? theme::kAccentBlue : 52, 235);
+        } else {
+            draw_rect(0.324f, 0.111f, 0.125f, 0.040f,
+                      g_menu.craftableNow ? 120 : 44, g_menu.craftableNow ? 18 : 40,
+                      g_menu.craftableNow ? 18 : 37, 235);
+        }
         draw_text(hunting_companion::ui_text(g_menu.craftableNow ? "FILTER: CRAFTABLE" : "FILTER: ALL"),
-                  0.269f, 0.104f, 11.5f, 255, 222, 170);
+                  0.269f, 0.104f, 11.5f, 255, 244, 228);
     }
 }
 
 void draw_menu_footer() noexcept {
-    draw_rect(0.212f, 0.895f, 0.36f, 0.0024f, 145, 128, 98, 230);
-    draw_text("UP/DOWN Navigate   ENTER Select   BACKSPACE Back", 0.065f, 0.858f, 13.0f, 218, 211, 197);
+    if (menu_textures_ready()) {
+        draw_sprite(theme::kMenu, theme::kDivider, 0.212f, 0.895f, 0.345f, 0.0042f,
+                    theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 170);
+    } else {
+        draw_rect(0.212f, 0.895f, 0.34f, 0.0018f,
+                  theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 160);
+    }
+    draw_text("UP/DOWN Navigate   ENTER Select   BACKSPACE Back", 0.065f, 0.858f, 12.5f,
+              theme::kTextRed, theme::kTextGreen, theme::kTextBlue);
     char footer[48]{};
     std::snprintf(footer, sizeof(footer), hunting_companion::ui_text("%s Close"), key_name(g_menuHotkey));
-    draw_text(footer, 0.065f, 0.910f, 12.0f, 190, 184, 170);
+    draw_text(footer, 0.065f, 0.910f, 12.0f,
+              theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     if (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes) {
         char filterHint[64]{};
         std::snprintf(filterHint, sizeof(filterHint), "%s: %s",
                       key_name(g_filterHotkey), hunting_companion::ui_text("Toggle Filter"));
-        draw_text(filterHint, 0.258f, 0.910f, 10.5f, 190, 184, 170);
+        draw_text(filterHint, 0.258f, 0.910f, 10.5f,
+                  theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     }
 }
 
@@ -3652,7 +3754,18 @@ void draw_list_page(const char* title, const char* subtitle,
     }
     char count[48]{};
     std::snprintf(count, sizeof(count), hunting_companion::ui_text("%d of %d"), total > 0 ? g_menu.selection + 1 : 0, total);
-    draw_text(count, 0.31f, 0.81f, 12.0f, 170, 164, 150);
+    draw_text(count, 0.31f, 0.81f, 12.0f,
+              theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
+    // Scroll arrows appear only while rows are hidden above or below.
+    if (menu_textures_ready()) {
+        const float arrowWidth = 0.0105f * screen_width_correction();
+        if (start > 0)
+            draw_sprite(theme::kMenu, theme::kArrowUp, 0.283f, 0.822f, arrowWidth, 0.0187f,
+                        theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 235);
+        if (end < total)
+            draw_sprite(theme::kMenu, theme::kArrowDown, 0.297f, 0.822f, arrowWidth, 0.0187f,
+                        theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 235);
+    }
     draw_menu_footer();
 }
 
@@ -4002,8 +4115,14 @@ void draw_recipe_detail() noexcept {
             const DetailLine& line = lines[static_cast<std::size_t>(i)];
             const float y = 0.330f + static_cast<float>(i - start) * 0.056f;
             if (i == g_menu.selection) {
-                draw_rect(0.212f, y + 0.018f, 0.365f, 0.048f, 64, 53, 40, 205);
-                draw_rect(0.0315f, y + 0.018f, 0.0035f, 0.048f, 191, 150, 86, 245);
+                if (menu_textures_ready()) {
+                    draw_sprite(theme::kGeneric, theme::kSelectionBox, 0.212f, y + 0.018f,
+                                0.365f, 0.050f,
+                                theme::kAccentRed, theme::kAccentGreen, theme::kAccentBlue, 215);
+                } else {
+                    draw_rect(0.212f, y + 0.018f, 0.365f, 0.048f,
+                              theme::kAccentRed, theme::kAccentGreen, theme::kAccentBlue, 200);
+                }
             }
             if (line.heading) {
                 const char* componentName = line.component != nullptr
