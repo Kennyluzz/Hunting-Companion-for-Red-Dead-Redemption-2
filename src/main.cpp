@@ -2170,6 +2170,8 @@ hunting_companion::overlay::Settings make_overlay_settings() noexcept {
         settings.yOffset = (offset >= -100 && offset <= 100) ? static_cast<float>(offset) / 1000.0f : 0.0f;
         const int paperWhite = static_cast<int>(GetPrivateProfileIntA("Overlay", "CjkHdrPaperWhiteNits", 230, g_iniPath));
         settings.hdrPaperWhiteNits = (paperWhite >= 80 && paperWhite <= 1000) ? static_cast<float>(paperWhite) : 230.0f;
+        const int backend = static_cast<int>(GetPrivateProfileIntA("Overlay", "OverlayBackend", 0, g_iniPath));
+        settings.backend = (backend >= 0 && backend <= 2) ? backend : 0;
         settings.fileLog = GetPrivateProfileIntA("Overlay", "OverlayLog", 0, g_iniPath) != 0;
         settings.logDirectory = g_moduleDirectory;
     }

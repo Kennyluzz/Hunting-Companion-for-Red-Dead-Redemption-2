@@ -13,6 +13,7 @@ set(HC_VULKAN_DIR   ${CMAKE_SOURCE_DIR}/third_party/vulkan-headers/include)
 foreach(required
         ${HC_IMGUI_DIR}/imgui.cpp
         ${HC_IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
+        ${HC_IMGUI_DIR}/backends/imgui_impl_dx12.cpp
         ${HC_MINHOOK_DIR}/src/hook.c
         ${HC_MINHOOK_DIR}/include/MinHook.h
         ${HC_VULKAN_DIR}/vulkan/vulkan.h)
@@ -27,6 +28,7 @@ set(HC_THIRD_PARTY_SOURCES
     ${HC_IMGUI_DIR}/imgui_tables.cpp
     ${HC_IMGUI_DIR}/imgui_widgets.cpp
     ${HC_IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
+    ${HC_IMGUI_DIR}/backends/imgui_impl_dx12.cpp
     ${HC_MINHOOK_DIR}/src/buffer.c
     ${HC_MINHOOK_DIR}/src/hook.c
     ${HC_MINHOOK_DIR}/src/trampoline.c
@@ -38,6 +40,8 @@ add_library(HuntingCompanion SHARED
     src/official_strings.cpp
     src/cjk_overlay.cpp
     src/cjk_overlay.hpp
+    src/cjk_overlay_internal.hpp
+    src/cjk_overlay_dx12.cpp
     src/overlay_queue.hpp
     src/embedded_languages.hpp
     src/embedded_official_strings.hpp
@@ -60,6 +64,9 @@ target_compile_definitions(HuntingCompanion PRIVATE
     VK_NO_PROTOTYPES
     IMGUI_IMPL_VULKAN_NO_PROTOTYPES
     IMGUI_IMPL_VULKAN_USE_LOADER
+    # Direct3D 12 methods that return structures need this with GCC, or the
+    # returned handles are garbage (calling-convention difference from MSVC).
+    WIDL_EXPLICIT_AGGREGATE_RETURNS
     IMGUI_USER_CONFIG="hc_imconfig.h")
 target_compile_options(HuntingCompanion PRIVATE -Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Os -ffunction-sections -fdata-sections)
 # Vendored code: keep its warnings out of our build log.

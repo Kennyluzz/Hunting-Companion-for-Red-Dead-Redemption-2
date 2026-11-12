@@ -14,6 +14,10 @@ CjkTextYOffsetPermille=0
 CjkHdrPaperWhiteNits=230
 ; 1 = write HuntingCompanion.overlay.log next to the ASI (for troubleshooting).
 OverlayLog=0
+; Which renderer draws the overlay: 0 = automatic, 1 = Vulkan only,
+; 2 = DirectX 12 only. The DirectX 12 renderer is EXPERIMENTAL; if the game
+; misbehaves on DirectX 12, set this to 1 and report the log file.
+OverlayBackend=0
 
 ; Hotkeys and weapon/ammo icons (all also changeable on the in-game Settings page).
 ; Key numbers are Windows virtual-key codes: 219 = [   221 = ]

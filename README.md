@@ -48,9 +48,13 @@ See `HuntingCompanion.ini.example` for all options.
 ### Asian languages
 
 Japanese, Korean and Chinese text is drawn by a small built-in overlay when the
-game itself is set to another language. The overlay needs the **Vulkan**
-renderer (Linux/Proton included). On native Windows DirectX 12 the mod shows
-English instead; if the game itself is set to that language, any renderer works.
+game itself is set to another language. The overlay is proven on the **Vulkan**
+renderer (Linux/Proton included). On **DirectX 12** it is **experimental**: it
+has not been tested on a real DirectX 12 system yet. If it cannot start, the mod
+shows English instead. If it causes trouble, set `OverlayBackend=1` under
+`[Overlay]` in `HuntingCompanion.ini` and please report it together with
+`HuntingCompanion.overlay.log` from the game folder (written automatically on
+DirectX 12). If the game itself is set to that language, no overlay is used.
 
 ## Building
 
@@ -99,18 +103,24 @@ g++ -std=c++17 -I src src/official_strings.cpp tests/test_official_strings.cpp -
 ## How the Asian-language overlay works
 
 Text for a language the game cannot draw is queued by the script thread and
-drawn with Dear ImGui into the Vulkan swapchain just before each present, using
+drawn with Dear ImGui into the game's swapchain just before each present
+(Vulkan: `src/cjk_overlay.cpp`; DirectX 12: `src/cjk_overlay_dx12.cpp`), using
 embedded subsets of Noto Sans CJK. (A Latin or Cyrillic menu on a game running
 in an Asian language needs no overlay: it uses a plain font the game keeps
-loaded.) No files are created. Set
-`[Overlay] OverlayLog=1` in the ini for diagnostics, and `CjkTextScalePercent` /
+loaded.) No files are created on Vulkan; the experimental DirectX 12 renderer
+always keeps `HuntingCompanion.overlay.log`. Set
+`[Overlay] OverlayLog=1` in the ini for diagnostics on Vulkan, and `CjkTextScalePercent` /
 `CjkTextYOffsetPermille` to adjust size and position.
 
 When the game runs in HDR (HDR10), overlay colours are converted so the text
 matches the game's own; `CjkHdrPaperWhiteNits` sets how bright white text is.
 
-Limitations: Vulkan only; overlay text is drawn over the finished frame, so
-later native UI cannot cover it.
+The DirectX 12 renderer creates nothing until there is Asian text to draw, and
+switches itself off for the session after any failure. `OverlayBackend` picks
+the renderer: 0 automatic, 1 Vulkan only, 2 DirectX 12 only.
+
+Limitations: overlay text is drawn over the finished frame, so later native UI
+cannot cover it.
 
 ## Data sources
 
