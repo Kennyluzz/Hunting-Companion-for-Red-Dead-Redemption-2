@@ -1731,17 +1731,9 @@ constexpr MenuFont kMenuFonts[] = {
     {"$body1", "BODY 1", 0.94f},
     {"$title1", "TITLE", 0.74f},
     {"$ledger", "LEDGER", 0.92f},
-    // Plain faces the game keeps available in every language (per its font table);
-    // candidates for drawing a language the game itself is not running in.
-    {"$Font2", "STANDARD", 0.92f},
-    {"$util", "UTILITY", 0.92f},
-    {"$Debug_REG", "CONDENSED", 0.74f},
 };
 constexpr int kMenuFontCount = static_cast<int>(std::size(kMenuFonts));
 int g_menuFontIndex = 0;
-// Settings > Text drawing: never use the overlay, draw everything with the
-// game's own fonts (what a DirectX 12 player gets anyway).
-bool g_useGameFontsOnly = false;
 
 float text_width_estimate(const char* text, float size, float correction) noexcept {
     float width = 0.0f;
@@ -2090,7 +2082,6 @@ void load_configuration() noexcept {
     const UINT iconsKey = GetPrivateProfileIntA("General", "WeaponIconsKey", kDefaultIconsKey, g_iniPath);
     g_iconsHotkey = (iconsKey > 0 && iconsKey < 256) ? iconsKey : kDefaultIconsKey;
     g_showWeaponIcons = GetPrivateProfileIntA("General", "ShowWeaponIcons", 1, g_iniPath) != 0;
-    g_useGameFontsOnly = GetPrivateProfileIntA("General", "UseGameFontsOnly", 0, g_iniPath) != 0;
     const UINT menuFont = GetPrivateProfileIntA("General", "MenuFont", 0, g_iniPath);
     g_menuFontIndex = menuFont < static_cast<UINT>(kMenuFontCount) ? static_cast<int>(menuFont) : 0;
     const UINT configuredLanguage = GetPrivateProfileIntA(
@@ -2157,12 +2148,20 @@ int requested_language() noexcept {
 // CJK text needs the overlay only when the game itself is NOT running in that
 // language; otherwise the game's own fonts already contain the glyphs.
 bool needs_overlay(int language) noexcept {
-    // Overlay when the companion language is CJK but the game is not in it, or when the
-    // game runs in a CJK language (whose native fonts lack accented Latin letters and
-    // Cyrillic) and the companion language is anything else.
-    if (g_useGameFontsOnly || language == g_detectedGameLanguage) return false;
-    return hunting_companion::uses_cjk_font(language) ||
-           hunting_companion::uses_cjk_font(g_detectedGameLanguage);
+    // Overlay only when the companion language is CJK and the game is not running
+    // in it. A Latin or Cyrillic companion language on a CJK game needs no overlay:
+    // the game keeps a plain face with those letters loaded (see selected_font_face).
+    if (language == g_detectedGameLanguage) return false;
+    return hunting_companion::uses_cjk_font(language);
+}
+
+// True when a Latin/Cyrillic companion language is shown on a game running in a
+// CJK language. The game's styled CJK faces lack accented Latin letters and only
+// have wide Cyrillic, but its plain "standard"/"utility" face has both (checked
+// in-game for Polish and Russian on a Japanese game).
+bool plain_face_needed() noexcept {
+    return hunting_companion::uses_cjk_font(g_detectedGameLanguage) &&
+           !hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
 }
 
 // The language that can really be drawn right now. If the user picked a CJK
@@ -2184,15 +2183,6 @@ void apply_effective_language() noexcept {
         hunting_companion::load_ui_localization(g_detectedGameLanguage, effective);
     }
     hunting_companion::overlay::set_language(effective);
-}
-
-void toggle_game_fonts_only() noexcept {
-    g_useGameFontsOnly = !g_useGameFontsOnly;
-    if (g_iniPath[0] != '\0') {
-        WritePrivateProfileStringA("General", "UseGameFontsOnly",
-                                   g_useGameFontsOnly ? "1" : "0", g_iniPath);
-    }
-    apply_effective_language();
 }
 
 // Read once at attach time (the hooks must be installed before the game starts
@@ -3105,7 +3095,7 @@ int current_page_count() noexcept {
         case MenuPage::ChallengeDetail:
             return reinforced_equipment_count_for_challenge(
                 static_cast<std::size_t>(g_menu.challengeIndex));
-        case MenuPage::Settings: return 8;
+        case MenuPage::Settings: return 7;
         case MenuPage::Closed: return 0;
     }
     return 0;
@@ -3235,12 +3225,6 @@ void update_menu_input() noexcept {
             return;
         }
     }
-    if (g_menu.page == MenuPage::Settings && g_menu.selection == 6) {
-        if (key_pressed(VK_LEFT) || key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) {
-            toggle_game_fonts_only();
-            return;
-        }
-    }
     if (g_menu.page == MenuPage::Settings && g_menu.selection == 5) {
         if (key_pressed(VK_LEFT)) { change_menu_font(-1); return; }
         if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_menu_font(1); return; }
@@ -3336,7 +3320,7 @@ void update_menu_input() noexcept {
                 g_menu.captureFilterHotkey = true;
             } else if (g_menu.selection == 4) {
                 g_menu.captureIconsHotkey = true;
-            } else if (g_menu.selection == 7) {
+            } else if (g_menu.selection == 6) {
                 g_menu.page = MenuPage::Root;
                 g_menu.selection = 4;
                 g_menu.scroll = 0;
@@ -3384,14 +3368,18 @@ constexpr const char* kTitleFace = "$title1";
 }
 
 const char* g_fontFaceOverride = nullptr;
+bool g_fontFaceForced = false;   // the override also applies on Asian-language games
 struct FontFaceScope {
-    explicit FontFaceScope(const char* face) noexcept : previous(g_fontFaceOverride) {
+    explicit FontFaceScope(const char* face, bool forced = false) noexcept
+        : previous(g_fontFaceOverride), previousForced(g_fontFaceForced) {
         g_fontFaceOverride = face;
+        g_fontFaceForced = forced;
     }
-    ~FontFaceScope() { g_fontFaceOverride = previous; }
+    ~FontFaceScope() { g_fontFaceOverride = previous; g_fontFaceForced = previousForced; }
     FontFaceScope(const FontFaceScope&) = delete;
     FontFaceScope& operator=(const FontFaceScope&) = delete;
     const char* previous;
+    bool previousForced;
 };
 
 // Plain Latin text can always use the game's own fonts, even while the rest of
@@ -3433,12 +3421,21 @@ bool ascii_only(const char* text) noexcept {
 }
 
 const char* selected_font_face() noexcept {
-    if (g_fontFaceOverride != nullptr) return g_fontFaceOverride;
-    if (g_menuFontIndex != 0) return kMenuFonts[g_menuFontIndex].face;
+    // On a game running in an Asian language only the plain face has Latin
+    // accents and normal Cyrillic, so it replaces every styled face there.
+    // Plain ASCII (the brand line) is safe in any face, so it may insist.
+    if (g_fontFaceOverride != nullptr && (g_fontFaceForced || !plain_face_needed()))
+        return g_fontFaceOverride;
+    if (g_menuFontIndex != 0 && !plain_face_needed()) return kMenuFonts[g_menuFontIndex].face;
     // The game's own catalogue font. Text in a CJK language that the game is not
     // itself running in cannot use native text (the game has not loaded those
     // glyphs); draw_text_impl() sends it to the CJK overlay instead. When the
     // companion language equals the game language the native font is correct.
+    if (plain_face_needed()) {
+        // Simplified Chinese maps the "standard" face to a Chinese font; its
+        // "utility" face is the plain one there.
+        return g_detectedGameLanguage == 12 ? "$util" : "$Font2";
+    }
     return "$catalog1";
 }
 
@@ -3779,7 +3776,7 @@ void draw_menu_header(const char* title, const char* subtitle,
         // lettering. Plain Latin text can use that face in every language.
         const char* brand = hunting_companion::ui_text("HUNTING COMPANION");
         const bool plain = ascii_only(brand);
-        const FontFaceScope titleFace(plain ? theme::kTitleFace : nullptr);
+        const FontFaceScope titleFace(plain ? theme::kTitleFace : nullptr, plain);
         const NativeTextScope nativeText(plain);
         draw_text_impl(brand, 0.212f, 0.046f, 24.0f, 255, 255, 255, 255, false, true);
     }
@@ -4021,27 +4018,25 @@ void draw_settings_page() noexcept {
                   hunting_companion::ui_text("Weapon/ammo icons key: %s"), key_name(g_iconsHotkey));
     draw_menu_row(iconsKeyLine, "CHANGE", 4, g_menu.selection == 4);
     draw_menu_row("Menu font", kMenuFonts[g_menuFontIndex].name, 5, g_menu.selection == 5);
-    draw_menu_row("Text drawing", g_useGameFontsOnly ? "GAME FONTS" : "AUTO", 6,
-                  g_menu.selection == 6);
-    draw_menu_row("Back", "", 7, g_menu.selection == 7);
+    draw_menu_row("Back", "", 6, g_menu.selection == 6);
 
-    // The eight rows end near y = 0.69, so the information block starts below them.
+    // The seven rows end near y = 0.63, so the information block starts below them.
     char languageLine[256]{};
     std::snprintf(languageLine, sizeof(languageLine), hunting_companion::ui_text("RDR2 language: %s (%s)"),
                   game_language_name(g_detectedGameLanguage),
                   game_language_locale(g_detectedGameLanguage));
-    draw_text(languageLine, 0.071f, 0.697f, 13.5f, 206, 200, 186);
+    draw_text(languageLine, 0.071f, 0.642f, 13.5f, 206, 200, 186);
     char interfaceLine[256]{};
     std::snprintf(interfaceLine, sizeof(interfaceLine),
                   hunting_companion::ui_text("Companion interface: %s (%s)"),
                   game_language_name(selectedLanguage),
                   hunting_companion::ui_locale());
-    draw_text(interfaceLine, 0.071f, 0.727f, 12.5f, 184, 178, 164);
+    draw_text(interfaceLine, 0.071f, 0.676f, 12.5f, 184, 178, 164);
     if (overlay_fallback_active()) {
         // Only shown while the UI is in English (the fallback), so it is not translated.
         static constexpr char kOverlayFallbackNotice[] =
             "CJK overlay not ready (Vulkan only): showing English.";
-        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.812f, 12.0f, 224, 160, 120);
+        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.772f, 12.0f, 224, 160, 120);
     }
     const std::size_t officialCount = hunting_companion::loaded_official_string_count();
     char officialStatus[160]{};
@@ -4049,12 +4044,12 @@ void draw_settings_page() noexcept {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official Rockstar language entries loaded: %llu"),
                       static_cast<unsigned long long>(officialCount));
-        draw_wrapped_text(officialStatus, 0.071f, 0.757f, 44, 2, 0.026f, 12.0f, 145, 194, 157);
+        draw_wrapped_text(officialStatus, 0.071f, 0.710f, 44, 2, 0.026f, 12.0f, 145, 194, 157);
     } else {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official item-name data unavailable for %s; English names used."),
                       hunting_companion::ui_text(hunting_companion::locale_name(selectedLanguage)));
-        draw_wrapped_text(officialStatus, 0.071f, 0.757f, 44, 2, 0.026f, 12.0f, 220, 174, 128);
+        draw_wrapped_text(officialStatus, 0.071f, 0.710f, 44, 2, 0.026f, 12.0f, 220, 174, 128);
     }
     if (g_menu.captureHotkey || g_menu.captureFilterHotkey || g_menu.captureIconsHotkey) {
         draw_rect(0.212f, 0.52f, 0.34f, 0.12f, 0, 0, 0, 245);
