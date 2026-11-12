@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Every character of every CJK UI string must exist in the embedded overlay fonts.
 
-If this fails, run:  python3 tools/build_cjk_fonts.py --ttc <NotoSansCJK-Regular.ttc>
+If this fails, run:  python3 tools/build_cjk_fonts.py --ttc <NotoSansCJK-Bold.ttc>
 (then tools/embed_languages.py if the .lang files changed) and rebuild.
 """
 import io, re, sys

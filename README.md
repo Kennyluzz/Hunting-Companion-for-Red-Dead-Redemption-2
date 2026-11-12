@@ -77,7 +77,7 @@ Some source files are generated; rerun the generator after changing its input:
 |---|---|---|
 | `HuntingCompanion-Languages/*.lang` | `python tools/embed_languages.py` | `src/embedded_languages.hpp` |
 | `data/hunting_recommendations.json` | `python tools/embed_hunting_recommendations.py` | `src/embedded_hunting_recommendations.hpp` |
-| `.lang` files + official strings | `python tools/build_cjk_fonts.py --ttc NotoSansCJK-Regular.ttc` | `src/embedded_cjk_fonts.hpp` |
+| `.lang` files + official strings | `python tools/build_cjk_fonts.py --ttc NotoSansCJK-Bold.ttc` | `src/embedded_cjk_fonts.hpp` |
 
 After editing a `.lang` file, run both the language and font generators, or
 characters can show up as `?` in-game. `tests/test_cjk_font_coverage.py` checks

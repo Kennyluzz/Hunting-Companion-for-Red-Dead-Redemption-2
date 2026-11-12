@@ -19,7 +19,7 @@ Distributed under Apache-2.0 OR MIT. Full texts:
 
 ## Noto Sans CJK subsets (upstream version 2.004)
 The embedded Japanese, Korean, Simplified Chinese and Traditional Chinese subsets
-are derived from Noto Sans CJK Regular, developed by Google and Adobe. The embedded
+are derived from Noto Sans CJK Bold, developed by Google and Adobe. The embedded
 font metadata carries the notice "Copyright 2014-2021 Adobe"; Noto is a trademark
 of Google and Source is a Reserved Font Name/trademark of Adobe. The fonts are
 licensed under SIL Open Font License 1.1. The family identity remains Noto Sans CJK;

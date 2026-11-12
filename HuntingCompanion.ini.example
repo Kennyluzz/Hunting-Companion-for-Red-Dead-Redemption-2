@@ -21,3 +21,4 @@ OverlayLog=0
 ; FilterKey=219          ; toggles the "craftable now" filter
 ; WeaponIconsKey=221     ; shows / hides the weapon and ammo icons
 ; ShowWeaponIcons=1      ; 1 = show, 0 = hide
+; MenuFont=0             ; menu font, 0-6 (same order as the Settings row)

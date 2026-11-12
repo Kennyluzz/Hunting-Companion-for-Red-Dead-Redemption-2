@@ -1721,10 +1721,29 @@ float screen_width_correction() noexcept {
     return (16.0f / 9.0f) / (static_cast<float>(width) / static_cast<float>(height));
 }
 
+// 1.20 look: the menu font can be switched in Settings. Each face carries a
+// rough width factor (relative to the catalogue face the estimates were tuned
+// for) so the text-fitting keeps working.
+struct MenuFont { const char* face; const char* name; float widthFactor; };
+constexpr MenuFont kMenuFonts[] = {
+    {"$catalog1", "CATALOGUE", 1.00f},
+    {"$body", "BODY", 0.94f},
+    {"$body1", "BODY 1", 0.94f},
+    {"$title1", "TITLE", 0.74f},
+    {"$ledger", "LEDGER", 0.92f},
+    {"$chalk", "CHALK", 0.92f},
+    {"$handwritten", "HANDWRITTEN", 0.92f},
+};
+constexpr int kMenuFontCount = static_cast<int>(std::size(kMenuFonts));
+int g_menuFontIndex = 0;
+
 float text_width_estimate(const char* text, float size, float correction) noexcept {
     float width = 0.0f;
     for (const char* cursor = text; *cursor != '\0';) width += codepoint_width(next_codepoint(cursor));
-    return width * size * correction;
+    const float fontFactor =
+        hunting_companion::uses_cjk_font(hunting_companion::active_ui_language())
+            ? 1.0f : kMenuFonts[g_menuFontIndex].widthFactor;
+    return width * size * correction * fontFactor;
 }
 
 // Copies as much of `text` as fits in maxWidth, adding "..." when it is cut.
@@ -2059,6 +2078,8 @@ void load_configuration() noexcept {
     const UINT iconsKey = GetPrivateProfileIntA("General", "WeaponIconsKey", kDefaultIconsKey, g_iniPath);
     g_iconsHotkey = (iconsKey > 0 && iconsKey < 256) ? iconsKey : kDefaultIconsKey;
     g_showWeaponIcons = GetPrivateProfileIntA("General", "ShowWeaponIcons", 1, g_iniPath) != 0;
+    const UINT menuFont = GetPrivateProfileIntA("General", "MenuFont", 0, g_iniPath);
+    g_menuFontIndex = menuFont < static_cast<UINT>(kMenuFontCount) ? static_cast<int>(menuFont) : 0;
     const UINT configuredLanguage = GetPrivateProfileIntA(
         "General", "UILanguage", 0xFFFFFFFFu, g_iniPath);
     g_uiLanguageOverride = configuredLanguage == 0xFFFFFFFFu
@@ -2097,6 +2118,14 @@ void save_icons_settings() noexcept {
     std::snprintf(value, sizeof(value), "%u", static_cast<unsigned>(g_iconsHotkey));
     WritePrivateProfileStringA("General", "WeaponIconsKey", value, g_iniPath);
     WritePrivateProfileStringA("General", "ShowWeaponIcons", g_showWeaponIcons ? "1" : "0", g_iniPath);
+}
+
+void change_menu_font(int direction) noexcept {
+    g_menuFontIndex = (g_menuFontIndex + direction + kMenuFontCount) % kMenuFontCount;
+    if (g_iniPath[0] == '\0') return;
+    char value[16]{};
+    std::snprintf(value, sizeof(value), "%d", g_menuFontIndex);
+    WritePrivateProfileStringA("General", "MenuFont", value, g_iniPath);
 }
 
 void save_ui_language() noexcept {
@@ -3054,7 +3083,7 @@ int current_page_count() noexcept {
         case MenuPage::ChallengeDetail:
             return reinforced_equipment_count_for_challenge(
                 static_cast<std::size_t>(g_menu.challengeIndex));
-        case MenuPage::Settings: return 6;
+        case MenuPage::Settings: return 7;
         case MenuPage::Closed: return 0;
     }
     return 0;
@@ -3184,6 +3213,10 @@ void update_menu_input() noexcept {
             return;
         }
     }
+    if (g_menu.page == MenuPage::Settings && g_menu.selection == 5) {
+        if (key_pressed(VK_LEFT)) { change_menu_font(-1); return; }
+        if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_menu_font(1); return; }
+    }
     if (g_menu.page == MenuPage::Settings && g_menu.selection == 1) {
         if (key_pressed(VK_LEFT)) { change_ui_language(-1); return; }
         if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_ui_language(1); return; }
@@ -3275,7 +3308,7 @@ void update_menu_input() noexcept {
                 g_menu.captureFilterHotkey = true;
             } else if (g_menu.selection == 4) {
                 g_menu.captureIconsHotkey = true;
-            } else if (g_menu.selection == 5) {
+            } else if (g_menu.selection == 6) {
                 g_menu.page = MenuPage::Root;
                 g_menu.selection = 4;
                 g_menu.scroll = 0;
@@ -3333,6 +3366,19 @@ struct FontFaceScope {
     const char* previous;
 };
 
+// Plain Latin text can always use the game's own fonts, even while the rest of
+// the interface is drawn by the CJK overlay.
+bool g_forceNativeText = false;
+struct NativeTextScope {
+    explicit NativeTextScope(bool enable) noexcept : previous(g_forceNativeText) {
+        g_forceNativeText = enable || previous;
+    }
+    ~NativeTextScope() { g_forceNativeText = previous; }
+    NativeTextScope(const NativeTextScope&) = delete;
+    NativeTextScope& operator=(const NativeTextScope&) = delete;
+    bool previous;
+};
+
 bool menu_textures_ready() noexcept {
     bool ready = true;
     for (const char* dictionary : {theme::kGeneric, theme::kMenu}) {
@@ -3360,6 +3406,7 @@ bool ascii_only(const char* text) noexcept {
 
 const char* selected_font_face() noexcept {
     if (g_fontFaceOverride != nullptr) return g_fontFaceOverride;
+    if (g_menuFontIndex != 0) return kMenuFonts[g_menuFontIndex].face;
     // The game's own catalogue font. Text in a CJK language that the game is not
     // itself running in cannot use native text (the game has not loaded those
     // glyphs); draw_text_impl() sends it to the CJK overlay instead. When the
@@ -3395,7 +3442,7 @@ void draw_text_impl(const char* text, float x, float y, float referencePixelHeig
     // CJK companion language that differs from the game language: the game has no
     // glyphs for it, so queue the text for the Vulkan/ImGui overlay (own embedded
     // fonts). Position, size and colour are passed through unchanged.
-    if (needs_overlay(hunting_companion::active_ui_language())) {
+    if (!g_forceNativeText && needs_overlay(hunting_companion::active_ui_language())) {
         hunting_companion::overlay::submit(text, x, y, referencePixelHeight,
                                            red, green, blue, alpha, centered);
         return;
@@ -3651,6 +3698,10 @@ void draw_menu_row(const char* label, const char* status, int row,
         draw_text_raw(labelText, kLabelLeft, y, 18.0f, labelRed, labelGreen, labelBlue);
         return;
     }
+    if (cjk && text_width_estimate(labelText, 15.0f, correction) <= maxWidth) {
+        draw_text_raw(labelText, kLabelLeft, y + 0.001f, 15.0f, labelRed, labelGreen, labelBlue);
+        return;
+    }
     FittedLines fitted;
     float size = 12.5f;
     while (!wrap_to_width(labelText, size, correction, maxWidth, 2, &fitted) && size > 9.5f) size -= 0.5f;
@@ -3677,24 +3728,39 @@ void draw_menu_header(const char* title, const char* subtitle,
         draw_rect(0.212f, 0.157f, 0.34f, 0.0018f,
                   theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 200);
     }
-    {
-        // The brand line uses the game's title lettering. That face is only
-        // trusted for plain Latin text; anything else keeps the catalogue font.
-        const char* brand = hunting_companion::ui_text("HUNTING COMPANION");
-        const FontFaceScope titleFace(ascii_only(brand) ? theme::kTitleFace : nullptr);
-        draw_text_raw(brand, 0.071f, 0.046f, 24.0f, 255, 255, 255);
-    }
     const bool cjkTitle = hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
-    if (cjkTitle || std::strlen(title) > 25) {
-        if (localizeTitle) draw_wrapped_text(title, 0.071f, 0.107f, 36, 2, 0.018f, 12.5f,
-                                             220, 184, 112);
-        else draw_wrapped_text_raw(title, 0.071f, 0.107f, 36, 2, 0.018f, 12.5f,
-                                   220, 184, 112);
+    {
+        // The brand line sits centred in the header frame, in the game's title
+        // lettering. Plain Latin text can use that face in every language.
+        const char* brand = hunting_companion::ui_text("HUNTING COMPANION");
+        const bool plain = ascii_only(brand);
+        const FontFaceScope titleFace(plain ? theme::kTitleFace : nullptr);
+        const NativeTextScope nativeText(plain);
+        draw_text_impl(brand, 0.212f, 0.046f, 24.0f, 255, 255, 255, 255, false, true);
+    }
+    const char* titleText = localizeTitle ? hunting_companion::ui_text(title) : title;
+    const bool filterChip = g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes;
+    const float titleRoom = (filterChip ? 0.258f : 0.3885f) - 0.071f;
+    const float correction = screen_width_correction();
+    if (cjkTitle) {
+        if (text_width_estimate(titleText, 17.0f, correction) <= titleRoom) {
+            draw_text_raw(titleText, 0.071f, 0.108f, 17.0f,
+                          theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
+        } else {
+            draw_wrapped_text_raw(titleText, 0.071f, 0.107f, 36, 2, 0.018f, 12.5f,
+                                  theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
+        }
     } else {
-        if (localizeTitle) draw_text(title, 0.071f, 0.112f, 19.0f,
-                                     theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
-        else draw_text_raw(title, 0.071f, 0.112f, 19.0f,
-                           theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
+        // Page titles share the title lettering (it is a condensed face, so
+        // estimate it narrower than the catalogue font).
+        const FontFaceScope titleFace(theme::kTitleFace);
+        constexpr float kTitleFaceWidth = 0.80f;
+        float size = 22.0f;
+        const float width = text_width_estimate(titleText, size, correction) * kTitleFaceWidth /
+                            kMenuFonts[g_menuFontIndex].widthFactor;
+        if (width > titleRoom) size = std::max(size * titleRoom / width, 13.0f);
+        draw_text_raw(titleText, 0.071f, 0.109f + (22.0f - size) * 0.0007f, size,
+                      theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
     }
     if (subtitle != nullptr) draw_text(subtitle, 0.071f, 0.168f, 13.0f,
                                        theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
@@ -3722,17 +3788,17 @@ void draw_menu_footer() noexcept {
         draw_rect(0.212f, 0.895f, 0.34f, 0.0018f,
                   theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 160);
     }
-    draw_text("UP/DOWN Navigate   ENTER Select   BACKSPACE Back", 0.065f, 0.858f, 12.5f,
+    draw_text("UP/DOWN Navigate   ENTER Select   BACKSPACE Back", 0.065f, 0.855f, 14.0f,
               theme::kTextRed, theme::kTextGreen, theme::kTextBlue);
     char footer[48]{};
     std::snprintf(footer, sizeof(footer), hunting_companion::ui_text("%s Close"), key_name(g_menuHotkey));
-    draw_text(footer, 0.065f, 0.910f, 12.0f,
+    draw_text(footer, 0.065f, 0.908f, 13.5f,
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     if (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes) {
         char filterHint[64]{};
         std::snprintf(filterHint, sizeof(filterHint), "%s: %s",
                       key_name(g_filterHotkey), hunting_companion::ui_text("Toggle Filter"));
-        draw_text(filterHint, 0.258f, 0.910f, 10.5f,
+        draw_text(filterHint, 0.240f, 0.908f, 12.5f,
                   theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     }
 }
@@ -3756,7 +3822,7 @@ void draw_list_page(const char* title, const char* subtitle,
     }
     char count[48]{};
     std::snprintf(count, sizeof(count), hunting_companion::ui_text("%d of %d"), total > 0 ? g_menu.selection + 1 : 0, total);
-    draw_text(count, 0.31f, 0.81f, 12.0f,
+    draw_text(count, 0.31f, 0.808f, 13.5f,
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     // Scroll arrows appear only while rows are hidden above or below.
     if (menu_textures_ready()) {
@@ -3909,27 +3975,28 @@ void draw_settings_page() noexcept {
     std::snprintf(iconsKeyLine, sizeof(iconsKeyLine),
                   hunting_companion::ui_text("Weapon/ammo icons key: %s"), key_name(g_iconsHotkey));
     draw_menu_row(iconsKeyLine, "CHANGE", 4, g_menu.selection == 4);
-    draw_menu_row("Back", "", 5, g_menu.selection == 5);
+    draw_menu_row("Menu font", kMenuFonts[g_menuFontIndex].name, 5, g_menu.selection == 5);
+    draw_menu_row("Back", "", 6, g_menu.selection == 6);
 
-    // The six rows end near y = 0.59, so the information block starts below them.
+    // The seven rows end near y = 0.63, so the information block starts below them.
     char languageLine[256]{};
     std::snprintf(languageLine, sizeof(languageLine), hunting_companion::ui_text("RDR2 language: %s (%s)"),
                   game_language_name(g_detectedGameLanguage),
                   game_language_locale(g_detectedGameLanguage));
-    draw_text(languageLine, 0.071f, 0.625f, 12.5f, 192, 186, 171);
+    draw_text(languageLine, 0.071f, 0.640f, 13.5f, 206, 200, 186);
     char interfaceLine[256]{};
     std::snprintf(interfaceLine, sizeof(interfaceLine),
                   hunting_companion::ui_text("Companion interface: %s (%s)"),
                   game_language_name(selectedLanguage),
                   hunting_companion::ui_locale());
-    draw_text(interfaceLine, 0.071f, 0.660f, 11.0f, 160, 154, 142);
+    draw_text(interfaceLine, 0.071f, 0.672f, 12.5f, 184, 178, 164);
     draw_wrapped_text("LEFT/RIGHT or ENTER changes the companion language.",
-                      0.071f, 0.692f, 52, 2, 0.026f, 10.0f, 160, 154, 142);
+                      0.071f, 0.702f, 44, 2, 0.026f, 12.0f, 184, 178, 164);
     if (overlay_fallback_active()) {
         // Only shown while the UI is in English (the fallback), so it is not translated.
         static constexpr char kOverlayFallbackNotice[] =
             "CJK overlay not ready (Vulkan only): showing English.";
-        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.752f, 10.0f, 224, 160, 120);
+        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.757f, 12.0f, 224, 160, 120);
     }
     const std::size_t officialCount = hunting_companion::loaded_official_string_count();
     char officialStatus[160]{};
@@ -3937,12 +4004,12 @@ void draw_settings_page() noexcept {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official Rockstar language entries loaded: %llu"),
                       static_cast<unsigned long long>(officialCount));
-        draw_wrapped_text(officialStatus, 0.071f, 0.780f, 52, 2, 0.026f, 9.5f, 145, 194, 157);
+        draw_wrapped_text(officialStatus, 0.071f, 0.786f, 44, 2, 0.026f, 12.0f, 145, 194, 157);
     } else {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official item-name data unavailable for %s; English names used."),
                       hunting_companion::ui_text(hunting_companion::locale_name(selectedLanguage)));
-        draw_wrapped_text(officialStatus, 0.071f, 0.780f, 52, 2, 0.026f, 9.5f, 220, 174, 128);
+        draw_wrapped_text(officialStatus, 0.071f, 0.786f, 44, 2, 0.026f, 12.0f, 220, 174, 128);
     }
     if (g_menu.captureHotkey || g_menu.captureFilterHotkey || g_menu.captureIconsHotkey) {
         draw_rect(0.212f, 0.52f, 0.34f, 0.12f, 0, 0, 0, 245);

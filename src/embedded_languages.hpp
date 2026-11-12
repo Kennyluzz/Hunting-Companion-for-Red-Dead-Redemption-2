@@ -282,6 +282,7 @@ Poisoned Arrows=Giftpfeile
 Rifle Cartridges - Regular=Gewehrmunition – Normal
 Rifle Cartridges - High Velocity=Gewehrmunition – HG
 Rifle Cartridges - Express=Gewehrmunition – Express
+Menu font=Menüschrift
 )HCL0";
 inline constexpr char kLocale_en_US[] = R"HCL1(# Hunting Companion localization — en-US
 # Companion-owned interface phrases follow this locale.
@@ -435,6 +436,7 @@ Poisoned Arrows=Poisoned Arrows
 Rifle Cartridges - Regular=Rifle Cartridges - Regular
 Rifle Cartridges - High Velocity=Rifle Cartridges - High Velocity
 Rifle Cartridges - Express=Rifle Cartridges - Express
+Menu font=Menu font
 )HCL1";
 inline constexpr char kLocale_es_ES[] = R"HCL2(# Hunting Companion localization — es-ES
 # Companion-owned interface phrases follow this locale.
@@ -716,6 +718,7 @@ Poisoned Arrows=Flechas envenenadas
 Rifle Cartridges - Regular=Cartuchos de fusil: normales
 Rifle Cartridges - High Velocity=Cartuchos de fusil: alta velocidad
 Rifle Cartridges - Express=Cartuchos de fusil: rápidos
+Menu font=Fuente del menú
 )HCL2";
 inline constexpr char kLocale_es_MX[] = R"HCL3(# Hunting Companion localization — es-MX
 # Companion-owned interface phrases follow this locale.
@@ -997,6 +1000,7 @@ Poisoned Arrows=Flechas envenenadas
 Rifle Cartridges - Regular=Munición (rifle)
 Rifle Cartridges - High Velocity=Munición alta velocidad (rifle)
 Rifle Cartridges - Express=Munición exprés (rifle)
+Menu font=Fuente del menú
 )HCL3";
 inline constexpr char kLocale_fr_FR[] = R"HCL4(# Hunting Companion localization — fr-FR
 # Companion-owned interface phrases follow this locale.
@@ -1278,6 +1282,7 @@ Poisoned Arrows=Flèches empoisonnées
 Rifle Cartridges - Regular=Balles pour fusil - standard
 Rifle Cartridges - High Velocity=Balles pour fusil - haute vélocité
 Rifle Cartridges - Express=Balles pour fusil - express
+Menu font=Police du menu
 )HCL4";
 inline constexpr char kLocale_it_IT[] = R"HCL5(# Hunting Companion localization — it-IT
 # Companion-owned interface phrases follow this locale.
@@ -1559,6 +1564,7 @@ Poisoned Arrows=Frecce avvelenate
 Rifle Cartridges - Regular=Cartucce canna rigata - Normali
 Rifle Cartridges - High Velocity=Cartucce canna rigata - Veloci
 Rifle Cartridges - Express=Cartucce canna rigata - Express
+Menu font=Carattere del menu
 )HCL5";
 inline constexpr char kLocale_ja_JP[] = R"HCL6(# Hunting Companion localization — ja-JP
 # Companion-owned interface phrases follow this locale.
@@ -1840,6 +1846,7 @@ Poisoned Arrows=毒矢
 Rifle Cartridges - Regular=ライフル用弾薬(標準弾)
 Rifle Cartridges - High Velocity=ライフル用弾薬(高速弾)
 Rifle Cartridges - Express=ライフル用弾薬(エクスプレス弾)
+Menu font=メニューのフォント
 )HCL6";
 inline constexpr char kLocale_ko_KR[] = R"HCL7(# Hunting Companion localization — ko-KR
 # Companion-owned interface phrases follow this locale.
@@ -2120,6 +2127,7 @@ Poisoned Arrows=독화살
 Rifle Cartridges - Regular=라이플 탄약 - 일반
 Rifle Cartridges - High Velocity=라이플 탄약 - 고속
 Rifle Cartridges - Express=라이플 탄약 - 익스프레스
+Menu font=메뉴 글꼴
 )HCL7";
 inline constexpr char kLocale_pl_PL[] = R"HCL8(# Hunting Companion localization — pl-PL
 # Companion-owned interface phrases follow this locale.
@@ -2400,6 +2408,7 @@ Poisoned Arrows=Zatrute strzały
 Rifle Cartridges - Regular=Karabin - amunicja zwykła
 Rifle Cartridges - High Velocity=Karabin - szybka amunicja
 Rifle Cartridges - Express=Karabin - amunicja express
+Menu font=Czcionka menu
 )HCL8";
 inline constexpr char kLocale_pt_BR[] = R"HCL9(# Hunting Companion localization — pt-BR
 # Companion-owned interface phrases follow this locale.
@@ -2681,6 +2690,7 @@ Poisoned Arrows=Flechas Envenenadas
 Rifle Cartridges - Regular=Rifle - Munição Regular
 Rifle Cartridges - High Velocity=Rifle - Munição Ligeira
 Rifle Cartridges - Express=Rifle - Munição Express
+Menu font=Fonte do menu
 )HCL9";
 inline constexpr char kLocale_ru_RU[] = R"HCL10(# Hunting Companion localization — ru-RU
 # Companion-owned interface phrases follow this locale.
@@ -2962,6 +2972,7 @@ Poisoned Arrows=Отравленные стрелы
 Rifle Cartridges - Regular=Патроны (винтовка)
 Rifle Cartridges - High Velocity=Скоростные патроны (винтовка)
 Rifle Cartridges - Express=Экспресс-патроны (винтовка)
+Menu font=Шрифт меню
 )HCL10";
 inline constexpr char kLocale_zh_CN[] = R"HCL11(# Hunting Companion localization — zh-CN
 # Companion-owned interface phrases follow this locale.
@@ -3243,6 +3254,7 @@ Poisoned Arrows=毒箭
 Rifle Cartridges - Regular=步枪子弹（普通）
 Rifle Cartridges - High Velocity=步枪子弹（高速）
 Rifle Cartridges - Express=步枪子弹（中空）
+Menu font=菜单字体
 )HCL11";
 inline constexpr char kLocale_zh_TW[] = R"HCL12(# Hunting Companion localization — zh-TW
 # Companion-owned interface phrases follow this locale.
@@ -3524,6 +3536,7 @@ Poisoned Arrows=淬毒箭
 Rifle Cartridges - Regular=步槍子彈（一般）
 Rifle Cartridges - High Velocity=步槍子彈（高速彈）
 Rifle Cartridges - Express=步槍子彈（空尖彈）
+Menu font=選單字型
 )HCL12";
 inline constexpr LocaleBlob kLocales[] = {
     {"de-DE", kLocale_de_DE},

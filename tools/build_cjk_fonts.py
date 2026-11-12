@@ -12,7 +12,7 @@ embedding and subsetting. The licence/copyright notice must ship with the mod
 (see THIRD-PARTY-NOTICES.md).
 
 Usage:
-  python3 tools/build_cjk_fonts.py --ttc /path/to/NotoSansCJK-Regular.ttc
+  python3 tools/build_cjk_fonts.py --ttc /path/to/NotoSansCJK-Bold.ttc
 """
 import argparse
 import io
@@ -27,7 +27,7 @@ from fontTools.ttLib import TTCollection, TTFont, newTable
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# key -> (index inside NotoSansCJK-Regular.ttc, C++ symbol, locales whose text it must cover)
+# key -> (index inside NotoSansCJK-Bold.ttc, C++ symbol, locales whose text it must cover)
 NON_CJK = ["en-US", "fr-FR", "de-DE", "it-IT", "es-ES", "pt-BR", "pl-PL", "ru-RU", "es-MX"]
 LOCALES = {
     "ja-JP": (0, "kJaJP", ["ja-JP"]),
@@ -210,7 +210,7 @@ def cpp_array(symbol, data):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ttc", required=True, help="path to NotoSansCJK-Regular.ttc")
+    ap.add_argument("--ttc", required=True, help="path to NotoSansCJK-Bold.ttc")
     ap.add_argument("--latin-ttf", default="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
                     help="Liberation Sans Regular (SIL OFL 1.1) for the Latin/Cyrillic slot")
     ap.add_argument("--out", default=str(ROOT / "src" / "embedded_cjk_fonts.hpp"))
