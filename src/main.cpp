@@ -3420,6 +3420,22 @@ void draw_text_impl(const char* text, float x, float y, float referencePixelHeig
     if (text == nullptr || text[0] == '\0') return;
     if (localize) text = hunting_companion::ui_text(text);
 
+    // 1.20 look: text colours are drawn richer than specified. The game shows
+    // tinted text rather flat, so the tint is pushed away from grey (white and
+    // grey text are unaffected). Applies to native and overlay text alike.
+    {
+        constexpr float kVividness = 1.7f;
+        const float luma = 0.299f * static_cast<float>(red) + 0.587f * static_cast<float>(green) +
+                           0.114f * static_cast<float>(blue);
+        const auto vivid = [luma](int channel) noexcept {
+            const float value = luma + (static_cast<float>(channel) - luma) * kVividness;
+            return static_cast<int>(std::clamp(value, 0.0f, 255.0f) + 0.5f);
+        };
+        red = vivid(red);
+        green = vivid(green);
+        blue = vivid(blue);
+    }
+
     // Keep left-aligned menu text inside its panel: shrink it a little first,
     // then shorten it if it still would not fit.
     char fittedText[kFitLineCapacity * 2];
