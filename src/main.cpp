@@ -2128,6 +2128,7 @@ void save_icons_settings() noexcept {
     std::snprintf(value, sizeof(value), "%u", static_cast<unsigned>(g_iconsHotkey));
     WritePrivateProfileStringA("General", "WeaponIconsKey", value, g_iniPath);
     WritePrivateProfileStringA("General", "ShowWeaponIcons", g_showWeaponIcons ? "1" : "0", g_iniPath);
+    WritePrivateProfileStringA("General", "UseWheelAmmoIcons", g_useWheelAmmoIcons ? "1" : "0", g_iniPath);
 }
 
 void save_ui_language() noexcept {
@@ -3083,7 +3084,7 @@ int current_page_count() noexcept {
         case MenuPage::ChallengeDetail:
             return reinforced_equipment_count_for_challenge(
                 static_cast<std::size_t>(g_menu.challengeIndex));
-        case MenuPage::Settings: return 6;
+        case MenuPage::Settings: return 7;
         case MenuPage::Closed: return 0;
     }
     return 0;
@@ -3213,6 +3214,13 @@ void update_menu_input() noexcept {
             return;
         }
     }
+    if (g_menu.page == MenuPage::Settings && g_menu.selection == 4) {
+        if (key_pressed(VK_LEFT) || key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) {
+            g_useWheelAmmoIcons = !g_useWheelAmmoIcons;
+            save_icons_settings();
+            return;
+        }
+    }
     if (g_menu.page == MenuPage::Settings && g_menu.selection == 1) {
         if (key_pressed(VK_LEFT)) { change_ui_language(-1); return; }
         if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_ui_language(1); return; }
@@ -3302,7 +3310,7 @@ void update_menu_input() noexcept {
                 g_menu.captureHotkey = true;
             } else if (g_menu.selection == 2) {
                 g_menu.captureFilterHotkey = true;
-            } else if (g_menu.selection == 4) {
+            } else if (g_menu.selection == 5) {
                 g_menu.captureIconsHotkey = true;
             } else if (g_menu.selection == 5) {
                 g_menu.page = MenuPage::Root;
@@ -3818,31 +3826,33 @@ void draw_settings_page() noexcept {
     draw_menu_row(filterKeyLine, "CHANGE", 2, g_menu.selection == 2);
     draw_menu_row("Weapon/ammo icons", g_showWeaponIcons ? "SHOWN" : "HIDDEN", 3,
                   g_menu.selection == 3);
+    draw_menu_row("Ammo icon set", g_useWheelAmmoIcons ? "WEAPON WHEEL" : "INVENTORY", 4,
+                  g_menu.selection == 4);
     char iconsKeyLine[128]{};
     std::snprintf(iconsKeyLine, sizeof(iconsKeyLine),
                   hunting_companion::ui_text("Weapon/ammo icons key: %s"), key_name(g_iconsHotkey));
-    draw_menu_row(iconsKeyLine, "CHANGE", 4, g_menu.selection == 4);
-    draw_menu_row("Back", "", 5, g_menu.selection == 5);
+    draw_menu_row(iconsKeyLine, "CHANGE", 5, g_menu.selection == 5);
+    draw_menu_row("Back", "", 6, g_menu.selection == 6);
 
-    // The six rows end near y = 0.59, so the information block starts below them.
+    // The seven rows end near y = 0.65, so the information block starts below them.
     char languageLine[256]{};
     std::snprintf(languageLine, sizeof(languageLine), hunting_companion::ui_text("RDR2 language: %s (%s)"),
                   game_language_name(g_detectedGameLanguage),
                   game_language_locale(g_detectedGameLanguage));
-    draw_text(languageLine, 0.071f, 0.625f, 12.5f, 192, 186, 171);
+    draw_text(languageLine, 0.071f, 0.684f, 12.5f, 192, 186, 171);
     char interfaceLine[256]{};
     std::snprintf(interfaceLine, sizeof(interfaceLine),
                   hunting_companion::ui_text("Companion interface: %s (%s)"),
                   game_language_name(selectedLanguage),
                   hunting_companion::ui_locale());
-    draw_text(interfaceLine, 0.071f, 0.660f, 11.0f, 160, 154, 142);
+    draw_text(interfaceLine, 0.071f, 0.714f, 11.0f, 160, 154, 142);
     draw_wrapped_text("LEFT/RIGHT or ENTER changes the companion language.",
-                      0.071f, 0.692f, 52, 2, 0.026f, 10.0f, 160, 154, 142);
+                      0.071f, 0.742f, 52, 2, 0.026f, 10.0f, 160, 154, 142);
     if (overlay_fallback_active()) {
         // Only shown while the UI is in English (the fallback), so it is not translated.
         static constexpr char kOverlayFallbackNotice[] =
             "CJK overlay not ready (Vulkan only): showing English.";
-        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.752f, 10.0f, 224, 160, 120);
+        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.792f, 10.0f, 224, 160, 120);
     }
     const std::size_t officialCount = hunting_companion::loaded_official_string_count();
     char officialStatus[160]{};
@@ -3850,12 +3860,12 @@ void draw_settings_page() noexcept {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official Rockstar language entries loaded: %llu"),
                       static_cast<unsigned long long>(officialCount));
-        draw_wrapped_text(officialStatus, 0.071f, 0.780f, 52, 2, 0.026f, 9.5f, 145, 194, 157);
+        draw_wrapped_text(officialStatus, 0.071f, 0.814f, 52, 2, 0.022f, 9.5f, 145, 194, 157);
     } else {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official item-name data unavailable for %s; English names used."),
                       hunting_companion::ui_text(hunting_companion::locale_name(selectedLanguage)));
-        draw_wrapped_text(officialStatus, 0.071f, 0.780f, 52, 2, 0.026f, 9.5f, 220, 174, 128);
+        draw_wrapped_text(officialStatus, 0.071f, 0.814f, 52, 2, 0.022f, 9.5f, 220, 174, 128);
     }
     if (g_menu.captureHotkey || g_menu.captureFilterHotkey || g_menu.captureIconsHotkey) {
         draw_rect(0.212f, 0.52f, 0.34f, 0.12f, 0, 0, 0, 245);
