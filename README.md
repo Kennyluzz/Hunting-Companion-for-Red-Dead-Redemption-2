@@ -1,142 +1,89 @@
 # Hunting Companion
 
-An in-game companion for **Red Dead Redemption 2 (Story Mode)**, built as a
-ScriptHookRDR2 plugin (`HuntingCompanion.asi`).
+An in-game hunting and crafting companion for **Red Dead Redemption 2 (Story Mode)**.
+Focus an animal and it tells you what you still need from it, which weapon and
+ammunition give the cleanest kill, and what you can craft with what you are carrying.
 
-> **This mod is entirely AI-coded.** The ideas, direction and in-game testing
-> are human; the code was written by AI assistants.
+> The mod is AI-coded. The ideas, direction and in-game testing are human; the
+> code was written by AI assistants.
 
 ## Features
 
-- **Animal indicators:** when you focus an animal, see whether it can supply a
-  material still needed by an unowned Pearson or Trapper recipe.
+- **Animal indicators:** see whether the animal you are looking at can supply a
+  material that an unowned Pearson or Trapper recipe still needs.
 - **Weapon and ammo suggestions:** icons and names of the weapon and ammunition
-  that give the cleanest kill for the focused animal. Toggle them from Settings or with a hotkey.
-- **Pearson and Trapper:** browse recipes, required materials, ownership and
-  donation-stock counts, with a "craftable now" filter.
-- **Crafting Uses:** lists the uncrafted recipes that can use the pelts and
-  animal parts you are carrying (satchel, in hand, or on your horse).
-- **Challenges:** live rank totals for all nine Story Mode challenge categories
-  and a short description of each next rank.
-- **Reinforced equipment:** unlock requirements for all 36 bandoliers, gun
-  belts, holsters and off-hand holsters.
-- **Garment sets:** crafted-piece totals for all 16 Trapper garment sets.
-- **13 languages, switchable in-game:** English, French, German, Italian,
-  Spanish (Spain and Mexico), Brazilian Portuguese, Polish, Russian, Japanese,
-  Korean, Simplified Chinese and Traditional Chinese.
+  for a clean kill. Toggle them in Settings or with a hotkey.
+- **Pearson and Trapper:** recipes, required materials, what you own, donation
+  stock, and a "craftable now" filter.
+- **Crafting Uses:** the uncrafted recipes that can use the pelts and parts you are
+  carrying. Greyed out when nothing you carry matches.
+- **Challenges:** live rank totals for all nine Story Mode challenge categories and
+  what the next rank asks for.
+- **Reinforced equipment:** unlock requirements for all 36 bandoliers, gun belts and holsters.
+- **Garment sets:** progress for all 16 Trapper garment sets.
+- **13 languages, switchable in-game:** English, French, German, Italian, Spanish
+  (Spain and Mexico), Brazilian Portuguese, Polish, Russian, Japanese, Korean,
+  Simplified Chinese and Traditional Chinese. Item and challenge names are the
+  game's own.
+- **Menu fonts:** five game fonts to choose from in Settings.
 
-The mod only reads game data. It never changes progress, inventory, cargo or
-save data. **Do not use it with Red Dead Online.**
+The mod only reads game data. It never changes your progress, inventory or saves.
+**Do not use it in Red Dead Online.**
 
 ## Install
 
-Requires ScriptHookRDR2 and an ASI loader. Copy `HuntingCompanion.asi` next to
-`RDR2.exe` and press **F8** in Story Mode. Everything the mod needs (language
-tables, item names, fonts) is built into that single file; it writes only
-`HuntingCompanion.ini`.
+1. Install [ScriptHookRDR2](http://www.dev-c.com/rdr2/scripthookrdr2/) and an ASI loader.
+2. Copy `HuntingCompanion.asi` (and optionally `HuntingCompanion.ini`) into the game
+   folder, next to `RDR2.exe`.
+3. Start Story Mode and press **F8**.
 
-Default keys (changeable in the in-game Settings page, or in the ini file):
+Everything else is built into the `.asi`. To uninstall, delete the files.
+
+## Controls
 
 | Action | Default |
 |---|---|
 | Open / close the menu | F8 |
-| Toggle the craftable filter | `[` |
+| Toggle the "craftable now" filter | `[` |
 | Toggle weapon/ammo icons | `]` |
+| Navigate | Up / Down, Enter, Backspace |
 
-See `HuntingCompanion.ini.example` for all options.
+All keys, the language and the menu font can be changed on the in-game Settings
+page. Settings are saved to `HuntingCompanion.ini`.
 
-### Asian languages
+## Japanese, Korean and Chinese
 
-Japanese, Korean and Chinese text is drawn by a small built-in overlay when the
-game itself is set to another language. The overlay is proven on the **Vulkan**
-renderer (Linux/Proton included). On **DirectX 12** it is **experimental**: it
-has not been tested on a real DirectX 12 system yet. If it cannot start, the mod
-shows English instead. If it causes trouble, set `OverlayBackend=1` under
-`[Overlay]` in `HuntingCompanion.ini` and please report it together with
-`HuntingCompanion.overlay.log` from the game folder (written automatically on
-DirectX 12). If the game itself is set to that language, no overlay is used.
+If the game itself is set to one of these languages, the mod uses the game's own
+fonts. If you pick one of them in the mod while the game runs in another language,
+the mod draws the text itself, which works on both renderers:
 
-## Building
+- **Vulkan** (including Linux/Proton): tested and reliable.
+- **DirectX 12:** **experimental.** If it cannot start, the mod shows English instead.
+  If you hit a problem, set `OverlayBackend=1` in `HuntingCompanion.ini` to
+  switch it off, or set `OverlayLog=1`, reproduce the problem, and report it with the
+  generated `HuntingCompanion.overlay.log`.
 
-Windows x64 with MinGW-w64, CMake and Ninja. Third-party sources are vendored
-in `third_party/` (see `third_party/README.md`).
+On HDR displays the text brightness can be tuned with `CjkHdrPaperWhiteNits`.
 
-```bash
-cmake -S . -B build -G Ninja \
-  -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-toolchain.cmake \
-  -DCMAKE_BUILD_TYPE=Release
-cmake --build build --clean-first
-python tools/verify_release_binary.py build/HuntingCompanion.asi
-python tools/package_release.py build/HuntingCompanion.asi
-```
+## Configuration
 
-Use a fresh build directory each time so an old CMake cache cannot produce a
-stale binary.
+`HuntingCompanion.ini` is optional; the defaults work. Options are described in the file.
 
-### Generated files
-
-Some source files are generated; rerun the generator after changing its input:
-
-| Input | Command | Output |
-|---|---|---|
-| `HuntingCompanion-Languages/*.lang` | `python tools/embed_languages.py` | `src/embedded_languages.hpp` |
-| `data/hunting_recommendations.json` | `python tools/embed_hunting_recommendations.py` | `src/embedded_hunting_recommendations.hpp` |
-| `.lang` files + official strings | `python tools/build_cjk_fonts.py --ttc NotoSansCJK-Bold.ttc` | `src/embedded_cjk_fonts.hpp` |
-
-After editing a `.lang` file, run both the language and font generators, or
-characters can show up as `?` in-game. `tests/test_cjk_font_coverage.py` checks
-this.
-
-### Tests
-
-```bash
-python tools/validate_localizations.py
-python tests/test_catalog_contract.py
-python tests/test_hunting_recommendations.py
-python tests/test_crafting_uses.py
-python tests/test_cjk_font_coverage.py
-python tests/test_overlay_integration.py
-g++ -std=c++17 -pthread -I src tests/test_overlay_queue.cpp -o /tmp/test_overlay_queue && /tmp/test_overlay_queue
-g++ -std=c++17 -I src src/official_strings.cpp tests/test_official_strings.cpp -o /tmp/test_official_strings && /tmp/test_official_strings
-```
-
-## How the Asian-language overlay works
-
-Text for a language the game cannot draw is queued by the script thread and
-drawn with Dear ImGui into the game's swapchain just before each present
-(Vulkan: `src/cjk_overlay.cpp`; DirectX 12: `src/cjk_overlay_dx12.cpp`), using
-embedded subsets of Noto Sans CJK. (A Latin or Cyrillic menu on a game running
-in an Asian language needs no overlay: it uses a plain font the game keeps
-loaded.) No files are created on Vulkan; the experimental DirectX 12 renderer
-always keeps `HuntingCompanion.overlay.log`. Set
-`[Overlay] OverlayLog=1` in the ini for diagnostics on Vulkan, and `CjkTextScalePercent` /
-`CjkTextYOffsetPermille` to adjust size and position.
-
-When the game runs in HDR (HDR10), overlay colours are converted so the text
-matches the game's own; `CjkHdrPaperWhiteNits` sets how bright white text is.
-
-The DirectX 12 renderer creates nothing until there is Asian text to draw, and
-switches itself off for the session after any failure. `OverlayBackend` picks
-the renderer: 0 automatic, 1 Vulkan only, 2 DirectX 12 only.
-
-Limitations: overlay text is drawn over the finished frame, so later native UI
-cannot cover it.
-
-## Data sources
+## Credits
 
 - Weapon and ammo suggestions are based on the Bloxodes Story Mode animal guide
-  (<https://bloxodes.com/wiki/red-dead-redemption-2/animals>), with sources
-  recorded in `data/hunting_recommendations.json`.
-- Item, material and challenge names come from the game's own language packs
-  and are embedded at build time (`tools/build_official_strings.py`).
-- Texture names were checked against the community RDR3 discoveries catalogue
-  (<https://github.com/femga/rdr3_discoveries>). Game textures are streamed from
-  the installed game; no Rockstar artwork is distributed.
+  (<https://bloxodes.com/wiki/red-dead-redemption-2/animals>).
+- Texture names were checked against the community catalogue
+  <https://github.com/femga/rdr3_discoveries>.
+- Built with [Dear ImGui](https://github.com/ocornut/imgui),
+  [MinHook](https://github.com/TsudaKageyu/minhook) and Noto Sans CJK; see
+  `THIRD-PARTY-NOTICES.md`.
 
 ## Licence
 
-Original code is MIT-licensed (see `LICENSE`). Third-party components keep their
-own licences (`THIRD-PARTY-NOTICES.md`, `LICENSES/`). Rockstar-authored text and
-trademarks are not covered by the MIT licence. Hunting Companion is an
-unofficial fan modification, not affiliated with or endorsed by Rockstar Games
-or Take-Two Interactive.
+The mod's code is MIT-licensed (`LICENSE`). Third-party components keep their own
+licences (`THIRD-PARTY-NOTICES.md`, `LICENSES/`). Rockstar's text and trademarks are
+not covered by the MIT licence. Hunting Companion is an unofficial fan modification,
+not affiliated with or endorsed by Rockstar Games or Take-Two Interactive.
+
+Building from source: see `BUILDING.md`.

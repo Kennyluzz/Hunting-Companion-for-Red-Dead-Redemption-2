@@ -4,7 +4,7 @@ Hunting Companion's original source code is licensed under MIT; see `LICENSE`.
 The following components retain their own licences. These notices apply to
 both the source distribution and the compiled ASI.
 
-## Dear ImGui v1.91.9
+## Dear ImGui v1.91.9 (core, Vulkan and DirectX 12 backends)
 Copyright (c) 2014-2025 Omar Cornut.
 MIT licence. Full text: `LICENSES/IMGUI-MIT.txt`.
 

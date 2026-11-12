@@ -844,10 +844,6 @@ void log(const char* fmt, ...) noexcept {
     hc_log("%s", line);
 }
 
-void enable_file_log() noexcept {
-    if (g_settings.logDirectory != nullptr) g_settings.fileLog = true;
-}
-
 const Settings& settings() noexcept { return g_settings; }
 
 void lock() noexcept { AcquireSRWLockExclusive(&g->lock); }

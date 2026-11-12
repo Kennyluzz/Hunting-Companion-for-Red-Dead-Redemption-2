@@ -1735,12 +1735,18 @@ constexpr MenuFont kMenuFonts[] = {
 constexpr int kMenuFontCount = static_cast<int>(std::size(kMenuFonts));
 int g_menuFontIndex = 0;
 
+// The LEDGER face has no Cyrillic letters, so Russian falls back to CATALOGUE.
+int effective_menu_font() noexcept {
+    if (g_menuFontIndex == 4 && hunting_companion::active_ui_language() == 7) return 0;
+    return g_menuFontIndex;
+}
+
 float text_width_estimate(const char* text, float size, float correction) noexcept {
     float width = 0.0f;
     for (const char* cursor = text; *cursor != '\0';) width += codepoint_width(next_codepoint(cursor));
     const float fontFactor =
         hunting_companion::uses_cjk_font(hunting_companion::active_ui_language())
-            ? 1.0f : kMenuFonts[g_menuFontIndex].widthFactor;
+            ? 1.0f : kMenuFonts[effective_menu_font()].widthFactor;
     return width * size * correction * fontFactor;
 }
 
@@ -3428,7 +3434,7 @@ const char* selected_font_face() noexcept {
     // Plain ASCII (the brand line) is safe in any face, so it may insist.
     if (g_fontFaceOverride != nullptr && (g_fontFaceForced || !plain_face_needed()))
         return g_fontFaceOverride;
-    if (g_menuFontIndex != 0 && !plain_face_needed()) return kMenuFonts[g_menuFontIndex].face;
+    if (effective_menu_font() != 0 && !plain_face_needed()) return kMenuFonts[effective_menu_font()].face;
     // The game's own catalogue font. Text in a CJK language that the game is not
     // itself running in cannot use native text (the game has not loaded those
     // glyphs); draw_text_impl() sends it to the CJK overlay instead. When the
@@ -3801,7 +3807,7 @@ void draw_menu_header(const char* title, const char* subtitle,
         constexpr float kTitleFaceWidth = 0.80f;
         float size = 22.0f;
         const float width = text_width_estimate(titleText, size, correction) * kTitleFaceWidth /
-                            kMenuFonts[g_menuFontIndex].widthFactor;
+                            kMenuFonts[effective_menu_font()].widthFactor;
         if (width > titleRoom) size = std::max(size * titleRoom / width, 13.0f);
         draw_text_raw(titleText, 0.071f, 0.109f + (22.0f - size) * 0.0007f, size,
                       theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);

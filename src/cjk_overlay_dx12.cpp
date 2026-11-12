@@ -9,8 +9,7 @@
 // on DirectX 12. To keep the risk low it
 //   * creates no Direct3D objects until there is CJK text to draw,
 //   * turns itself off for the rest of the session after any failure,
-//   * always writes HuntingCompanion.overlay.log once a DirectX 12 swapchain is
-//     seen, so a problem report can include what happened.
+//   * writes HuntingCompanion.overlay.log only when [Overlay] OverlayLog=1.
 // [Overlay] OverlayBackend=1 in the ini switches this renderer off completely.
 
 #include "cjk_overlay_internal.hpp"
@@ -468,7 +467,6 @@ void after_swapchain_create(IUnknown* device, IDXGISwapChain* swapchain) noexcep
     ID3D12CommandQueue* queue = nullptr;
     if (FAILED(device->QueryInterface(IID_PPV_ARGS(&queue))) || !queue) return;  // not DirectX 12
 
-    enable_file_log();
     ScopedLock lock;
     State& s = g_state;
     if (s.queue != queue) {

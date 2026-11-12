@@ -11,8 +11,6 @@ namespace hunting_companion::overlay::detail {
 
 // Same sink as the Vulkan renderer: debugger output, plus the log file when on.
 void log(const char* fmt, ...) noexcept;
-// The DirectX 12 renderer is experimental, so it always keeps a log file.
-void enable_file_log() noexcept;
 const Settings& settings() noexcept;
 
 // The one overlay lock; every renderer entry point takes it.
