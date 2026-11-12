@@ -3855,7 +3855,7 @@ void draw_menu_footer() noexcept {
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     if (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes) {
         char filterHint[64]{};
-        std::snprintf(filterHint, sizeof(filterHint), "%s: %s",
+        std::snprintf(filterHint, sizeof(filterHint), "%s - %s",
                       key_name(g_filterHotkey), hunting_companion::ui_text("Toggle Filter"));
         draw_text(filterHint, 0.240f, 0.908f, 12.5f,
                   theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
