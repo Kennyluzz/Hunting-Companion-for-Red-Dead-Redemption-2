@@ -9,6 +9,9 @@ UILanguage=-1
 CjkTextScalePercent=100
 ; Vertical nudge in thousandths of the screen height (-100..100). Positive = down.
 CjkTextYOffsetPermille=0
+; Only used when the game runs in HDR: brightness of white overlay text, in nits
+; (80-1000). Raise/lower if CJK text looks dimmer/brighter than the game's own text.
+CjkHdrPaperWhiteNits=230
 ; 1 = write HuntingCompanion.overlay.log next to the ASI (for troubleshooting).
 OverlayLog=0
 
