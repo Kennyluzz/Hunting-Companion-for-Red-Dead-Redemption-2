@@ -1902,8 +1902,11 @@ void draw_hunting_recommendation_icons(
     constexpr float kRightEdge = 0.972f;             // same right edge as the vendor icons
     constexpr float kGapAboveVendorIcons = 0.014f;
     constexpr float kCellWidth = 0.078f;
+    constexpr float kLabelRightLimit = 0.988f;       // labels stay clear of the screen edge
     const float heightOverWidth = layout.width / layout.height;
     const float iconWidth = kIconHeight * heightOverWidth;
+    // The right-hand column ends on the same pixel as the vendor icons below it.
+    const float rightColumnCenterX = kRightEdge - iconWidth * 0.5f;
     const float vendorTop = layout.centerY - layout.height * 0.5f;
     const float stackBottom = vendorTop - kGapAboveVendorIcons;
 
@@ -1915,10 +1918,13 @@ void draw_hunting_recommendation_icons(
         for (int i = 0; i < row.count; ++i) {
             // A lone icon goes in the right-hand column.
             const int column = row.count == 1 ? 1 : i;
-            const float centerX = kRightEdge - kCellWidth * (2.0f - static_cast<float>(column) - 0.5f);
+            const float centerX = rightColumnCenterX - kCellWidth * (1.0f - static_cast<float>(column));
             draw_icon_with_shadow(row.icons[i], centerX, rowTop + kIconHeight * 0.5f, iconWidth, kIconHeight);
             std::snprintf(label, sizeof(label), "%s", hunting_companion::ui_text(row.icons[i].label));
-            draw_label_with_shadow(label, centerX, rowTop + kIconHeight + kLabelGap, kCellWidth * 0.97f);
+            // A label is wider than its icon, so the right column's label is
+            // narrowed rather than allowed to run off the screen.
+            const float labelWidth = std::min(kCellWidth * 0.97f, (kLabelRightLimit - centerX) * 2.0f);
+            draw_label_with_shadow(label, centerX, rowTop + kIconHeight + kLabelGap, labelWidth);
         }
     }
 }
