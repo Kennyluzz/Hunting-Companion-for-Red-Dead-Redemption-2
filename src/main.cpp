@@ -96,6 +96,7 @@ Return invoke_native(std::uint64_t hash, Args... args) noexcept {
 constexpr std::uint64_t kPlayerPedId = 0x096275889B8E0EE0ull;
 constexpr std::uint64_t kPlayerId = 0x217E9DC48139933Dull;
 constexpr std::uint64_t kGetSaddleHorseForPlayer = 0xB48050D326E9A2F3ull;
+constexpr std::uint64_t kGetPeltFromHorse = 0x0CEEB6F4780B1F2Full;
 constexpr std::uint64_t kGetCarriedAttachedInfoForSlot = 0x608BC6A6AACD5036ull;
 constexpr std::uint64_t kFindAllAttachedCarriableEntities = 0xB5ACE8B23A438EC0ull;
 constexpr std::uint64_t kCreateItemset = 0xA1AF16083320065Aull;
@@ -1439,6 +1440,7 @@ struct CurrentHaulMaterial {
     int inventoryCount{};
     int carriedCount{};
     int horseCount{};
+    int stowedPeltCount{};  // scratch: pelts in the horse's stowed-pelt list
 };
 struct CurrentHaulState {
     std::array<CurrentHaulMaterial, kMaxMaterials> materials{};
@@ -1474,7 +1476,8 @@ void add_current_haul_count(std::uint32_t hash, int amount, int source) noexcept
     }
     CurrentHaulMaterial& material = g_currentHaul.materials[static_cast<std::size_t>(index)];
     int* destination = source == 0 ? &material.inventoryCount :
-                       source == 1 ? &material.carriedCount : &material.horseCount;
+                       source == 1 ? &material.carriedCount :
+                       source == 2 ? &material.horseCount : &material.stowedPeltCount;
     *destination = std::min(1000000, *destination + amount);
 }
 
@@ -1587,6 +1590,21 @@ void update_current_haul() noexcept {
                 if (isPelt || isPed) add_entity_animal_materials(entity, 2, isPelt);
             }
             invoke_native<void>(kDestroyItemset, itemSet);
+        }
+
+        // Small and medium pelts are not attached entities: the horse keeps them
+        // in its own stowed-pelt list (the satchel's Horse Cargo tab), whose
+        // entries are the pelts' inventory item hashes. A large pelt may show up
+        // both here and as an attached entity, so take the larger of the two
+        // counts instead of adding them.
+        for (int index = 0; index < 32; ++index) {
+            const std::uint32_t pelt = invoke_native<std::uint32_t>(kGetPeltFromHorse, horse, index);
+            if (pelt != 0) add_current_haul_count(pelt, 1, 3);
+        }
+        for (std::size_t i = 0; i < g_currentHaul.count; ++i) {
+            CurrentHaulMaterial& material = g_currentHaul.materials[i];
+            material.horseCount = std::max(material.horseCount, material.stowedPeltCount);
+            material.stowedPeltCount = 0;
         }
     }
 }
@@ -4605,11 +4623,14 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(module);
         g_module = module;
-        // Hook Vulkan as early as possible: the overlay can only follow a VkInstance
-        // that is created after the hooks are in place. Does nothing visible unless
-        // a CJK companion language is chosen while the game runs in another language.
-        hunting_companion::overlay::install(module, make_overlay_settings());
+        // Without ScriptHook the mod cannot run; bail out before anything is hooked
+        // so the DLL can unload cleanly.
         if (!resolve_script_hook()) return FALSE;
+        // Hook the renderer as early as possible: the overlay can only follow a
+        // swapchain created after the hooks are in place. install() only starts a
+        // worker thread (no hooking under the loader lock) and does nothing visible
+        // unless a CJK companion language is chosen while the game runs in another.
+        hunting_companion::overlay::install(module, make_overlay_settings());
         if (g_api.registerAdditionalThread != nullptr) {
             // Set the flag before registration so ScriptMain always takes the
             // asynchronous path, even if ScriptHook starts the worker eagerly.

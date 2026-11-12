@@ -8,8 +8,8 @@
 // Sans CJK fonts embedded in the .asi, into the game's swapchain just before
 // each present (Vulkan, or the experimental DirectX 12 renderer).
 //
-// Nothing is written to disk (no imgui.ini, no font files) apart from the log:
-// optional on Vulkan (OverlayLog ini switch), always kept on DirectX 12.
+// Nothing is written to disk (no imgui.ini, no font files) apart from the
+// optional log (OverlayLog ini switch).
 
 #include <cstdint>
 
@@ -24,11 +24,11 @@ struct Settings {
     const char* logDirectory = nullptr;  // directory for the optional log file
 };
 
-// Call once from DllMain. Starts a worker thread that hooks the Vulkan loader.
-// Cheap and harmless when the game is not using Vulkan (it then never becomes ready).
+// Call once from DllMain. Starts a worker thread that installs the Vulkan and
+// DirectX 12 hooks; nothing is hooked under the loader lock.
 void install(void* moduleHandle, const Settings& settings) noexcept;
 
-// True once a Vulkan swapchain has been seen and the overlay can draw.
+// True once a swapchain has been seen and the overlay can draw.
 bool ready() noexcept;
 
 // Which companion language the overlay should draw (0-12, same numbering as the mod).
