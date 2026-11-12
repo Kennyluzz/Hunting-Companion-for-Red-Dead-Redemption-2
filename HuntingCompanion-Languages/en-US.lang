@@ -120,7 +120,7 @@ ANIMAL PARTS READY=ANIMAL PARTS READY
 OTHER COSTS NEEDED=OTHER COSTS NEEDED
 USES YOUR HAUL=USES YOUR HAUL
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
+# Settings, Crafting Uses and weapon/ammo icon strings
 Craftable filter key: %s=Craftable filter key: %s
 PRESS A KEY FOR THE CRAFTABLE FILTER=PRESS A KEY FOR THE CRAFTABLE FILTER
 Toggle Filter=Toggle Filter
@@ -136,15 +136,17 @@ Counts include Arthur, satchel and saddle horse.=Counts include Arthur, satchel 
 No material costs were exposed for this catalog entry.=No material costs were exposed for this catalog entry.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=HELD / NEEDED (YOUR HAUL + VENDOR STOCK)
 Cash=Cash
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Bow
 Varmint Rifle=Varmint Rifle
-Long-scope rifle=Long-scope rifle
+Sniper rifle=Sniper rifle
 Carcano Rifle=Carcano Rifle
-Rifle=Rifle
+Springfield Rifle=Springfield Rifle
 Repeater=Repeater
-Improved Arrow=Improved Arrow
-Poison Arrow=Poison Arrow
-Small Game Arrow=Small Game Arrow
-Normal Ammo=Normal Ammo
-High Velocity Ammo=High Velocity Ammo
-Express Ammo=Express Ammo
+Small Game Arrows=Small Game Arrows
+Improved Arrows=Improved Arrows
+Poisoned Arrows=Poisoned Arrows
+Rifle Cartridges - Regular=Rifle Cartridges - Regular
+Rifle Cartridges - High Velocity=Rifle Cartridges - High Velocity
+Rifle Cartridges - Express=Rifle Cartridges - Express

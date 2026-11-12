@@ -217,7 +217,7 @@ Western Chipmunk=ardilla listada occidental
 
 # Vendor names and official Rockstar label-pack status.
 Pearson=Pearson
-Trapper=Trampero
+Trapper=Peletero
 Official Rockstar language entries loaded: %llu=Entradas de idioma oficiales de Rockstar cargadas: %llu
 Official item-name data unavailable for %s; English names used.=Los nombres oficiales de objetos para %s no están disponibles; se usan los nombres en inglés.
 
@@ -237,7 +237,7 @@ Pick and eat 4 different berry species.=Recolecta y come 4 tipos distintos de ba
 Pick one of every herb species.=Recolecta un ejemplar de cada especie de hierba.
 Win 3 Blackjack hands with at least 3 hits each.=Gana 3 manos de blackjack pidiendo al menos 3 cartas adicionales en cada una.
 FILTER: ALL=FILTRO: TODO
-FILTER: CRAFTABLE=FILTRO: FABRICABLE
+FILTER: CRAFTABLE=FILTRO: ELABORABLES
 SPACE: Toggle Filter=ESPACIO: CAMBIAR FILTRO
 Crafting Uses=Usos de fabricación
 NO HAUL=SIN BOTÍN
@@ -248,9 +248,9 @@ ANIMAL PARTS READY=PARTES ANIMALES LISTAS
 OTHER COSTS NEEDED=FALTAN OTROS MATERIALES
 USES YOUR HAUL=USA TU BOTÍN
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
-Craftable filter key: %s=Tecla del filtro de fabricables: %s
-PRESS A KEY FOR THE CRAFTABLE FILTER=PRESIONA UNA TECLA PARA EL FILTRO DE FABRICABLES
+# Settings, Crafting Uses and weapon/ammo icon strings
+Craftable filter key: %s=Tecla del filtro de recetas elaborables: %s
+PRESS A KEY FOR THE CRAFTABLE FILTER=PRESIONA UNA TECLA PARA EL FILTRO DE RECETAS ELABORABLES
 Toggle Filter=Alternar filtro
 Weapon/ammo icons=Iconos de armas/munición
 Weapon/ammo icons key: %s=Tecla de iconos de armas/munición: %s
@@ -263,16 +263,18 @@ Try another pelt or animal part.=Prueba con otra piel o parte de animal.
 Counts include Arthur, satchel and saddle horse.=Los conteos incluyen a Arthur, la alforja y el caballo de montar.
 No material costs were exposed for this catalog entry.=No se indicaron costos de materiales para esta entrada del catálogo.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=TIENES / NECESITAS (TU BOTÍN + EXISTENCIAS DEL VENDEDOR)
-Cash=Efectivo
+Cash=Dinero
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Arco
 Varmint Rifle=Rifle Varmint
-Long-scope rifle=Rifle de mira larga
+Sniper rifle=Rifle de francotirador
 Carcano Rifle=Rifle Carcano
-Rifle=Rifle
-Repeater=Rifle de repetición
-Improved Arrow=Flecha mejorada
-Poison Arrow=Flecha venenosa
-Small Game Arrow=Flecha caza menor
-Normal Ammo=Munición normal
-High Velocity Ammo=Munición alta velocidad
-Express Ammo=Munición Express
+Springfield Rifle=Rifle Springfield
+Repeater=De repetición
+Small Game Arrows=Flechas para presas pequeñas
+Improved Arrows=Flechas mejoradas
+Poisoned Arrows=Flechas envenenadas
+Rifle Cartridges - Regular=Munición (rifle)
+Rifle Cartridges - High Velocity=Munición alta velocidad (rifle)
+Rifle Cartridges - Express=Munición exprés (rifle)

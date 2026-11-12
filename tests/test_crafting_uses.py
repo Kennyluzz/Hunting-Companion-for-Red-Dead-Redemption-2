@@ -39,7 +39,7 @@ required = (
     "kGetCarcassFromPelt, entity",
     "kDestroyItemset, itemSet",
     "if (perfectOnly && qualityKnown && quality != 2) continue;",
-    "g_currentHaul.hasAnyAnimalPart = true;",
+    "if (!carcassFound || species == nullptr) return;",
     "if (isPelt ? (carcassMaterial || !perfectOnly) : !carcassMaterial) continue;",
     "if (legendaryOnly) continue;",
     'model == joaat("a_c_chipmunk_01")',

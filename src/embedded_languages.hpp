@@ -14,7 +14,7 @@ UP/DOWN Navigate   ENTER Select   BACKSPACE Back=HOCH/RUNTER Navigieren   ENTER 
 %s Close=%s Schließen
 %d of %d=%d von %d
 UNAVAILABLE=NICHT VERFÜGBAR
-OWNED=IM BESITZ
+OWNED=IN BESITZ
 RANK ?=RANG ?
 LOCKED R%u=GESPERRT R%u
 UNLOCKED=FREIGESCHALTET
@@ -252,7 +252,7 @@ ANIMAL PARTS READY=TIERTEILE BEREIT
 OTHER COSTS NEEDED=WEITERE MATERIALIEN FEHLEN
 USES YOUR HAUL=NUTZT DEINE BEUTE
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
+# Settings, Crafting Uses and weapon/ammo icon strings
 Craftable filter key: %s=Taste für Herstellbar-Filter: %s
 PRESS A KEY FOR THE CRAFTABLE FILTER=TASTE FÜR DEN HERSTELLBAR-FILTER DRÜCKEN
 Toggle Filter=Filter umschalten
@@ -268,18 +268,20 @@ Counts include Arthur, satchel and saddle horse.=Mengen enthalten Arthur, Sattel
 No material costs were exposed for this catalog entry.=Für diesen Katalogeintrag wurden keine Materialkosten angegeben.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=VORHANDEN / BENÖTIGT (DEINE BEUTE + HÄNDLERBESTAND)
 Cash=Bargeld
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Bogen
 Varmint Rifle=Varmint-Gewehr
-Long-scope rifle=Gewehr mit Fernrohr
+Sniper rifle=Scharfschützengewehr
 Carcano Rifle=Carcano-Gewehr
-Rifle=Gewehr
+Springfield Rifle=Springfield-Gewehr
 Repeater=Repetiergewehr
-Improved Arrow=Verbesserter Pfeil
-Poison Arrow=Giftpfeil
-Small Game Arrow=Kleinwildpfeil
-Normal Ammo=Normale Munition
-High Velocity Ammo=Hochgeschw.-Munition
-Express Ammo=Express-Munition
+Small Game Arrows=Kleinwildpfeile
+Improved Arrows=Verbesserte Pfeile
+Poisoned Arrows=Giftpfeile
+Rifle Cartridges - Regular=Gewehrmunition – Normal
+Rifle Cartridges - High Velocity=Gewehrmunition – HG
+Rifle Cartridges - Express=Gewehrmunition – Express
 )HCL0";
 inline constexpr char kLocale_en_US[] = R"HCL1(# Hunting Companion localization — en-US
 # Companion-owned interface phrases follow this locale.
@@ -403,7 +405,7 @@ ANIMAL PARTS READY=ANIMAL PARTS READY
 OTHER COSTS NEEDED=OTHER COSTS NEEDED
 USES YOUR HAUL=USES YOUR HAUL
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
+# Settings, Crafting Uses and weapon/ammo icon strings
 Craftable filter key: %s=Craftable filter key: %s
 PRESS A KEY FOR THE CRAFTABLE FILTER=PRESS A KEY FOR THE CRAFTABLE FILTER
 Toggle Filter=Toggle Filter
@@ -419,18 +421,20 @@ Counts include Arthur, satchel and saddle horse.=Counts include Arthur, satchel 
 No material costs were exposed for this catalog entry.=No material costs were exposed for this catalog entry.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=HELD / NEEDED (YOUR HAUL + VENDOR STOCK)
 Cash=Cash
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Bow
 Varmint Rifle=Varmint Rifle
-Long-scope rifle=Long-scope rifle
+Sniper rifle=Sniper rifle
 Carcano Rifle=Carcano Rifle
-Rifle=Rifle
+Springfield Rifle=Springfield Rifle
 Repeater=Repeater
-Improved Arrow=Improved Arrow
-Poison Arrow=Poison Arrow
-Small Game Arrow=Small Game Arrow
-Normal Ammo=Normal Ammo
-High Velocity Ammo=High Velocity Ammo
-Express Ammo=Express Ammo
+Small Game Arrows=Small Game Arrows
+Improved Arrows=Improved Arrows
+Poisoned Arrows=Poisoned Arrows
+Rifle Cartridges - Regular=Rifle Cartridges - Regular
+Rifle Cartridges - High Velocity=Rifle Cartridges - High Velocity
+Rifle Cartridges - Express=Rifle Cartridges - Express
 )HCL1";
 inline constexpr char kLocale_es_ES[] = R"HCL2(# Hunting Companion localization — es-ES
 # Companion-owned interface phrases follow this locale.
@@ -671,7 +675,7 @@ Pick and eat 4 different berry species.=Recolecta y come 4 tipos distintos de ba
 Pick one of every herb species.=Recolecta un ejemplar de cada especie de hierba.
 Win 3 Blackjack hands with at least 3 hits each.=Gana 3 manos de blackjack pidiendo al menos 3 cartas adicionales en cada una.
 FILTER: ALL=FILTRO: TODO
-FILTER: CRAFTABLE=FILTRO: FABRICABLE
+FILTER: CRAFTABLE=FILTRO: DISPONIBLES
 SPACE: Toggle Filter=ESPACIO: CAMBIAR FILTRO
 Crafting Uses=Usos de fabricación
 NO HAUL=SIN BOTÍN
@@ -682,9 +686,9 @@ ANIMAL PARTS READY=PARTES ANIMALES LISTAS
 OTHER COSTS NEEDED=FALTAN OTROS MATERIALES
 USES YOUR HAUL=USA TU BOTÍN
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
-Craftable filter key: %s=Tecla del filtro de fabricables: %s
-PRESS A KEY FOR THE CRAFTABLE FILTER=PULSA UNA TECLA PARA EL FILTRO DE FABRICABLES
+# Settings, Crafting Uses and weapon/ammo icon strings
+Craftable filter key: %s=Tecla del filtro de recetas disponibles: %s
+PRESS A KEY FOR THE CRAFTABLE FILTER=PULSA UNA TECLA PARA EL FILTRO DE RECETAS DISPONIBLES
 Toggle Filter=Alternar filtro
 Weapon/ammo icons=Iconos de armas/munición
 Weapon/ammo icons key: %s=Tecla de iconos de armas/munición: %s
@@ -698,18 +702,20 @@ Counts include Arthur, satchel and saddle horse.=Los recuentos incluyen a Arthur
 No material costs were exposed for this catalog entry.=No se indicaron costes de materiales para esta entrada del catálogo.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=TIENES / NECESITAS (TU BOTÍN + EXISTENCIAS DEL VENDEDOR)
 Cash=Efectivo
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Arco
-Varmint Rifle=Rifle Varmint
-Long-scope rifle=Rifle de mira larga
-Carcano Rifle=Rifle Carcano
-Rifle=Rifle
-Repeater=Rifle de repetición
-Improved Arrow=Flecha mejorada
-Poison Arrow=Flecha venenosa
-Small Game Arrow=Flecha caza menor
-Normal Ammo=Munición normal
-High Velocity Ammo=Munición alta velocidad
-Express Ammo=Munición Express
+Varmint Rifle=Fusil Varmint
+Sniper rifle=Fusil de precisión
+Carcano Rifle=Fusil Carcano
+Springfield Rifle=Fusil Springfield
+Repeater=Arma de repetición
+Small Game Arrows=Flechas para presas pequeñas
+Improved Arrows=Flechas mejoradas
+Poisoned Arrows=Flechas envenenadas
+Rifle Cartridges - Regular=Cartuchos de fusil: normales
+Rifle Cartridges - High Velocity=Cartuchos de fusil: alta velocidad
+Rifle Cartridges - Express=Cartuchos de fusil: rápidos
 )HCL2";
 inline constexpr char kLocale_es_MX[] = R"HCL3(# Hunting Companion localization — es-MX
 # Companion-owned interface phrases follow this locale.
@@ -930,7 +936,7 @@ Western Chipmunk=ardilla listada occidental
 
 # Vendor names and official Rockstar label-pack status.
 Pearson=Pearson
-Trapper=Trampero
+Trapper=Peletero
 Official Rockstar language entries loaded: %llu=Entradas de idioma oficiales de Rockstar cargadas: %llu
 Official item-name data unavailable for %s; English names used.=Los nombres oficiales de objetos para %s no están disponibles; se usan los nombres en inglés.
 
@@ -950,7 +956,7 @@ Pick and eat 4 different berry species.=Recolecta y come 4 tipos distintos de ba
 Pick one of every herb species.=Recolecta un ejemplar de cada especie de hierba.
 Win 3 Blackjack hands with at least 3 hits each.=Gana 3 manos de blackjack pidiendo al menos 3 cartas adicionales en cada una.
 FILTER: ALL=FILTRO: TODO
-FILTER: CRAFTABLE=FILTRO: FABRICABLE
+FILTER: CRAFTABLE=FILTRO: ELABORABLES
 SPACE: Toggle Filter=ESPACIO: CAMBIAR FILTRO
 Crafting Uses=Usos de fabricación
 NO HAUL=SIN BOTÍN
@@ -961,9 +967,9 @@ ANIMAL PARTS READY=PARTES ANIMALES LISTAS
 OTHER COSTS NEEDED=FALTAN OTROS MATERIALES
 USES YOUR HAUL=USA TU BOTÍN
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
-Craftable filter key: %s=Tecla del filtro de fabricables: %s
-PRESS A KEY FOR THE CRAFTABLE FILTER=PRESIONA UNA TECLA PARA EL FILTRO DE FABRICABLES
+# Settings, Crafting Uses and weapon/ammo icon strings
+Craftable filter key: %s=Tecla del filtro de recetas elaborables: %s
+PRESS A KEY FOR THE CRAFTABLE FILTER=PRESIONA UNA TECLA PARA EL FILTRO DE RECETAS ELABORABLES
 Toggle Filter=Alternar filtro
 Weapon/ammo icons=Iconos de armas/munición
 Weapon/ammo icons key: %s=Tecla de iconos de armas/munición: %s
@@ -976,19 +982,21 @@ Try another pelt or animal part.=Prueba con otra piel o parte de animal.
 Counts include Arthur, satchel and saddle horse.=Los conteos incluyen a Arthur, la alforja y el caballo de montar.
 No material costs were exposed for this catalog entry.=No se indicaron costos de materiales para esta entrada del catálogo.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=TIENES / NECESITAS (TU BOTÍN + EXISTENCIAS DEL VENDEDOR)
-Cash=Efectivo
+Cash=Dinero
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Arco
 Varmint Rifle=Rifle Varmint
-Long-scope rifle=Rifle de mira larga
+Sniper rifle=Rifle de francotirador
 Carcano Rifle=Rifle Carcano
-Rifle=Rifle
-Repeater=Rifle de repetición
-Improved Arrow=Flecha mejorada
-Poison Arrow=Flecha venenosa
-Small Game Arrow=Flecha caza menor
-Normal Ammo=Munición normal
-High Velocity Ammo=Munición alta velocidad
-Express Ammo=Munición Express
+Springfield Rifle=Rifle Springfield
+Repeater=De repetición
+Small Game Arrows=Flechas para presas pequeñas
+Improved Arrows=Flechas mejoradas
+Poisoned Arrows=Flechas envenenadas
+Rifle Cartridges - Regular=Munición (rifle)
+Rifle Cartridges - High Velocity=Munición alta velocidad (rifle)
+Rifle Cartridges - Express=Munición exprés (rifle)
 )HCL3";
 inline constexpr char kLocale_fr_FR[] = R"HCL4(# Hunting Companion localization — fr-FR
 # Companion-owned interface phrases follow this locale.
@@ -1002,7 +1010,7 @@ UP/DOWN Navigate   ENTER Select   BACKSPACE Back=HAUT/BAS Naviguer   ENTRÉE Cho
 %s Close=%s Fermer
 %d of %d=%d sur %d
 UNAVAILABLE=INDISPONIBLE
-OWNED=POSSÉDÉ
+OWNED=ACQUIS
 RANK ?=RANG ?
 LOCKED R%u=VERROUILLÉ R%u
 UNLOCKED=DÉBLOQUÉ
@@ -1229,7 +1237,7 @@ Pick and eat 4 different berry species.=Cueillez et mangez 4 espèces de baies d
 Pick one of every herb species.=Cueillez un exemplaire de chaque espèce d'herbe.
 Win 3 Blackjack hands with at least 3 hits each.=Remportez 3 mains de blackjack en tirant au moins 3 cartes à chaque fois.
 FILTER: ALL=FILTRE : TOUT
-FILTER: CRAFTABLE=FILTRE : FABRICABLE
+FILTER: CRAFTABLE=FILTRE : RÉALISABLES
 SPACE: Toggle Filter=ESPACE : CHANGER LE FILTRE
 Crafting Uses=Utilisations d’artisanat
 NO HAUL=AUCUN BUTIN
@@ -1240,9 +1248,9 @@ ANIMAL PARTS READY=PARTIES ANIMALES PRÊTES
 OTHER COSTS NEEDED=AUTRES MATÉRIAUX REQUIS
 USES YOUR HAUL=UTILISE VOTRE BUTIN
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
-Craftable filter key: %s=Touche du filtre de fabrication : %s
-PRESS A KEY FOR THE CRAFTABLE FILTER=APPUYEZ SUR UNE TOUCHE POUR LE FILTRE DE FABRICATION
+# Settings, Crafting Uses and weapon/ammo icon strings
+Craftable filter key: %s=Touche du filtre des recettes réalisables : %s
+PRESS A KEY FOR THE CRAFTABLE FILTER=APPUYEZ SUR UNE TOUCHE POUR LE FILTRE DES RECETTES RÉALISABLES
 Toggle Filter=Basculer le filtre
 Weapon/ammo icons=Icônes d'armes/munitions
 Weapon/ammo icons key: %s=Touche des icônes d'armes/munitions : %s
@@ -1256,18 +1264,20 @@ Counts include Arthur, satchel and saddle horse.=Les quantités incluent Arthur,
 No material costs were exposed for this catalog entry.=Aucun coût en matériaux n'est disponible pour cette entrée du catalogue.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=POSSÉDÉ / REQUIS (VOTRE BUTIN + STOCK DU VENDEUR)
 Cash=Argent
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Arc
-Varmint Rifle=Carabine varmint
-Long-scope rifle=Fusil à longue lunette
+Varmint Rifle=Fusil à petit gibier
+Sniper rifle=Fusil de précision
 Carcano Rifle=Fusil Carcano
-Rifle=Fusil
-Repeater=Carabine à répétition
-Improved Arrow=Flèche améliorée
-Poison Arrow=Flèche empoisonnée
-Small Game Arrow=Flèche petit gibier
-Normal Ammo=Munitions normales
-High Velocity Ammo=Munitions haute vélocité
-Express Ammo=Munitions express
+Springfield Rifle=Fusil Springfield
+Repeater=Carabine
+Small Game Arrows=Flèches à petit gibier
+Improved Arrows=Flèches améliorées
+Poisoned Arrows=Flèches empoisonnées
+Rifle Cartridges - Regular=Balles pour fusil - standard
+Rifle Cartridges - High Velocity=Balles pour fusil - haute vélocité
+Rifle Cartridges - Express=Balles pour fusil - express
 )HCL4";
 inline constexpr char kLocale_it_IT[] = R"HCL5(# Hunting Companion localization — it-IT
 # Companion-owned interface phrases follow this locale.
@@ -1508,7 +1518,7 @@ Pick and eat 4 different berry species.=Raccogli e mangia 4 specie diverse di ba
 Pick one of every herb species.=Raccogli un esemplare di ogni specie di erba.
 Win 3 Blackjack hands with at least 3 hits each.=Vinci 3 mani di blackjack chiedendo almeno 3 carte ogni volta.
 FILTER: ALL=FILTRO: TUTTE
-FILTER: CRAFTABLE=FILTRO: REALIZZABILI
+FILTER: CRAFTABLE=FILTRO: DISPONIBILI
 SPACE: Toggle Filter=SPAZIO: CAMBIA FILTRO
 Crafting Uses=Utilizzi per la creazione
 NO HAUL=NESSUN BOTTINO
@@ -1519,9 +1529,9 @@ ANIMAL PARTS READY=PARTI ANIMALI PRONTE
 OTHER COSTS NEEDED=SERVONO ALTRI MATERIALI
 USES YOUR HAUL=USA IL TUO BOTTINO
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
-Craftable filter key: %s=Tasto filtro creabili: %s
-PRESS A KEY FOR THE CRAFTABLE FILTER=PREMI UN TASTO PER IL FILTRO CREABILI
+# Settings, Crafting Uses and weapon/ammo icon strings
+Craftable filter key: %s=Tasto filtro ricette disponibili: %s
+PRESS A KEY FOR THE CRAFTABLE FILTER=PREMI UN TASTO PER IL FILTRO DELLE RICETTE DISPONIBILI
 Toggle Filter=Attiva/disattiva filtro
 Weapon/ammo icons=Icone armi/munizioni
 Weapon/ammo icons key: %s=Tasto icone armi/munizioni: %s
@@ -1534,19 +1544,21 @@ Try another pelt or animal part.=Prova un'altra pelle o parte animale.
 Counts include Arthur, satchel and saddle horse.=I conteggi includono Arthur, la sacca e il cavallo da sella.
 No material costs were exposed for this catalog entry.=Nessun costo in materiali disponibile per questa voce del catalogo.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=POSSEDUTI / NECESSARI (IL TUO BOTTINO + SCORTE DEL VENDITORE)
-Cash=Contanti
+Cash=Denaro
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Arco
-Varmint Rifle=Fucile Varmint
-Long-scope rifle=Fucile a lungo raggio
-Carcano Rifle=Fucile Carcano
-Rifle=Fucile
-Repeater=Carabina a ripetizione
-Improved Arrow=Freccia migliorata
-Poison Arrow=Freccia avvelenata
-Small Game Arrow=Freccia piccola preda
-Normal Ammo=Munizioni normali
-High Velocity Ammo=Munizioni alta velocità
-Express Ammo=Munizioni Express
+Varmint Rifle=Varmint a canna rigata
+Sniper rifle=Fucile di precisione
+Carcano Rifle=Carcano a canna rigata
+Springfield Rifle=Springfield a canna rigata
+Repeater=Arma a ripetizione
+Small Game Arrows=Frecce per selvaggina piccola
+Improved Arrows=Frecce migliorate
+Poisoned Arrows=Frecce avvelenate
+Rifle Cartridges - Regular=Cartucce canna rigata - Normali
+Rifle Cartridges - High Velocity=Cartucce canna rigata - Veloci
+Rifle Cartridges - Express=Cartucce canna rigata - Express
 )HCL5";
 inline constexpr char kLocale_ja_JP[] = R"HCL6(# Hunting Companion localization — ja-JP
 # Companion-owned interface phrases follow this locale.
@@ -1798,7 +1810,7 @@ ANIMAL PARTS READY=動物素材の準備完了
 OTHER COSTS NEEDED=ほかの素材が必要
 USES YOUR HAUL=所持素材を使用
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
+# Settings, Crafting Uses and weapon/ammo icon strings
 Craftable filter key: %s=製作フィルターのキー：%s
 PRESS A KEY FOR THE CRAFTABLE FILTER=製作フィルターに割り当てるキーを押してください
 Toggle Filter=フィルター切替
@@ -1814,18 +1826,20 @@ Counts include Arthur, satchel and saddle horse.=数にはアーサー、サッ�
 No material costs were exposed for this catalog entry.=このカタログ項目では素材コストが公開されていません。
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=所持 / 必要（所持素材＋店の在庫）
 Cash=現金
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=弓
 Varmint Rifle=ヴァーミントライフル
-Long-scope rifle=長距離スコープ付きライフル
+Sniper rifle=スナイパーライフル
 Carcano Rifle=カルカノライフル
-Rifle=ライフル
+Springfield Rifle=スプリングフィールドライフル
 Repeater=リピーター
-Improved Arrow=強化矢
-Poison Arrow=毒矢
-Small Game Arrow=小動物用矢
-Normal Ammo=通常弾
-High Velocity Ammo=高速弾
-Express Ammo=エクスプレス弾
+Small Game Arrows=小動物用の矢
+Improved Arrows=改良矢
+Poisoned Arrows=毒矢
+Rifle Cartridges - Regular=ライフル用弾薬(標準弾)
+Rifle Cartridges - High Velocity=ライフル用弾薬(高速弾)
+Rifle Cartridges - Express=ライフル用弾薬(エクスプレス弾)
 )HCL6";
 inline constexpr char kLocale_ko_KR[] = R"HCL7(# Hunting Companion localization — ko-KR
 # Companion-owned interface phrases follow this locale.
@@ -2074,7 +2088,7 @@ ANIMAL PARTS READY=동물 재료 준비 완료
 OTHER COSTS NEEDED=다른 재료 필요
 USES YOUR HAUL=현재 재료 사용
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
+# Settings, Crafting Uses and weapon/ammo icon strings
 Craftable filter key: %s=제작 필터 키: %s
 PRESS A KEY FOR THE CRAFTABLE FILTER=제작 필터에 사용할 키를 누르세요
 Toggle Filter=필터 전환
@@ -2092,18 +2106,20 @@ HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=보유 / 필요 (내 수확물 + 상점
 Cash=현금
 Trapper=덫 사냥꾼
 Pearson=피어슨
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=활
-Varmint Rifle=버민트 소총
-Long-scope rifle=장거리 스코프 소총
-Carcano Rifle=카르카노 소총
-Rifle=소총
+Varmint Rifle=바민트 라이플
+Sniper rifle=스나이퍼 라이플
+Carcano Rifle=카르카노 라이플
+Springfield Rifle=스프링필드 라이플
 Repeater=리피터
-Improved Arrow=강화 화살
-Poison Arrow=독 화살
-Small Game Arrow=소형 사냥감용 화살
-Normal Ammo=일반 탄약
-High Velocity Ammo=고속 탄약
-Express Ammo=익스프레스 탄약
+Small Game Arrows=작은 동물용 화살
+Improved Arrows=개량 화살
+Poisoned Arrows=독화살
+Rifle Cartridges - Regular=라이플 탄약 - 일반
+Rifle Cartridges - High Velocity=라이플 탄약 - 고속
+Rifle Cartridges - Express=라이플 탄약 - 익스프레스
 )HCL7";
 inline constexpr char kLocale_pl_PL[] = R"HCL8(# Hunting Companion localization — pl-PL
 # Companion-owned interface phrases follow this locale.
@@ -2121,7 +2137,7 @@ OWNED=POSIADANE
 RANK ?=RANGA ?
 LOCKED R%u=ZABLOKOWANE R%u
 UNLOCKED=ODBLOKOWANE
-CRAFTED=WYKONANE
+CRAFTED=WYTWORZONE
 MATERIALS=MATERIAŁY
 OTHER COSTS=INNE KOSZTY
 Menu hotkey: %s=Klawisz menu: %s
@@ -2187,7 +2203,7 @@ Challenges=Wyzwania
 Settings=Ustawienia
 Close=Zamknij
 CATEGORIES=KATEGORIE
-RECIPES=PRZEPISY
+RECIPES=RECEPTURY
 CHALLENGES=WYZWANIA
 SETTINGS=USTAWIENIA
 English=Angielski
@@ -2341,7 +2357,7 @@ Pick and eat 4 different berry species.=Zbierz i zjedz 4 różne gatunki jagód.
 Pick one of every herb species.=Zbierz po jednym egzemplarzu każdego gatunku zioła.
 Win 3 Blackjack hands with at least 3 hits each.=Wygraj 3 rozdania blackjacka, dobierając co najmniej 3 karty w każdym z nich.
 FILTER: ALL=FILTR: WSZYSTKIE
-FILTER: CRAFTABLE=FILTR: DO WYKONANIA
+FILTER: CRAFTABLE=FILTR: DOSTĘPNE
 SPACE: Toggle Filter=SPACJA: ZMIEŃ FILTR
 Crafting Uses=Zastosowanie do wytwarzania
 NO HAUL=BRAK ŁUPU
@@ -2352,9 +2368,9 @@ ANIMAL PARTS READY=CZĘŚCI ZWIERZĄT GOTOWE
 OTHER COSTS NEEDED=POTRZEBNE INNE MATERIAŁY
 USES YOUR HAUL=WYKORZYSTUJE TWÓJ ŁUP
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
-Craftable filter key: %s=Klawisz filtra możliwych do wykonania: %s
-PRESS A KEY FOR THE CRAFTABLE FILTER=NACIŚNIJ KLAWISZ DLA FILTRA MOŻLIWYCH DO WYKONANIA
+# Settings, Crafting Uses and weapon/ammo icon strings
+Craftable filter key: %s=Klawisz filtra dostępnych receptur: %s
+PRESS A KEY FOR THE CRAFTABLE FILTER=NACIŚNIJ KLAWISZ DLA FILTRA DOSTĘPNYCH RECEPTUR
 Toggle Filter=Przełącz filtr
 Weapon/ammo icons=Ikony broni/amunicji
 Weapon/ammo icons key: %s=Klawisz ikon broni/amunicji: %s
@@ -2369,19 +2385,21 @@ No material costs were exposed for this catalog entry.=Dla tego wpisu katalogu n
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=POSIADANE / POTRZEBNE (TWOJA ZDOBYCZ + ZAPAS HANDLARZA)
 Cash=Gotówka
 Pearson=Pearson
-Trapper=Trapper
+Trapper=Traper
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Łuk
-Varmint Rifle=Karabin Varmint
-Long-scope rifle=Karabin z lunetą
+Varmint Rifle=Lekki sztucer
+Sniper rifle=Karabin wyborowy
 Carcano Rifle=Karabin Carcano
-Rifle=Karabin
+Springfield Rifle=Karabin Springfield
 Repeater=Karabin powtarzalny
-Improved Arrow=Ulepszona strzała
-Poison Arrow=Zatruta strzała
-Small Game Arrow=Strzała na drobnicę
-Normal Ammo=Zwykła amunicja
-High Velocity Ammo=Amunicja dużej prędk.
-Express Ammo=Amunicja Express
+Small Game Arrows=Strzały na zwierzynę drobną
+Improved Arrows=Ulepszone strzały
+Poisoned Arrows=Zatrute strzały
+Rifle Cartridges - Regular=Karabin - amunicja zwykła
+Rifle Cartridges - High Velocity=Karabin - szybka amunicja
+Rifle Cartridges - Express=Karabin - amunicja express
 )HCL8";
 inline constexpr char kLocale_pt_BR[] = R"HCL9(# Hunting Companion localization — pt-BR
 # Companion-owned interface phrases follow this locale.
@@ -2622,7 +2640,7 @@ Pick and eat 4 different berry species.=Colha e coma 4 espécies diferentes de f
 Pick one of every herb species.=Colha um exemplar de cada espécie de erva.
 Win 3 Blackjack hands with at least 3 hits each.=Vença 3 mãos de Blackjack pedindo pelo menos 3 cartas em cada uma.
 FILTER: ALL=FILTRO: TODAS
-FILTER: CRAFTABLE=FILTRO: FABRICÁVEIS
+FILTER: CRAFTABLE=FILTRO: DISPONÍVEIS
 SPACE: Toggle Filter=ESPAÇO: ALTERNAR FILTRO
 Crafting Uses=Usos de criação
 NO HAUL=SEM ESPÓLIO
@@ -2633,9 +2651,9 @@ ANIMAL PARTS READY=PARTES DE ANIMAIS PRONTAS
 OTHER COSTS NEEDED=FALTAM OUTROS MATERIAIS
 USES YOUR HAUL=USA SEU ESPÓLIO
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
-Craftable filter key: %s=Tecla do filtro de criáveis: %s
-PRESS A KEY FOR THE CRAFTABLE FILTER=PRESSIONE UMA TECLA PARA O FILTRO DE CRIÁVEIS
+# Settings, Crafting Uses and weapon/ammo icon strings
+Craftable filter key: %s=Tecla do filtro de receitas disponíveis: %s
+PRESS A KEY FOR THE CRAFTABLE FILTER=PRESSIONE UMA TECLA PARA O FILTRO DE RECEITAS DISPONÍVEIS
 Toggle Filter=Alternar filtro
 Weapon/ammo icons=Ícones de armas/munição
 Weapon/ammo icons key: %s=Tecla dos ícones de armas/munição: %s
@@ -2649,18 +2667,20 @@ Counts include Arthur, satchel and saddle horse.=As contagens incluem Arthur, a 
 No material costs were exposed for this catalog entry.=Nenhum custo de material foi informado para esta entrada do catálogo.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=POSSUÍDO / NECESSÁRIO (SEU ESPÓLIO + ESTOQUE DO VENDEDOR)
 Cash=Dinheiro
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Arco
-Varmint Rifle=Rifle Varmint
-Long-scope rifle=Rifle de mira longa
+Varmint Rifle=Rifle Antipragas
+Sniper rifle=Rifle de Precisão
 Carcano Rifle=Rifle Carcano
-Rifle=Rifle
-Repeater=Rifle de repetição
-Improved Arrow=Flecha aprimorada
-Poison Arrow=Flecha envenenada
-Small Game Arrow=Flecha caça pequena
-Normal Ammo=Munição normal
-High Velocity Ammo=Munição alta velocidade
-Express Ammo=Munição Express
+Springfield Rifle=Rifle Springfield
+Repeater=Arma de Repetição
+Small Game Arrows=Flechas para Caça Pequena
+Improved Arrows=Flechas Melhoradas
+Poisoned Arrows=Flechas Envenenadas
+Rifle Cartridges - Regular=Rifle - Munição Regular
+Rifle Cartridges - High Velocity=Rifle - Munição Ligeira
+Rifle Cartridges - Express=Rifle - Munição Express
 )HCL9";
 inline constexpr char kLocale_ru_RU[] = R"HCL10(# Hunting Companion localization — ru-RU
 # Companion-owned interface phrases follow this locale.
@@ -2674,7 +2694,7 @@ UP/DOWN Navigate   ENTER Select   BACKSPACE Back=ВВЕРХ/ВНИЗ Навиг�
 %s Close=%s Закрыть
 %d of %d=%d из %d
 UNAVAILABLE=НЕДОСТУПНО
-OWNED=ЕСТЬ
+OWNED=ПРИОБРЕТЕНО
 RANK ?=РАНГ ?
 LOCKED R%u=ЗАКРЫТО R%u
 UNLOCKED=ОТКРЫТО
@@ -2881,7 +2901,7 @@ Western Chipmunk=западный бурундук
 
 # Vendor names and official Rockstar label-pack status.
 Pearson=Пирсон
-Trapper=Зверолов
+Trapper=Охотник
 Official Rockstar language entries loaded: %llu=Загружено официальных языковых записей Rockstar: %llu
 Official item-name data unavailable for %s; English names used.=Официальные названия предметов для языка %s недоступны; используются английские названия.
 
@@ -2901,7 +2921,7 @@ Pick and eat 4 different berry species.=Соберите и съешьте 4 р�
 Pick one of every herb species.=Соберите по одному экземпляру каждого вида трав.
 Win 3 Blackjack hands with at least 3 hits each.=Выиграйте 3 раздачи в блэкджек, взяв не менее 3 дополнительных карт в каждой.
 FILTER: ALL=ФИЛЬТР: ВСЕ
-FILTER: CRAFTABLE=ФИЛЬТР: МОЖНО ИЗГОТОВИТЬ
+FILTER: CRAFTABLE=ФИЛЬТР: ИЗГОТАВЛИВАЕМЫЕ
 SPACE: Toggle Filter=ПРОБЕЛ: СМЕНИТЬ ФИЛЬТР
 Crafting Uses=Для чего пригодно
 NO HAUL=НЕТ ДОБЫЧИ
@@ -2912,9 +2932,9 @@ ANIMAL PARTS READY=ЧАСТИ ЖИВОТНЫХ ГОТОВЫ
 OTHER COSTS NEEDED=НУЖНЫ ДРУГИЕ МАТЕРИАЛЫ
 USES YOUR HAUL=ИСПОЛЬЗУЕТ ВАШУ ДОБЫЧУ
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
-Craftable filter key: %s=Клавиша фильтра изготовления: %s
-PRESS A KEY FOR THE CRAFTABLE FILTER=НАЖМИТЕ КЛАВИШУ ДЛЯ ФИЛЬТРА ИЗГОТОВЛЕНИЯ
+# Settings, Crafting Uses and weapon/ammo icon strings
+Craftable filter key: %s=Клавиша фильтра изготавливаемых рецептов: %s
+PRESS A KEY FOR THE CRAFTABLE FILTER=НАЖМИТЕ КЛАВИШУ ДЛЯ ФИЛЬТРА ИЗГОТАВЛИВАЕМЫХ РЕЦЕПТОВ
 Toggle Filter=Переключить фильтр
 Weapon/ammo icons=Значки оружия/боеприпасов
 Weapon/ammo icons key: %s=Клавиша значков оружия/боеприпасов: %s
@@ -2927,19 +2947,21 @@ Try another pelt or animal part.=Попробуйте другую шкуру и
 Counts include Arthur, satchel and saddle horse.=В подсчёт входят Артур, сумка и верховая лошадь.
 No material costs were exposed for this catalog entry.=Для этой записи каталога стоимость материалов не указана.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=ЕСТЬ / НУЖНО (ВАША ДОБЫЧА + ЗАПАС ТОРГОВЦА)
-Cash=Наличные
+Cash=Деньги
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Лук
-Varmint Rifle=Винтовка Varmint
-Long-scope rifle=Винтовка с оптикой
-Carcano Rifle=Винтовка Карчано
-Rifle=Винтовка
-Repeater=Карабин-репетир
-Improved Arrow=Улучшенная стрела
-Poison Arrow=Отравленная стрела
-Small Game Arrow=Стрела для мелкой дичи
-Normal Ammo=Обычные патроны
-High Velocity Ammo=Скоростные патроны
-Express Ammo=Патроны Express
+Varmint Rifle=Винтовка «Варминт»
+Sniper rifle=Снайперская винтовка
+Carcano Rifle=Винтовка Каркано
+Springfield Rifle=Винтовка Спрингфилда
+Repeater=Карабин
+Small Game Arrows=Стрелы для мелкой дичи
+Improved Arrows=Улучшенные стрелы
+Poisoned Arrows=Отравленные стрелы
+Rifle Cartridges - Regular=Патроны (винтовка)
+Rifle Cartridges - High Velocity=Скоростные патроны (винтовка)
+Rifle Cartridges - Express=Экспресс-патроны (винтовка)
 )HCL10";
 inline constexpr char kLocale_zh_CN[] = R"HCL11(# Hunting Companion localization — zh-CN
 # Companion-owned interface phrases follow this locale.
@@ -3191,7 +3213,7 @@ ANIMAL PARTS READY=动物材料已备齐
 OTHER COSTS NEEDED=仍需其他材料
 USES YOUR HAUL=使用当前猎物材料
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
+# Settings, Crafting Uses and weapon/ammo icon strings
 Craftable filter key: %s=可制作筛选键：%s
 PRESS A KEY FOR THE CRAFTABLE FILTER=请按下可制作筛选所用的按键
 Toggle Filter=切换筛选
@@ -3207,18 +3229,20 @@ Counts include Arthur, satchel and saddle horse.=数量包含亚瑟、挎包和�
 No material costs were exposed for this catalog entry.=此目录条目未提供材料费用。
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=已有 / 需要（猎获物＋商人库存）
 Cash=现金
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=弓
-Varmint Rifle=小型猎物步枪
-Long-scope rifle=远距瞄准镜步枪
+Varmint Rifle=捕猎步枪
+Sniper rifle=狙击步枪
 Carcano Rifle=卡尔卡诺步枪
-Rifle=步枪
+Springfield Rifle=春田步枪
 Repeater=连发步枪
-Improved Arrow=强化箭
-Poison Arrow=毒箭
-Small Game Arrow=小型猎物箭
-Normal Ammo=普通弹药
-High Velocity Ammo=高速弹药
-Express Ammo=爆裂弹药
+Small Game Arrows=小型猎物箭矢
+Improved Arrows=改良箭
+Poisoned Arrows=毒箭
+Rifle Cartridges - Regular=步枪子弹（普通）
+Rifle Cartridges - High Velocity=步枪子弹（高速）
+Rifle Cartridges - Express=步枪子弹（中空）
 )HCL11";
 inline constexpr char kLocale_zh_TW[] = R"HCL12(# Hunting Companion localization — zh-TW
 # Companion-owned interface phrases follow this locale.
@@ -3470,7 +3494,7 @@ ANIMAL PARTS READY=動物材料已備妥
 OTHER COSTS NEEDED=仍需其他材料
 USES YOUR HAUL=使用目前獵物材料
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
+# Settings, Crafting Uses and weapon/ammo icon strings
 Craftable filter key: %s=可製作篩選鍵：%s
 PRESS A KEY FOR THE CRAFTABLE FILTER=請按下可製作篩選所用的按鍵
 Toggle Filter=切換篩選
@@ -3486,18 +3510,20 @@ Counts include Arthur, satchel and saddle horse.=數量包含亞瑟、掛包和�
 No material costs were exposed for this catalog entry.=此目錄項目未提供材料費用。
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=已有 / 需要（獵獲物＋商人庫存）
 Cash=現金
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=弓
-Varmint Rifle=小型獵物步槍
-Long-scope rifle=遠距瞄準鏡步槍
-Carcano Rifle=卡爾卡諾步槍
-Rifle=步槍
+Varmint Rifle=狐鼠步槍
+Sniper rifle=狙擊槍
+Carcano Rifle=卡爾卡諾狙擊槍
+Springfield Rifle=春田步槍
 Repeater=連發步槍
-Improved Arrow=強化箭
-Poison Arrow=毒箭
-Small Game Arrow=小型獵物箭
-Normal Ammo=普通彈藥
-High Velocity Ammo=高速彈藥
-Express Ammo=爆裂彈藥
+Small Game Arrows=小型獵物箭
+Improved Arrows=改良箭
+Poisoned Arrows=淬毒箭
+Rifle Cartridges - Regular=步槍子彈（一般）
+Rifle Cartridges - High Velocity=步槍子彈（高速彈）
+Rifle Cartridges - Express=步槍子彈（空尖彈）
 )HCL12";
 inline constexpr LocaleBlob kLocales[] = {
     {"de-DE", kLocale_de_DE},

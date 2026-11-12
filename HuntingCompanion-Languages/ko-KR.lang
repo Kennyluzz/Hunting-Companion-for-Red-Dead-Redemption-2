@@ -245,7 +245,7 @@ ANIMAL PARTS READY=동물 재료 준비 완료
 OTHER COSTS NEEDED=다른 재료 필요
 USES YOUR HAUL=현재 재료 사용
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
+# Settings, Crafting Uses and weapon/ammo icon strings
 Craftable filter key: %s=제작 필터 키: %s
 PRESS A KEY FOR THE CRAFTABLE FILTER=제작 필터에 사용할 키를 누르세요
 Toggle Filter=필터 전환
@@ -263,15 +263,17 @@ HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=보유 / 필요 (내 수확물 + 상점
 Cash=현금
 Trapper=덫 사냥꾼
 Pearson=피어슨
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=활
-Varmint Rifle=버민트 소총
-Long-scope rifle=장거리 스코프 소총
-Carcano Rifle=카르카노 소총
-Rifle=소총
+Varmint Rifle=바민트 라이플
+Sniper rifle=스나이퍼 라이플
+Carcano Rifle=카르카노 라이플
+Springfield Rifle=스프링필드 라이플
 Repeater=리피터
-Improved Arrow=강화 화살
-Poison Arrow=독 화살
-Small Game Arrow=소형 사냥감용 화살
-Normal Ammo=일반 탄약
-High Velocity Ammo=고속 탄약
-Express Ammo=익스프레스 탄약
+Small Game Arrows=작은 동물용 화살
+Improved Arrows=개량 화살
+Poisoned Arrows=독화살
+Rifle Cartridges - Regular=라이플 탄약 - 일반
+Rifle Cartridges - High Velocity=라이플 탄약 - 고속
+Rifle Cartridges - Express=라이플 탄약 - 익스프레스

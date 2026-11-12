@@ -45,17 +45,17 @@
     "Bow": "weapon_bow",
     "Varmint Rifle": "weapon_rifle_varmint",
     "Repeater": "weapon_repeater_lancaster",
-    "Rifle": "weapon_rifle_springfield",
-    "Long-scope rifle": "weapon_sniperrifle_carcano",
+    "Springfield Rifle": "weapon_rifle_springfield",
+    "Sniper rifle": "weapon_sniperrifle_carcano",
     "Carcano Rifle": "weapon_sniperrifle_carcano"
   },
   "ammoTextures": {
-    "Small Game Arrow": "ammo_arrow_small_game",
-    "Improved Arrow": "ammo_arrow_improved",
-    "Poison Arrow": "ammo_arrow_poison",
-    "Normal Rifle Ammo": "ammo_bullet_normal",
-    "High Velocity Bullets": "ammo_bullet_high_velocity",
-    "Express Bullets": "ammo_bullet_express"
+    "Small Game Arrows": "ammo_arrow_small_game",
+    "Improved Arrows": "ammo_arrow_improved",
+    "Poisoned Arrows": "ammo_arrow_poison",
+    "Rifle Cartridges - Regular": "ammo_bullet_normal",
+    "Rifle Cartridges - High Velocity": "ammo_bullet_high_velocity",
+    "Rifle Cartridges - Express": "ammo_bullet_express"
   },
   "recommendations": [
     {
@@ -69,13 +69,13 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Improved Arrow"
+            "Improved Arrows"
           ]
         },
         {
-          "weapon": "Long-scope rifle",
+          "weapon": "Sniper rifle",
           "ammo": [
-            "Normal Rifle Ammo"
+            "Rifle Cartridges - Regular"
           ]
         }
       ]
@@ -116,7 +116,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -148,7 +148,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Improved Arrow"
+            "Improved Arrows"
           ]
         }
       ]
@@ -161,7 +161,7 @@
       "sourceRule": "Bear group: Long-scope rifle",
       "choices": [
         {
-          "weapon": "Long-scope rifle",
+          "weapon": "Sniper rifle",
           "ammo": []
         }
       ]
@@ -176,7 +176,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -189,13 +189,13 @@
       "sourceRule": "Deer and boar group",
       "choices": [
         {
-          "weapon": "Rifle",
+          "weapon": "Springfield Rifle",
           "ammo": []
         },
         {
           "weapon": "Bow",
           "ammo": [
-            "Poison Arrow"
+            "Poisoned Arrows"
           ]
         }
       ]
@@ -210,7 +210,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -223,13 +223,13 @@
       "sourceRule": "Deer and boar group",
       "choices": [
         {
-          "weapon": "Long-scope rifle",
+          "weapon": "Sniper rifle",
           "ammo": []
         },
         {
           "weapon": "Bow",
           "ammo": [
-            "Poison Arrow"
+            "Poisoned Arrows"
           ]
         }
       ]
@@ -244,13 +244,13 @@
       "sourceRule": "Elk, moose, bulls and oxen group",
       "choices": [
         {
-          "weapon": "Long-scope rifle",
+          "weapon": "Sniper rifle",
           "ammo": []
         },
         {
           "weapon": "Bow",
           "ammo": [
-            "Improved Arrow"
+            "Improved Arrows"
           ]
         }
       ]
@@ -265,7 +265,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -306,7 +306,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -321,7 +321,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -364,13 +364,13 @@
       "sourceRule": "Large animal guidance: Rifle or Bow",
       "choices": [
         {
-          "weapon": "Rifle",
+          "weapon": "Springfield Rifle",
           "ammo": []
         },
         {
           "weapon": "Bow",
           "ammo": [
-            "Poison Arrow"
+            "Poisoned Arrows"
           ]
         }
       ]
@@ -385,7 +385,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Improved Arrow"
+            "Improved Arrows"
           ]
         }
       ]
@@ -413,7 +413,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -443,7 +443,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ],
@@ -459,7 +459,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -472,13 +472,13 @@
       "sourceRule": "Deer and boar group",
       "choices": [
         {
-          "weapon": "Rifle",
+          "weapon": "Springfield Rifle",
           "ammo": []
         },
         {
           "weapon": "Bow",
           "ammo": [
-            "Poison Arrow"
+            "Poisoned Arrows"
           ]
         }
       ]
@@ -536,13 +536,13 @@
       "sourceRule": "Elk, moose, bulls and oxen group",
       "choices": [
         {
-          "weapon": "Long-scope rifle",
+          "weapon": "Sniper rifle",
           "ammo": []
         },
         {
           "weapon": "Bow",
           "ammo": [
-            "Improved Arrow"
+            "Improved Arrows"
           ]
         }
       ]
@@ -563,7 +563,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Improved Arrow"
+            "Improved Arrows"
           ]
         }
       ]
@@ -602,10 +602,10 @@
       "sourceRule": "Named exception: Grizzly Bear",
       "choices": [
         {
-          "weapon": "Long-scope rifle",
+          "weapon": "Sniper rifle",
           "ammo": [
-            "High Velocity Bullets",
-            "Express Bullets"
+            "Rifle Cartridges - High Velocity",
+            "Rifle Cartridges - Express"
           ]
         }
       ]
@@ -694,7 +694,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ],
@@ -709,13 +709,13 @@
       "sourceRule": "Elk, moose, bulls and oxen group",
       "choices": [
         {
-          "weapon": "Long-scope rifle",
+          "weapon": "Sniper rifle",
           "ammo": []
         },
         {
           "weapon": "Bow",
           "ammo": [
-            "Improved Arrow"
+            "Improved Arrows"
           ]
         }
       ]
@@ -757,7 +757,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -786,13 +786,13 @@
       "sourceRule": "Elk, moose, bulls and oxen group",
       "choices": [
         {
-          "weapon": "Long-scope rifle",
+          "weapon": "Sniper rifle",
           "ammo": []
         },
         {
           "weapon": "Bow",
           "ammo": [
-            "Improved Arrow"
+            "Improved Arrows"
           ]
         }
       ]
@@ -806,14 +806,14 @@
       "sourceRule": "Named exception: Panther and Florida Panther",
       "choices": [
         {
-          "weapon": "Rifle",
+          "weapon": "Springfield Rifle",
           "ammo": []
         },
         {
           "weapon": "Bow",
           "ammo": [
-            "Improved Arrow",
-            "Poison Arrow"
+            "Improved Arrows",
+            "Poisoned Arrows"
           ]
         }
       ],
@@ -829,7 +829,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -902,7 +902,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -920,13 +920,13 @@
       "sourceRule": "Named regional entries: American, Sonoran and Baja California Pronghorn",
       "choices": [
         {
-          "weapon": "Rifle",
+          "weapon": "Springfield Rifle",
           "ammo": []
         },
         {
           "weapon": "Bow",
           "ammo": [
-            "Poison Arrow"
+            "Poisoned Arrows"
           ]
         }
       ],
@@ -942,7 +942,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -986,7 +986,7 @@
       "sourceRule": "Bighorn rams and sheep group",
       "choices": [
         {
-          "weapon": "Rifle",
+          "weapon": "Springfield Rifle",
           "ammo": []
         }
       ]
@@ -1002,7 +1002,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -1028,7 +1028,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -1056,7 +1056,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -1128,7 +1128,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -1145,7 +1145,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -1176,7 +1176,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -1192,7 +1192,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]
@@ -1221,7 +1221,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ],
@@ -1252,7 +1252,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Poison Arrow"
+            "Poisoned Arrows"
           ]
         }
       ]
@@ -1268,7 +1268,7 @@
         {
           "weapon": "Bow",
           "ammo": [
-            "Small Game Arrow"
+            "Small Game Arrows"
           ]
         }
       ]

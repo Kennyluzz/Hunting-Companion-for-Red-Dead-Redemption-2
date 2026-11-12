@@ -126,4 +126,26 @@ for locale in locales:
         if not re.search(r"^" + re.escape(key) + r"=", content, re.M):
             raise AssertionError(f"{locale}: missing localization key {key}")
 
+# Every weapon and ammunition name shown on the HUD must be translated in every locale.
+shown_names = set(DATA["weaponTextures"]) | set(DATA["ammoTextures"])
+for locale in locales:
+    entries = {}
+    for line in (ROOT / f"HuntingCompanion-Languages/{locale}.lang").read_text(encoding="utf-8").splitlines():
+        if line and not line.startswith("#") and "=" in line:
+            key, value = line.split("=", 1)
+            entries[key] = value
+    for name in sorted(shown_names):
+        if not entries.get(name):
+            raise AssertionError(f"{locale}: weapon/ammo name not translated: {name}")
+    if locale == "en-US":
+        for name in sorted(shown_names):
+            if entries[name] != name:
+                raise AssertionError(f"en-US must show the official English name: {name}")
+
+for token in ("struct IconRow { RecommendationIcon icons[2]; int count; };",
+              "wrap_to_width(text, size, correction, maxWidth, 2, &fitted)",
+              "const TextRightLimitScope keepTextInsidePanel("):
+    if token not in SOURCE:
+        raise AssertionError(f"Missing icon layout / text fitting integration: {token}")
+
 print(f"PASS: {len(rows)} huntable runtime species; all 162 standard Animal Compendium entries classified; recommendation, icon, filter and 13-locale contracts.")

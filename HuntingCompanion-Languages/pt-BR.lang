@@ -237,7 +237,7 @@ Pick and eat 4 different berry species.=Colha e coma 4 espécies diferentes de f
 Pick one of every herb species.=Colha um exemplar de cada espécie de erva.
 Win 3 Blackjack hands with at least 3 hits each.=Vença 3 mãos de Blackjack pedindo pelo menos 3 cartas em cada uma.
 FILTER: ALL=FILTRO: TODAS
-FILTER: CRAFTABLE=FILTRO: FABRICÁVEIS
+FILTER: CRAFTABLE=FILTRO: DISPONÍVEIS
 SPACE: Toggle Filter=ESPAÇO: ALTERNAR FILTRO
 Crafting Uses=Usos de criação
 NO HAUL=SEM ESPÓLIO
@@ -248,9 +248,9 @@ ANIMAL PARTS READY=PARTES DE ANIMAIS PRONTAS
 OTHER COSTS NEEDED=FALTAM OUTROS MATERIAIS
 USES YOUR HAUL=USA SEU ESPÓLIO
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
-Craftable filter key: %s=Tecla do filtro de criáveis: %s
-PRESS A KEY FOR THE CRAFTABLE FILTER=PRESSIONE UMA TECLA PARA O FILTRO DE CRIÁVEIS
+# Settings, Crafting Uses and weapon/ammo icon strings
+Craftable filter key: %s=Tecla do filtro de receitas disponíveis: %s
+PRESS A KEY FOR THE CRAFTABLE FILTER=PRESSIONE UMA TECLA PARA O FILTRO DE RECEITAS DISPONÍVEIS
 Toggle Filter=Alternar filtro
 Weapon/ammo icons=Ícones de armas/munição
 Weapon/ammo icons key: %s=Tecla dos ícones de armas/munição: %s
@@ -264,15 +264,17 @@ Counts include Arthur, satchel and saddle horse.=As contagens incluem Arthur, a 
 No material costs were exposed for this catalog entry.=Nenhum custo de material foi informado para esta entrada do catálogo.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=POSSUÍDO / NECESSÁRIO (SEU ESPÓLIO + ESTOQUE DO VENDEDOR)
 Cash=Dinheiro
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Arco
-Varmint Rifle=Rifle Varmint
-Long-scope rifle=Rifle de mira longa
+Varmint Rifle=Rifle Antipragas
+Sniper rifle=Rifle de Precisão
 Carcano Rifle=Rifle Carcano
-Rifle=Rifle
-Repeater=Rifle de repetição
-Improved Arrow=Flecha aprimorada
-Poison Arrow=Flecha envenenada
-Small Game Arrow=Flecha caça pequena
-Normal Ammo=Munição normal
-High Velocity Ammo=Munição alta velocidade
-Express Ammo=Munição Express
+Springfield Rifle=Rifle Springfield
+Repeater=Arma de Repetição
+Small Game Arrows=Flechas para Caça Pequena
+Improved Arrows=Flechas Melhoradas
+Poisoned Arrows=Flechas Envenenadas
+Rifle Cartridges - Regular=Rifle - Munição Regular
+Rifle Cartridges - High Velocity=Rifle - Munição Ligeira
+Rifle Cartridges - Express=Rifle - Munição Express

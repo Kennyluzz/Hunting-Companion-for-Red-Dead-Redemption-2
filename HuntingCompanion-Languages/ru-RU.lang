@@ -10,7 +10,7 @@ UP/DOWN Navigate   ENTER Select   BACKSPACE Back=ВВЕРХ/ВНИЗ Навиг�
 %s Close=%s Закрыть
 %d of %d=%d из %d
 UNAVAILABLE=НЕДОСТУПНО
-OWNED=ЕСТЬ
+OWNED=ПРИОБРЕТЕНО
 RANK ?=РАНГ ?
 LOCKED R%u=ЗАКРЫТО R%u
 UNLOCKED=ОТКРЫТО
@@ -217,7 +217,7 @@ Western Chipmunk=западный бурундук
 
 # Vendor names and official Rockstar label-pack status.
 Pearson=Пирсон
-Trapper=Зверолов
+Trapper=Охотник
 Official Rockstar language entries loaded: %llu=Загружено официальных языковых записей Rockstar: %llu
 Official item-name data unavailable for %s; English names used.=Официальные названия предметов для языка %s недоступны; используются английские названия.
 
@@ -237,7 +237,7 @@ Pick and eat 4 different berry species.=Соберите и съешьте 4 р�
 Pick one of every herb species.=Соберите по одному экземпляру каждого вида трав.
 Win 3 Blackjack hands with at least 3 hits each.=Выиграйте 3 раздачи в блэкджек, взяв не менее 3 дополнительных карт в каждой.
 FILTER: ALL=ФИЛЬТР: ВСЕ
-FILTER: CRAFTABLE=ФИЛЬТР: МОЖНО ИЗГОТОВИТЬ
+FILTER: CRAFTABLE=ФИЛЬТР: ИЗГОТАВЛИВАЕМЫЕ
 SPACE: Toggle Filter=ПРОБЕЛ: СМЕНИТЬ ФИЛЬТР
 Crafting Uses=Для чего пригодно
 NO HAUL=НЕТ ДОБЫЧИ
@@ -248,9 +248,9 @@ ANIMAL PARTS READY=ЧАСТИ ЖИВОТНЫХ ГОТОВЫ
 OTHER COSTS NEEDED=НУЖНЫ ДРУГИЕ МАТЕРИАЛЫ
 USES YOUR HAUL=ИСПОЛЬЗУЕТ ВАШУ ДОБЫЧУ
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
-Craftable filter key: %s=Клавиша фильтра изготовления: %s
-PRESS A KEY FOR THE CRAFTABLE FILTER=НАЖМИТЕ КЛАВИШУ ДЛЯ ФИЛЬТРА ИЗГОТОВЛЕНИЯ
+# Settings, Crafting Uses and weapon/ammo icon strings
+Craftable filter key: %s=Клавиша фильтра изготавливаемых рецептов: %s
+PRESS A KEY FOR THE CRAFTABLE FILTER=НАЖМИТЕ КЛАВИШУ ДЛЯ ФИЛЬТРА ИЗГОТАВЛИВАЕМЫХ РЕЦЕПТОВ
 Toggle Filter=Переключить фильтр
 Weapon/ammo icons=Значки оружия/боеприпасов
 Weapon/ammo icons key: %s=Клавиша значков оружия/боеприпасов: %s
@@ -263,16 +263,18 @@ Try another pelt or animal part.=Попробуйте другую шкуру и
 Counts include Arthur, satchel and saddle horse.=В подсчёт входят Артур, сумка и верховая лошадь.
 No material costs were exposed for this catalog entry.=Для этой записи каталога стоимость материалов не указана.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=ЕСТЬ / НУЖНО (ВАША ДОБЫЧА + ЗАПАС ТОРГОВЦА)
-Cash=Наличные
+Cash=Деньги
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Лук
-Varmint Rifle=Винтовка Varmint
-Long-scope rifle=Винтовка с оптикой
-Carcano Rifle=Винтовка Карчано
-Rifle=Винтовка
-Repeater=Карабин-репетир
-Improved Arrow=Улучшенная стрела
-Poison Arrow=Отравленная стрела
-Small Game Arrow=Стрела для мелкой дичи
-Normal Ammo=Обычные патроны
-High Velocity Ammo=Скоростные патроны
-Express Ammo=Патроны Express
+Varmint Rifle=Винтовка «Варминт»
+Sniper rifle=Снайперская винтовка
+Carcano Rifle=Винтовка Каркано
+Springfield Rifle=Винтовка Спрингфилда
+Repeater=Карабин
+Small Game Arrows=Стрелы для мелкой дичи
+Improved Arrows=Улучшенные стрелы
+Poisoned Arrows=Отравленные стрелы
+Rifle Cartridges - Regular=Патроны (винтовка)
+Rifle Cartridges - High Velocity=Скоростные патроны (винтовка)
+Rifle Cartridges - Express=Экспресс-патроны (винтовка)

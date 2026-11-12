@@ -7,14 +7,14 @@ struct AmmoIcon { const char* label; const char* texture; };
 struct WeaponChoice { const char* label; const char* texture; const AmmoIcon* ammo; std::size_t ammoCount; };
 struct Recommendation { const char* species; const WeaponChoice* choices; std::size_t choiceCount; };
 inline constexpr AmmoIcon kAmmo_Alligator_0[] = {
-    {"Improved Arrow", "ammo_arrow_improved"},
+    {"Improved Arrows", "ammo_arrow_improved"},
 };
 inline constexpr AmmoIcon kAmmo_Alligator_1[] = {
-    {"Normal Rifle Ammo", "ammo_bullet_normal"},
+    {"Rifle Cartridges - Regular", "ammo_bullet_normal"},
 };
 inline constexpr WeaponChoice kChoices_Alligator[] = {
     {"Bow", "weapon_bow", kAmmo_Alligator_0, sizeof(kAmmo_Alligator_0) / sizeof(kAmmo_Alligator_0[0])},
-    {"Long-scope rifle", "weapon_sniperrifle_carcano", kAmmo_Alligator_1, sizeof(kAmmo_Alligator_1) / sizeof(kAmmo_Alligator_1[0])},
+    {"Sniper rifle", "weapon_sniperrifle_carcano", kAmmo_Alligator_1, sizeof(kAmmo_Alligator_1) / sizeof(kAmmo_Alligator_1[0])},
 };
 inline constexpr WeaponChoice kChoices_Armadillo[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
@@ -23,7 +23,7 @@ inline constexpr WeaponChoice kChoices_Badger[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Bat_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Bat[] = {
     {"Bow", "weapon_bow", kAmmo_Bat_0, sizeof(kAmmo_Bat_0) / sizeof(kAmmo_Bat_0[0])},
@@ -32,50 +32,50 @@ inline constexpr WeaponChoice kChoices_Beaver[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Bison_1[] = {
-    {"Improved Arrow", "ammo_arrow_improved"},
+    {"Improved Arrows", "ammo_arrow_improved"},
 };
 inline constexpr WeaponChoice kChoices_Bison[] = {
     {"Carcano Rifle", "weapon_sniperrifle_carcano", nullptr, 0},
     {"Bow", "weapon_bow", kAmmo_Bison_1, sizeof(kAmmo_Bison_1) / sizeof(kAmmo_Bison_1[0])},
 };
 inline constexpr WeaponChoice kChoices_Black_Bear[] = {
-    {"Long-scope rifle", "weapon_sniperrifle_carcano", nullptr, 0},
+    {"Sniper rifle", "weapon_sniperrifle_carcano", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Blue_Jay_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Blue_Jay[] = {
     {"Bow", "weapon_bow", kAmmo_Blue_Jay_0, sizeof(kAmmo_Blue_Jay_0) / sizeof(kAmmo_Blue_Jay_0[0])},
 };
 inline constexpr AmmoIcon kAmmo_Boar_1[] = {
-    {"Poison Arrow", "ammo_arrow_poison"},
+    {"Poisoned Arrows", "ammo_arrow_poison"},
 };
 inline constexpr WeaponChoice kChoices_Boar[] = {
-    {"Rifle", "weapon_rifle_springfield", nullptr, 0},
+    {"Springfield Rifle", "weapon_rifle_springfield", nullptr, 0},
     {"Bow", "weapon_bow", kAmmo_Boar_1, sizeof(kAmmo_Boar_1) / sizeof(kAmmo_Boar_1[0])},
 };
 inline constexpr AmmoIcon kAmmo_Booby_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Booby[] = {
     {"Bow", "weapon_bow", kAmmo_Booby_0, sizeof(kAmmo_Booby_0) / sizeof(kAmmo_Booby_0[0])},
 };
 inline constexpr AmmoIcon kAmmo_Buck_1[] = {
-    {"Poison Arrow", "ammo_arrow_poison"},
+    {"Poisoned Arrows", "ammo_arrow_poison"},
 };
 inline constexpr WeaponChoice kChoices_Buck[] = {
-    {"Long-scope rifle", "weapon_sniperrifle_carcano", nullptr, 0},
+    {"Sniper rifle", "weapon_sniperrifle_carcano", nullptr, 0},
     {"Bow", "weapon_bow", kAmmo_Buck_1, sizeof(kAmmo_Buck_1) / sizeof(kAmmo_Buck_1[0])},
 };
 inline constexpr AmmoIcon kAmmo_Bull_1[] = {
-    {"Improved Arrow", "ammo_arrow_improved"},
+    {"Improved Arrows", "ammo_arrow_improved"},
 };
 inline constexpr WeaponChoice kChoices_Bull[] = {
-    {"Long-scope rifle", "weapon_sniperrifle_carcano", nullptr, 0},
+    {"Sniper rifle", "weapon_sniperrifle_carcano", nullptr, 0},
     {"Bow", "weapon_bow", kAmmo_Bull_1, sizeof(kAmmo_Bull_1) / sizeof(kAmmo_Bull_1[0])},
 };
 inline constexpr AmmoIcon kAmmo_Bullfrog_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Bullfrog[] = {
     {"Bow", "weapon_bow", kAmmo_Bullfrog_0, sizeof(kAmmo_Bullfrog_0) / sizeof(kAmmo_Bullfrog_0[0])},
@@ -87,13 +87,13 @@ inline constexpr WeaponChoice kChoices_Canada_Goose[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Cardinal_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Cardinal[] = {
     {"Bow", "weapon_bow", kAmmo_Cardinal_0, sizeof(kAmmo_Cardinal_0) / sizeof(kAmmo_Cardinal_0[0])},
 };
 inline constexpr AmmoIcon kAmmo_Cedar_Waxwing_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Cedar_Waxwing[] = {
     {"Bow", "weapon_bow", kAmmo_Cedar_Waxwing_0, sizeof(kAmmo_Cedar_Waxwing_0) / sizeof(kAmmo_Cedar_Waxwing_0[0])},
@@ -105,14 +105,14 @@ inline constexpr WeaponChoice kChoices_Cormorant[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Cougar_1[] = {
-    {"Poison Arrow", "ammo_arrow_poison"},
+    {"Poisoned Arrows", "ammo_arrow_poison"},
 };
 inline constexpr WeaponChoice kChoices_Cougar[] = {
-    {"Rifle", "weapon_rifle_springfield", nullptr, 0},
+    {"Springfield Rifle", "weapon_rifle_springfield", nullptr, 0},
     {"Bow", "weapon_bow", kAmmo_Cougar_1, sizeof(kAmmo_Cougar_1) / sizeof(kAmmo_Cougar_1[0])},
 };
 inline constexpr AmmoIcon kAmmo_Cow_0[] = {
-    {"Improved Arrow", "ammo_arrow_improved"},
+    {"Improved Arrows", "ammo_arrow_improved"},
 };
 inline constexpr WeaponChoice kChoices_Cow[] = {
     {"Bow", "weapon_bow", kAmmo_Cow_0, sizeof(kAmmo_Cow_0) / sizeof(kAmmo_Cow_0[0])},
@@ -121,7 +121,7 @@ inline constexpr WeaponChoice kChoices_Coyote[] = {
     {"Repeater", "weapon_repeater_lancaster", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Crab_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Crab[] = {
     {"Bow", "weapon_bow", kAmmo_Crab_0, sizeof(kAmmo_Crab_0) / sizeof(kAmmo_Crab_0[0])},
@@ -130,22 +130,22 @@ inline constexpr WeaponChoice kChoices_Crane[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Crayfish_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Crayfish[] = {
     {"Bow", "weapon_bow", kAmmo_Crayfish_0, sizeof(kAmmo_Crayfish_0) / sizeof(kAmmo_Crayfish_0[0])},
 };
 inline constexpr AmmoIcon kAmmo_Crow_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Crow[] = {
     {"Bow", "weapon_bow", kAmmo_Crow_0, sizeof(kAmmo_Crow_0) / sizeof(kAmmo_Crow_0[0])},
 };
 inline constexpr AmmoIcon kAmmo_Deer_1[] = {
-    {"Poison Arrow", "ammo_arrow_poison"},
+    {"Poisoned Arrows", "ammo_arrow_poison"},
 };
 inline constexpr WeaponChoice kChoices_Deer[] = {
-    {"Rifle", "weapon_rifle_springfield", nullptr, 0},
+    {"Springfield Rifle", "weapon_rifle_springfield", nullptr, 0},
     {"Bow", "weapon_bow", kAmmo_Deer_1, sizeof(kAmmo_Deer_1) / sizeof(kAmmo_Deer_1[0])},
 };
 inline constexpr WeaponChoice kChoices_Duck[] = {
@@ -158,14 +158,14 @@ inline constexpr WeaponChoice kChoices_Egret[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Elk_1[] = {
-    {"Improved Arrow", "ammo_arrow_improved"},
+    {"Improved Arrows", "ammo_arrow_improved"},
 };
 inline constexpr WeaponChoice kChoices_Elk[] = {
-    {"Long-scope rifle", "weapon_sniperrifle_carcano", nullptr, 0},
+    {"Sniper rifle", "weapon_sniperrifle_carcano", nullptr, 0},
     {"Bow", "weapon_bow", kAmmo_Elk_1, sizeof(kAmmo_Elk_1) / sizeof(kAmmo_Elk_1[0])},
 };
 inline constexpr AmmoIcon kAmmo_Fox_1[] = {
-    {"Improved Arrow", "ammo_arrow_improved"},
+    {"Improved Arrows", "ammo_arrow_improved"},
 };
 inline constexpr WeaponChoice kChoices_Fox[] = {
     {"Repeater", "weapon_repeater_lancaster", nullptr, 0},
@@ -178,11 +178,11 @@ inline constexpr WeaponChoice kChoices_Goat[] = {
     {"Repeater", "weapon_repeater_lancaster", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Grizzly_Bear_0[] = {
-    {"High Velocity Bullets", "ammo_bullet_high_velocity"},
-    {"Express Bullets", "ammo_bullet_express"},
+    {"Rifle Cartridges - High Velocity", "ammo_bullet_high_velocity"},
+    {"Rifle Cartridges - Express", "ammo_bullet_express"},
 };
 inline constexpr WeaponChoice kChoices_Grizzly_Bear[] = {
-    {"Long-scope rifle", "weapon_sniperrifle_carcano", kAmmo_Grizzly_Bear_0, sizeof(kAmmo_Grizzly_Bear_0) / sizeof(kAmmo_Grizzly_Bear_0[0])},
+    {"Sniper rifle", "weapon_sniperrifle_carcano", kAmmo_Grizzly_Bear_0, sizeof(kAmmo_Grizzly_Bear_0) / sizeof(kAmmo_Grizzly_Bear_0[0])},
 };
 inline constexpr WeaponChoice kChoices_Hawk[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
@@ -200,16 +200,16 @@ inline constexpr WeaponChoice kChoices_Loon[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Macaw_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Macaw[] = {
     {"Bow", "weapon_bow", kAmmo_Macaw_0, sizeof(kAmmo_Macaw_0) / sizeof(kAmmo_Macaw_0[0])},
 };
 inline constexpr AmmoIcon kAmmo_Moose_1[] = {
-    {"Improved Arrow", "ammo_arrow_improved"},
+    {"Improved Arrows", "ammo_arrow_improved"},
 };
 inline constexpr WeaponChoice kChoices_Moose[] = {
-    {"Long-scope rifle", "weapon_sniperrifle_carcano", nullptr, 0},
+    {"Sniper rifle", "weapon_sniperrifle_carcano", nullptr, 0},
     {"Bow", "weapon_bow", kAmmo_Moose_1, sizeof(kAmmo_Moose_1) / sizeof(kAmmo_Moose_1[0])},
 };
 inline constexpr WeaponChoice kChoices_Muskrat[] = {
@@ -219,7 +219,7 @@ inline constexpr WeaponChoice kChoices_Opossum[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Oriole_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Oriole[] = {
     {"Bow", "weapon_bow", kAmmo_Oriole_0, sizeof(kAmmo_Oriole_0) / sizeof(kAmmo_Oriole_0[0])},
@@ -228,22 +228,22 @@ inline constexpr WeaponChoice kChoices_Owl[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Ox_1[] = {
-    {"Improved Arrow", "ammo_arrow_improved"},
+    {"Improved Arrows", "ammo_arrow_improved"},
 };
 inline constexpr WeaponChoice kChoices_Ox[] = {
-    {"Long-scope rifle", "weapon_sniperrifle_carcano", nullptr, 0},
+    {"Sniper rifle", "weapon_sniperrifle_carcano", nullptr, 0},
     {"Bow", "weapon_bow", kAmmo_Ox_1, sizeof(kAmmo_Ox_1) / sizeof(kAmmo_Ox_1[0])},
 };
 inline constexpr AmmoIcon kAmmo_Panther_1[] = {
-    {"Improved Arrow", "ammo_arrow_improved"},
-    {"Poison Arrow", "ammo_arrow_poison"},
+    {"Improved Arrows", "ammo_arrow_improved"},
+    {"Poisoned Arrows", "ammo_arrow_poison"},
 };
 inline constexpr WeaponChoice kChoices_Panther[] = {
-    {"Rifle", "weapon_rifle_springfield", nullptr, 0},
+    {"Springfield Rifle", "weapon_rifle_springfield", nullptr, 0},
     {"Bow", "weapon_bow", kAmmo_Panther_1, sizeof(kAmmo_Panther_1) / sizeof(kAmmo_Panther_1[0])},
 };
 inline constexpr AmmoIcon kAmmo_Parakeet_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Parakeet[] = {
     {"Bow", "weapon_bow", kAmmo_Parakeet_0, sizeof(kAmmo_Parakeet_0) / sizeof(kAmmo_Parakeet_0[0])},
@@ -261,20 +261,20 @@ inline constexpr WeaponChoice kChoices_Pigeon[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Prairie_Chicken_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Prairie_Chicken[] = {
     {"Bow", "weapon_bow", kAmmo_Prairie_Chicken_0, sizeof(kAmmo_Prairie_Chicken_0) / sizeof(kAmmo_Prairie_Chicken_0[0])},
 };
 inline constexpr AmmoIcon kAmmo_Pronghorn_1[] = {
-    {"Poison Arrow", "ammo_arrow_poison"},
+    {"Poisoned Arrows", "ammo_arrow_poison"},
 };
 inline constexpr WeaponChoice kChoices_Pronghorn[] = {
-    {"Rifle", "weapon_rifle_springfield", nullptr, 0},
+    {"Springfield Rifle", "weapon_rifle_springfield", nullptr, 0},
     {"Bow", "weapon_bow", kAmmo_Pronghorn_1, sizeof(kAmmo_Pronghorn_1) / sizeof(kAmmo_Pronghorn_1[0])},
 };
 inline constexpr AmmoIcon kAmmo_Quail_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Quail[] = {
     {"Bow", "weapon_bow", kAmmo_Quail_0, sizeof(kAmmo_Quail_0) / sizeof(kAmmo_Quail_0[0])},
@@ -286,16 +286,16 @@ inline constexpr WeaponChoice kChoices_Raccoon[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr WeaponChoice kChoices_Ram[] = {
-    {"Rifle", "weapon_rifle_springfield", nullptr, 0},
+    {"Springfield Rifle", "weapon_rifle_springfield", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Rat_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Rat[] = {
     {"Bow", "weapon_bow", kAmmo_Rat_0, sizeof(kAmmo_Rat_0) / sizeof(kAmmo_Rat_0[0])},
 };
 inline constexpr AmmoIcon kAmmo_Rattlesnake_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Rattlesnake[] = {
     {"Bow", "weapon_bow", kAmmo_Rattlesnake_0, sizeof(kAmmo_Rattlesnake_0) / sizeof(kAmmo_Rattlesnake_0[0])},
@@ -304,7 +304,7 @@ inline constexpr WeaponChoice kChoices_Raven[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Robin_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Robin[] = {
     {"Bow", "weapon_bow", kAmmo_Robin_0, sizeof(kAmmo_Robin_0) / sizeof(kAmmo_Robin_0[0])},
@@ -322,13 +322,13 @@ inline constexpr WeaponChoice kChoices_Skunk[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Songbird_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Songbird[] = {
     {"Bow", "weapon_bow", kAmmo_Songbird_0, sizeof(kAmmo_Songbird_0) / sizeof(kAmmo_Songbird_0[0])},
 };
 inline constexpr AmmoIcon kAmmo_Sparrow_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Sparrow[] = {
     {"Bow", "weapon_bow", kAmmo_Sparrow_0, sizeof(kAmmo_Sparrow_0) / sizeof(kAmmo_Sparrow_0[0])},
@@ -337,13 +337,13 @@ inline constexpr WeaponChoice kChoices_Spoonbill[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Squirrel_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Squirrel[] = {
     {"Bow", "weapon_bow", kAmmo_Squirrel_0, sizeof(kAmmo_Squirrel_0) / sizeof(kAmmo_Squirrel_0[0])},
 };
 inline constexpr AmmoIcon kAmmo_Toad_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Toad[] = {
     {"Bow", "weapon_bow", kAmmo_Toad_0, sizeof(kAmmo_Toad_0) / sizeof(kAmmo_Toad_0[0])},
@@ -352,7 +352,7 @@ inline constexpr WeaponChoice kChoices_Turkey[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Turtle_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Turtle[] = {
     {"Bow", "weapon_bow", kAmmo_Turtle_0, sizeof(kAmmo_Turtle_0) / sizeof(kAmmo_Turtle_0[0])},
@@ -361,13 +361,13 @@ inline constexpr WeaponChoice kChoices_Vulture[] = {
     {"Varmint Rifle", "weapon_rifle_varmint", nullptr, 0},
 };
 inline constexpr AmmoIcon kAmmo_Wolf_0[] = {
-    {"Poison Arrow", "ammo_arrow_poison"},
+    {"Poisoned Arrows", "ammo_arrow_poison"},
 };
 inline constexpr WeaponChoice kChoices_Wolf[] = {
     {"Bow", "weapon_bow", kAmmo_Wolf_0, sizeof(kAmmo_Wolf_0) / sizeof(kAmmo_Wolf_0[0])},
 };
 inline constexpr AmmoIcon kAmmo_Woodpecker_0[] = {
-    {"Small Game Arrow", "ammo_arrow_small_game"},
+    {"Small Game Arrows", "ammo_arrow_small_game"},
 };
 inline constexpr WeaponChoice kChoices_Woodpecker[] = {
     {"Bow", "weapon_bow", kAmmo_Woodpecker_0, sizeof(kAmmo_Woodpecker_0) / sizeof(kAmmo_Woodpecker_0[0])},

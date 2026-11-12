@@ -1440,25 +1440,12 @@ struct CurrentHaulMaterial {
     int carriedCount{};
     int horseCount{};
 };
-// What the scan saw for each carried pelt/carcass; shown on the Crafting Uses page
-// when something is carried but no material could be identified.
-struct HaulScanNote {
-    int source{};                    // 1 = Arthur, 2 = saddle horse
-    bool pelt{};
-    std::uint32_t entityModel{};
-    bool carcassFound{};
-    const char* species{};
-    int quality{-1};
-};
 struct CurrentHaulState {
-    std::array<HaulScanNote, 4> notes{};
-    std::size_t noteCount{};
     std::array<CurrentHaulMaterial, kMaxMaterials> materials{};
     std::size_t count{};
     int inventoryId{-1};
     DWORD lastRefreshTick{};
     bool ready{};
-    bool hasAnyAnimalPart{};
 };
 CurrentHaulState g_currentHaul{};
 volatile LONG g_haulDirty = 1;
@@ -1489,7 +1476,6 @@ void add_current_haul_count(std::uint32_t hash, int amount, int source) noexcept
     int* destination = source == 0 ? &material.inventoryCount :
                        source == 1 ? &material.carriedCount : &material.horseCount;
     *destination = std::min(1000000, *destination + amount);
-    g_currentHaul.hasAnyAnimalPart = true;
 }
 
 int current_haul_count(std::uint32_t hash) noexcept {
@@ -1500,7 +1486,6 @@ int current_haul_count(std::uint32_t hash) noexcept {
 }
 
 bool current_haul_has_any() noexcept {
-    if (g_currentHaul.hasAnyAnimalPart) return true;
     for (std::size_t i = 0; i < g_currentHaul.count; ++i) {
         const CurrentHaulMaterial& material = g_currentHaul.materials[i];
         if (material.inventoryCount + material.carriedCount + material.horseCount > 0) return true;
@@ -1520,7 +1505,6 @@ void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcep
     if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) return;
     const bool isPelt = knownPelt ||
         invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
-    if (isPelt) g_currentHaul.hasAnyAnimalPart = true;
     int carcass = entity;
     if (isPelt) carcass = invoke_native<int>(kGetCarcassFromPelt, entity);
     const bool carcassFound = carcass != 0 && invoke_native<int>(kDoesEntityExist, carcass) != 0 &&
@@ -1529,13 +1513,7 @@ void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcep
     const char* species = carcassFound ? find_animal_species(model) : nullptr;
     // _GET_PED_QUALITY reports the ordinary skinning grade (0=poor, 1=good, 2=perfect).
     const int quality = carcassFound ? invoke_native<int>(kGetPedQuality, carcass) : -1;
-    if (g_currentHaul.noteCount < g_currentHaul.notes.size()) {
-        g_currentHaul.notes[g_currentHaul.noteCount++] = HaulScanNote{
-            source, isPelt, invoke_native<std::uint32_t>(kGetEntityModel, entity),
-            carcassFound, species, quality};
-    }
     if (!carcassFound || species == nullptr) return;
-    g_currentHaul.hasAnyAnimalPart = true;
     // Chipmunks share a HUD recommendation group with squirrels, but do not
     // yield squirrel pelts. Do not let that display grouping invent loot.
     if (model == joaat("a_c_chipmunk_01")) return;
@@ -1689,6 +1667,152 @@ bool inventory_texture_dictionary_ready() noexcept {
 void draw_rect(float x, float y, float width, float height,
                int red, int green, int blue, int alpha) noexcept;
 
+// ---- Text fitting -----------------------------------------------------------
+// Text is positioned in normalised screen coordinates, and the game offers no
+// way to measure it, so widths are estimated per character class. The estimate
+// is deliberately a little generous: text that is estimated to fit always fits.
+// While g_textRightLimit is set, left-aligned text is shrunk and, if that is
+// not enough, shortened so it never crosses that x position.
+float g_textRightLimit = 0.0f;
+
+struct TextRightLimitScope {
+    explicit TextRightLimitScope(float limit) noexcept { g_textRightLimit = limit; }
+    ~TextRightLimitScope() { g_textRightLimit = 0.0f; }
+    TextRightLimitScope(const TextRightLimitScope&) = delete;
+    TextRightLimitScope& operator=(const TextRightLimitScope&) = delete;
+};
+
+std::uint32_t next_codepoint(const char*& cursor) noexcept {
+    const unsigned char lead = static_cast<unsigned char>(*cursor);
+    std::uint32_t value = lead;
+    int extra = 0;
+    if (lead >= 0xF0) { value = lead & 0x07u; extra = 3; }
+    else if (lead >= 0xE0) { value = lead & 0x0Fu; extra = 2; }
+    else if (lead >= 0xC0) { value = lead & 0x1Fu; extra = 1; }
+    ++cursor;
+    for (int i = 0; i < extra && (static_cast<unsigned char>(*cursor) & 0xC0u) == 0x80u; ++i, ++cursor) {
+        value = (value << 6) | (static_cast<unsigned char>(*cursor) & 0x3Fu);
+    }
+    return value;
+}
+
+bool is_wide_codepoint(std::uint32_t c) noexcept {
+    return (c >= 0x2E80 && c <= 0x9FFF) || (c >= 0xAC00 && c <= 0xD7AF) ||
+           (c >= 0xF900 && c <= 0xFAFF) || (c >= 0xFF00 && c <= 0xFFEF);
+}
+
+// Width of one character at text size 1, for a 16:9 screen.
+float codepoint_width(std::uint32_t c) noexcept {
+    if (c == ' ') return 0.00017f;
+    if (c == '.' || c == ',' || c == ':' || c == ';' || c == '\'' || c == '!' || c == '|' || c == 0x2019)
+        return 0.00017f;
+    if (c < 0x80) return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+                             ? 0.00041f : 0.00030f;
+    if (is_wide_codepoint(c)) return 0.00046f;
+    if (c >= 0x400 && c <= 0x52F) return 0.00045f;   // Cyrillic
+    return 0.00041f;
+}
+
+float screen_width_correction() noexcept {
+    int width = 0;
+    int height = 0;
+    invoke_native<void>(kGetScreenResolution, &width, &height);
+    if (width <= 0 || height <= 0) return 1.0f;
+    return (16.0f / 9.0f) / (static_cast<float>(width) / static_cast<float>(height));
+}
+
+float text_width_estimate(const char* text, float size, float correction) noexcept {
+    float width = 0.0f;
+    for (const char* cursor = text; *cursor != '\0';) width += codepoint_width(next_codepoint(cursor));
+    return width * size * correction;
+}
+
+// Copies as much of `text` as fits in maxWidth, adding "..." when it is cut.
+void shorten_to_width(const char* text, float size, float correction, float maxWidth,
+                      char* out, std::size_t outSize) noexcept {
+    constexpr char kEllipsis[] = "...";
+    const float ellipsisWidth = text_width_estimate(kEllipsis, size, correction);
+    float width = 0.0f;
+    std::size_t length = 0;
+    const char* cursor = text;
+    while (*cursor != '\0') {
+        const char* start = cursor;
+        const float glyph = codepoint_width(next_codepoint(cursor)) * size * correction;
+        const std::size_t bytes = static_cast<std::size_t>(cursor - start);
+        if (width + glyph > maxWidth - ellipsisWidth || length + bytes + sizeof(kEllipsis) > outSize) {
+            std::memcpy(out + length, kEllipsis, sizeof(kEllipsis));
+            return;
+        }
+        std::memcpy(out + length, start, bytes);
+        length += bytes;
+        width += glyph;
+    }
+    out[length] = '\0';   // everything fit: no ellipsis needed
+}
+
+constexpr std::size_t kFitLineCapacity = 192;
+struct FittedLines {
+    char lines[3][kFitLineCapacity]{};
+    int count{};
+    bool complete{};      // false when the last line had to be cut with "..."
+};
+
+// Greedy word wrap (any character is a break opportunity for CJK text). Returns
+// true when all of the text fit; otherwise the last line ends in "...".
+bool wrap_to_width(const char* text, float size, float correction, float maxWidth,
+                   int maxLines, FittedLines* out) noexcept {
+    *out = FittedLines{};
+    maxLines = std::min(maxLines, 3);
+    const char* cursor = text;
+    while (*cursor == ' ') ++cursor;
+    while (*cursor != '\0' && out->count < maxLines) {
+        char* line = out->lines[out->count];
+        std::size_t length = 0;
+        float width = 0.0f;
+        std::size_t lastSpaceLength = 0;
+        const char* lastSpaceCursor = nullptr;
+        bool lineFull = false;
+        while (*cursor != '\0' && !lineFull) {
+            const char* start = cursor;
+            const std::uint32_t c = next_codepoint(cursor);
+            const float glyph = codepoint_width(c) * size * correction;
+            const std::size_t bytes = static_cast<std::size_t>(cursor - start);
+            if (width + glyph > maxWidth || length + bytes + 1 >= kFitLineCapacity) {
+                lineFull = true;
+                if (c == ' ') {
+                    // The line ends exactly at a word boundary.
+                } else if (lastSpaceCursor != nullptr && !is_wide_codepoint(c)) {
+                    length = lastSpaceLength;
+                    cursor = lastSpaceCursor;
+                } else if (length == 0) {   // a single glyph wider than the line
+                    std::memcpy(line, start, bytes);
+                    length = bytes;
+                } else {
+                    cursor = start;
+                }
+                continue;
+            }
+            if (c == ' ') { lastSpaceLength = length; lastSpaceCursor = cursor; }
+            std::memcpy(line + length, start, bytes);
+            length += bytes;
+            width += glyph;
+        }
+        while (length > 0 && line[length - 1] == ' ') --length;
+        line[length] = '\0';
+        ++out->count;
+        while (*cursor == ' ') ++cursor;
+    }
+    out->complete = (*cursor == '\0');
+    if (!out->complete && out->count > 0) {
+        // Re-attach the remaining text so the cut line ends in "...".
+        char* last = out->lines[out->count - 1];
+        char joined[kFitLineCapacity * 2];
+        std::snprintf(joined, sizeof(joined), "%s %s", last, cursor);
+        shorten_to_width(joined, size, correction, maxWidth, last, kFitLineCapacity);
+    }
+    return out->complete;
+}
+
 bool g_showWeaponIcons = true;       // toggled from Settings or the icons hotkey
 bool g_useWheelAmmoIcons = true;     // ammo icons from the weapon wheel's own texture set
 
@@ -1703,25 +1827,21 @@ struct RecommendationIcon {
 };
 
 // The weapon wheel draws its ammunition-type icons from the "ui_hud" texture set.
-bool wheel_ammo_texture(const char* inventoryName, const char** sprite, const char** label) noexcept {
-    struct Entry { const char* inventory; const char* wheel; const char* label; };
+const char* wheel_ammo_sprite(const char* inventoryName) noexcept {
+    struct Entry { const char* inventory; const char* wheel; };
     static constexpr Entry kEntries[] = {
-        {"ammo_arrow_improved", "arrow_type_improved", "Improved Arrow"},
-        {"ammo_arrow_poison", "arrow_type_poison", "Poison Arrow"},
-        {"ammo_arrow_small_game", "arrow_type_small_game", "Small Game Arrow"},
-        {"ammo_bullet_normal", "bullet_normal", "Normal Ammo"},
-        {"ammo_bullet_high_velocity", "bullet_high_velocity", "High Velocity Ammo"},
-        {"ammo_bullet_express", "bullet_express", "Express Ammo"},
+        {"ammo_arrow_improved", "arrow_type_improved"},
+        {"ammo_arrow_poison", "arrow_type_poison"},
+        {"ammo_arrow_small_game", "arrow_type_small_game"},
+        {"ammo_bullet_normal", "bullet_normal"},
+        {"ammo_bullet_high_velocity", "bullet_high_velocity"},
+        {"ammo_bullet_express", "bullet_express"},
     };
-    if (inventoryName == nullptr) return false;
+    if (inventoryName == nullptr) return nullptr;
     for (const Entry& entry : kEntries) {
-        if (std::strcmp(entry.inventory, inventoryName) == 0) {
-            *sprite = entry.wheel;
-            *label = entry.label;
-            return true;
-        }
+        if (std::strcmp(entry.inventory, inventoryName) == 0) return entry.wheel;
     }
-    return false;
+    return nullptr;
 }
 
 bool hud_texture_dictionary_ready() noexcept {
@@ -1742,55 +1862,75 @@ void draw_icon_with_shadow(const RecommendationIcon& icon, float centerX, float 
                         width, height, 0.0f, 255, 255, 255, 255, false);
 }
 
-void draw_label_with_shadow(const char* text, float centerX, float y) noexcept {
-    constexpr float kLabelSize = 8.0f;
-    draw_text_impl(text, centerX + 0.0006f, y + 0.0011f, kLabelSize, 0, 0, 0, 215, false, true);
-    draw_text_impl(text, centerX, y, kLabelSize, 238, 232, 218, 255, false, true);
+// Draws a centred label of up to two lines, always inside maxWidth.
+void draw_label_with_shadow(const char* text, float centerX, float y, float maxWidth) noexcept {
+    const float correction = screen_width_correction();
+    FittedLines fitted;
+    float size = 9.0f;
+    while (!wrap_to_width(text, size, correction, maxWidth, 2, &fitted) && size > 7.5f) size -= 0.5f;
+    for (int line = 0; line < fitted.count; ++line) {
+        const float lineY = y + static_cast<float>(line) * size * 0.00155f;
+        draw_text_impl(fitted.lines[line], centerX + 0.0006f, lineY + 0.0011f, size, 0, 0, 0, 215, false, true);
+        draw_text_impl(fitted.lines[line], centerX, lineY, size, 238, 232, 218, 255, false, true);
+    }
 }
 
 void draw_hunting_recommendation_icons(
     const hunting_companion::hunting::Recommendation& recommendation,
     const HudIconLayout& layout) noexcept {
-    constexpr std::size_t kMaxIcons = 8;
-    RecommendationIcon icons[kMaxIcons]{};
-    std::size_t iconCount = 0;
+    // Icons are laid out two to a row. A weapon shares its first row with its
+    // first ammunition type; further ammunition types continue on the next row.
+    // The first recommendation sits lowest, nearest the vendor icons, and the
+    // others stack upward from it.
+    struct IconRow { RecommendationIcon icons[2]; int count; };
+    constexpr std::size_t kMaxRows = 6;
+    IconRow rows[kMaxRows]{};
+    std::size_t rowCount = 0;
     const bool wheelAmmo = g_useWheelAmmoIcons && hud_texture_dictionary_ready();
-    for (std::size_t i = 0; i < recommendation.choiceCount; ++i) {
-        const auto& choice = recommendation.choices[i];
-        if (iconCount < kMaxIcons) {
-            icons[iconCount++] = RecommendationIcon{"inventory_items", choice.texture, choice.label};
+    for (std::size_t choiceIndex = recommendation.choiceCount; choiceIndex-- > 0;) {
+        const auto& choice = recommendation.choices[choiceIndex];
+        RecommendationIcon items[1 + 4]{};
+        std::size_t itemCount = 0;
+        items[itemCount++] = RecommendationIcon{"inventory_items", choice.texture, choice.label};
+        for (std::size_t ammo = 0; ammo < choice.ammoCount && itemCount < std::size(items); ++ammo) {
+            const char* wheelSprite = wheelAmmo ? wheel_ammo_sprite(choice.ammo[ammo].texture) : nullptr;
+            items[itemCount++] = wheelSprite != nullptr
+                ? RecommendationIcon{"ui_hud", wheelSprite, choice.ammo[ammo].label}
+                : RecommendationIcon{"inventory_items", choice.ammo[ammo].texture, choice.ammo[ammo].label};
         }
-        for (std::size_t ammo = 0; ammo < choice.ammoCount && iconCount < kMaxIcons; ++ammo) {
-            const char* wheelSprite = nullptr;
-            const char* label = choice.ammo[ammo].label;
-            wheel_ammo_texture(choice.ammo[ammo].texture, &wheelSprite, &label);
-            if (wheelAmmo && wheelSprite != nullptr) {
-                icons[iconCount++] = RecommendationIcon{"ui_hud", wheelSprite, label};
-            } else {
-                icons[iconCount++] = RecommendationIcon{"inventory_items", choice.ammo[ammo].texture, label};
-            }
+        for (std::size_t first = 0; first < itemCount && rowCount < kMaxRows; first += 2) {
+            IconRow& row = rows[rowCount++];
+            row.count = static_cast<int>(std::min<std::size_t>(2, itemCount - first));
+            for (int i = 0; i < row.count; ++i) row.icons[i] = items[first + static_cast<std::size_t>(i)];
         }
     }
-    if (iconCount == 0) return;
+    if (rowCount == 0) return;
 
-    constexpr float kIconHeight = 0.050f;            // 15% larger than before
+    constexpr float kIconHeight = 0.050f;
+    constexpr float kLabelGap = 0.004f;
+    constexpr float kLabelBlockHeight = 0.032f;      // two lines of label text
+    constexpr float kRowHeight = kIconHeight + kLabelGap + kLabelBlockHeight + 0.006f;
     constexpr float kRightEdge = 0.972f;             // same right edge as the vendor icons
     constexpr float kGapAboveVendorIcons = 0.014f;
-    constexpr float kLabelHeight = 0.022f;
+    constexpr float kCellWidth = 0.078f;
     const float heightOverWidth = layout.width / layout.height;
     const float iconWidth = kIconHeight * heightOverWidth;
-    const float cellWidth = std::min(0.062f, 0.36f / static_cast<float>(iconCount));
-    const float groupLeft = kRightEdge - cellWidth * static_cast<float>(iconCount);
     const float vendorTop = layout.centerY - layout.height * 0.5f;
-    const float labelY = vendorTop - kGapAboveVendorIcons - kLabelHeight;
-    const float iconCenterY = labelY - 0.004f - kIconHeight * 0.5f;
+    const float stackBottom = vendorTop - kGapAboveVendorIcons;
 
     char label[96]{};
-    for (std::size_t i = 0; i < iconCount; ++i) {
-        const float centerX = groupLeft + cellWidth * (static_cast<float>(i) + 0.5f);
-        draw_icon_with_shadow(icons[i], centerX, iconCenterY, iconWidth, kIconHeight);
-        std::snprintf(label, sizeof(label), "%s", hunting_companion::ui_text(icons[i].label));
-        draw_label_with_shadow(label, centerX, labelY);
+    for (std::size_t r = 0; r < rowCount; ++r) {
+        // rows[] runs from the top of the stack to the bottom.
+        const float rowTop = stackBottom - static_cast<float>(rowCount - r) * kRowHeight;
+        const IconRow& row = rows[r];
+        for (int i = 0; i < row.count; ++i) {
+            // A lone icon goes in the right-hand column.
+            const int column = row.count == 1 ? 1 : i;
+            const float centerX = kRightEdge - kCellWidth * (2.0f - static_cast<float>(column) - 0.5f);
+            draw_icon_with_shadow(row.icons[i], centerX, rowTop + kIconHeight * 0.5f, iconWidth, kIconHeight);
+            std::snprintf(label, sizeof(label), "%s", hunting_companion::ui_text(row.icons[i].label));
+            draw_label_with_shadow(label, centerX, rowTop + kIconHeight + kLabelGap, kCellWidth * 0.97f);
+        }
     }
 }
 
@@ -3203,6 +3343,25 @@ void draw_text_impl(const char* text, float x, float y, float referencePixelHeig
     if (text == nullptr || text[0] == '\0') return;
     if (localize) text = hunting_companion::ui_text(text);
 
+    // Keep left-aligned menu text inside its panel: shrink it a little first,
+    // then shorten it if it still would not fit.
+    char fittedText[kFitLineCapacity * 2];
+    if (g_textRightLimit > 0.0f && !centered) {
+        const float correction = screen_width_correction();
+        const float available = g_textRightLimit - x;
+        const float width = text_width_estimate(text, referencePixelHeight, correction);
+        if (available > 0.01f && width > available) {
+            constexpr float kSmallestScale = 0.72f;
+            const float scale = std::max(available / width, kSmallestScale);
+            referencePixelHeight *= scale;
+            if (width * scale > available) {
+                shorten_to_width(text, referencePixelHeight, correction, available,
+                                 fittedText, sizeof(fittedText));
+                text = fittedText;
+            }
+        }
+    }
+
     // CJK companion language that differs from the game language: the game has no
     // glyphs for it, so queue the text for the Vulkan/ImGui overlay (own embedded
     // fonts). Position, size and colour are passed through unchanged.
@@ -3410,37 +3569,59 @@ void draw_menu_row(const char* label, const char* status, int row,
         draw_rect(kPanelLeft + 0.004f, y + 0.020f, 0.0035f, 0.052f,
                   191, 150, 86, 245);
     }
-    const bool cjkLabel = hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
-    if (cjkLabel || std::strlen(label) > 28) {
-        if (localizeLabel) {
-            draw_wrapped_text(label, 0.063f, y - 0.001f, 36, 2, 0.018f, 12.5f,
-                              selected ? 255 : (disabled ? 112 : (accent ? 235 : 222)),
-                              selected ? 250 : (disabled ? 112 : (accent ? 206 : 216)),
-                              selected ? 238 : (disabled ? 112 : (accent ? 150 : 204)));
-        } else {
-            draw_wrapped_text_raw(label, 0.063f, y - 0.001f, 36, 2, 0.018f, 12.5f,
-                                  selected ? 255 : (disabled ? 112 : (accent ? 235 : 222)),
-                                  selected ? 250 : (disabled ? 112 : (accent ? 206 : 216)),
-                                  selected ? 238 : (disabled ? 112 : (accent ? 150 : 204)));
-        }
-    } else {
-        if (localizeLabel) {
-            draw_text(label, 0.063f, y, 18.0f,
-                      selected ? 255 : (disabled ? 112 : (accent ? 235 : 222)),
-                      selected ? 250 : (disabled ? 112 : (accent ? 206 : 216)),
-                      selected ? 238 : (disabled ? 112 : (accent ? 150 : 204)));
-        } else {
-            draw_text_raw(label, 0.063f, y, 18.0f,
-                          selected ? 255 : (disabled ? 112 : (accent ? 235 : 222)),
-                          selected ? 250 : (disabled ? 112 : (accent ? 206 : 216)),
-                          selected ? 238 : (disabled ? 112 : (accent ? 150 : 204)));
-        }
-    }
+    const int labelRed = selected ? 255 : (disabled ? 112 : (accent ? 235 : 222));
+    const int labelGreen = selected ? 250 : (disabled ? 112 : (accent ? 206 : 216));
+    const int labelBlue = selected ? 238 : (disabled ? 112 : (accent ? 150 : 204));
+
+    constexpr float kLabelLeft = 0.063f;
+    constexpr float kRowRight = kPanelCenter + kPanelWidth * 0.5f - 0.007f;
+    constexpr float kStatusGap = 0.010f;
+    constexpr float kStatusSize = 13.0f;
+    const float correction = screen_width_correction();
+
+    // The status sits at the right of the row. It normally starts at a fixed
+    // column, but moves left (and finally shrinks) when its text is longer.
+    float labelRight = kRowRight;
+    char statusText[160]{};
     if (status != nullptr && status[0] != '\0') {
-        draw_text(status, 0.315f, y + 0.004f, 13.0f,
-                  selected ? 245 : (disabled ? 112 : 194),
-                  selected ? 229 : (disabled ? 112 : 184),
-                  selected ? 205 : (disabled ? 112 : 163));
+        std::snprintf(statusText, sizeof(statusText), "%s", hunting_companion::ui_text(status));
+        float statusSize = kStatusSize;
+        float statusWidth = text_width_estimate(statusText, statusSize, correction);
+        float statusX = std::min(0.315f, kRowRight - statusWidth);
+        constexpr float kStatusLeftmost = 0.215f;
+        if (statusX < kStatusLeftmost) {
+            statusX = kStatusLeftmost;
+            statusSize = std::max(kStatusSize * (kRowRight - kStatusLeftmost) / statusWidth, 9.5f);
+            statusWidth = text_width_estimate(statusText, statusSize, correction);
+            if (statusX + statusWidth > kRowRight) {
+                char shortened[sizeof(statusText)];
+                shorten_to_width(statusText, statusSize, correction, kRowRight - statusX,
+                                 shortened, sizeof(shortened));
+                std::snprintf(statusText, sizeof(statusText), "%s", shortened);
+            }
+        }
+        draw_text_raw(statusText, statusX, y + 0.004f, statusSize,
+                      selected ? 245 : (disabled ? 112 : 194),
+                      selected ? 229 : (disabled ? 112 : 184),
+                      selected ? 205 : (disabled ? 112 : 163));
+        labelRight = statusX - kStatusGap;
+    }
+
+    // The label gets one large line when it fits, otherwise two smaller ones;
+    // the size drops further before any text is cut.
+    const char* labelText = localizeLabel ? hunting_companion::ui_text(label) : label;
+    const float maxWidth = labelRight - kLabelLeft;
+    const bool cjk = hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
+    if (!cjk && text_width_estimate(labelText, 18.0f, correction) <= maxWidth) {
+        draw_text_raw(labelText, kLabelLeft, y, 18.0f, labelRed, labelGreen, labelBlue);
+        return;
+    }
+    FittedLines fitted;
+    float size = 12.5f;
+    while (!wrap_to_width(labelText, size, correction, maxWidth, 2, &fitted) && size > 9.5f) size -= 0.5f;
+    for (int line = 0; line < fitted.count; ++line) {
+        draw_text_raw(fitted.lines[line], kLabelLeft, y - 0.001f + static_cast<float>(line) * size * 0.00144f,
+                      size, labelRed, labelGreen, labelBlue);
     }
 }
 
@@ -3967,17 +4148,6 @@ void draw_crafting_uses_page() noexcept {
                           0.071f, 0.300f, 48, 2, 0.030f, 14.0f, 185, 177, 161);
         draw_text("Try another pelt or animal part.",
                   0.071f, 0.385f, 11.5f, 170, 164, 150);
-        // Something is carried but it could not be matched to a recipe: show what the scan saw.
-        for (std::size_t i = 0; i < g_currentHaul.noteCount; ++i) {
-            const HaulScanNote& note = g_currentHaul.notes[i];
-            char line[160]{};
-            std::snprintf(line, sizeof(line), "%s: %s, model %08X, animal %s, quality %d",
-                          note.source == 2 ? "Horse" : "Arthur", note.pelt ? "pelt" : "carcass",
-                          static_cast<unsigned>(note.entityModel),
-                          note.species != nullptr ? note.species : (note.carcassFound ? "unknown" : "not found"),
-                          note.quality);
-            draw_text_raw(line, 0.071f, 0.470f + static_cast<float>(i) * 0.032f, 9.5f, 150, 146, 138);
-        }
     }
     draw_text("Counts include Arthur, satchel and saddle horse.",
               0.071f, 0.790f, 10.5f, 160, 154, 142);
@@ -4009,18 +4179,22 @@ void draw_crafting_use_detail() noexcept {
     draw_wrapped_text("HELD / NEEDED (YOUR HAUL + VENDOR STOCK)", 0.071f, 0.275f, 44, 2, 0.022f,
                       10.5f, 220, 184, 112);
 
+    // Cash is read from the catalog in units that cannot be confirmed here, so
+    // only material costs are listed.
     constexpr int kVisibleCosts = 8;
-    const int start = g_menu.scroll;
-    const int end = std::min(static_cast<int>(recipe->costCount), start + kVisibleCosts);
-    for (int i = start; i < end; ++i) {
-        const RecipeCost& cost = recipe->costs[static_cast<std::size_t>(i)];
+    int shown = 0;
+    int skipped = 0;
+    for (std::size_t costIndex = 0; costIndex < recipe->costCount; ++costIndex) {
+        const RecipeCost& cost = recipe->costs[costIndex];
+        if (cost.hash == kMoneyHash) continue;
+        if (skipped < g_menu.scroll) { ++skipped; continue; }
+        if (shown >= kVisibleCosts) break;
         const char* materialName = display_material_name(cost.hash);
         char label[128]{};
-        if (cost.hash == kMoneyHash)
-            std::snprintf(label, sizeof(label), "%s", hunting_companion::ui_text("Cash"));
-        else if (materialName != nullptr) std::snprintf(label, sizeof(label), "%s", materialName);
+        if (materialName != nullptr) std::snprintf(label, sizeof(label), "%s", materialName);
         else std::snprintf(label, sizeof(label), "Material %08X", cost.hash);
-        const float y = 0.350f + static_cast<float>(i - start) * 0.052f;
+        const float y = 0.350f + static_cast<float>(shown) * 0.052f;
+        ++shown;
         draw_wrapped_text_raw(label, 0.071f, y, 28, 2, 0.016f, 11.5f,
                               224, 218, 205);
         char amount[48]{};
@@ -4031,8 +4205,6 @@ void draw_crafting_use_detail() noexcept {
             const int donated = stock != nullptr ? stock->vendorStock : 0;
             std::snprintf(amount, sizeof(amount), "%d / %d", haul + donated, cost.amount);
             met = haul + donated >= cost.amount;
-        } else if (cost.hash == kMoneyHash) {
-            std::snprintf(amount, sizeof(amount), "CASH ?");
         } else {
             const int owned = g_currentHaul.inventoryId >= 0
                 ? player_owned_count(g_currentHaul.inventoryId, cost.hash) : 0;
@@ -4042,7 +4214,7 @@ void draw_crafting_use_detail() noexcept {
         draw_text(amount, 0.315f, y + 0.001f, 12.0f,
                   met ? 130 : 218, met ? 205 : 184, met ? 145 : 120);
     }
-    if (recipe->costCount == 0) {
+    if (shown == 0 && g_menu.scroll == 0) {
         draw_text("No material costs were exposed for this catalog entry.",
                   0.071f, 0.340f, 12.0f, 190, 182, 168);
     }
@@ -4118,6 +4290,8 @@ void draw_scan_progress() noexcept {
 
 void draw_menu() noexcept {
     if (g_menu.page == MenuPage::Closed) return;
+    // Right edge of the menu rows; all menu text is kept to its left.
+    const TextRightLimitScope keepTextInsidePanel(0.3885f);
     if (!g_tracker.ready) {
         draw_scan_progress();
         return;

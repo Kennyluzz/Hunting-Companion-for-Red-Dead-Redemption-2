@@ -10,7 +10,7 @@ UP/DOWN Navigate   ENTER Select   BACKSPACE Back=HOCH/RUNTER Navigieren   ENTER 
 %s Close=%s Schließen
 %d of %d=%d von %d
 UNAVAILABLE=NICHT VERFÜGBAR
-OWNED=IM BESITZ
+OWNED=IN BESITZ
 RANK ?=RANG ?
 LOCKED R%u=GESPERRT R%u
 UNLOCKED=FREIGESCHALTET
@@ -248,7 +248,7 @@ ANIMAL PARTS READY=TIERTEILE BEREIT
 OTHER COSTS NEEDED=WEITERE MATERIALIEN FEHLEN
 USES YOUR HAUL=NUTZT DEINE BEUTE
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
+# Settings, Crafting Uses and weapon/ammo icon strings
 Craftable filter key: %s=Taste für Herstellbar-Filter: %s
 PRESS A KEY FOR THE CRAFTABLE FILTER=TASTE FÜR DEN HERSTELLBAR-FILTER DRÜCKEN
 Toggle Filter=Filter umschalten
@@ -264,15 +264,17 @@ Counts include Arthur, satchel and saddle horse.=Mengen enthalten Arthur, Sattel
 No material costs were exposed for this catalog entry.=Für diesen Katalogeintrag wurden keine Materialkosten angegeben.
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=VORHANDEN / BENÖTIGT (DEINE BEUTE + HÄNDLERBESTAND)
 Cash=Bargeld
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=Bogen
 Varmint Rifle=Varmint-Gewehr
-Long-scope rifle=Gewehr mit Fernrohr
+Sniper rifle=Scharfschützengewehr
 Carcano Rifle=Carcano-Gewehr
-Rifle=Gewehr
+Springfield Rifle=Springfield-Gewehr
 Repeater=Repetiergewehr
-Improved Arrow=Verbesserter Pfeil
-Poison Arrow=Giftpfeil
-Small Game Arrow=Kleinwildpfeil
-Normal Ammo=Normale Munition
-High Velocity Ammo=Hochgeschw.-Munition
-Express Ammo=Express-Munition
+Small Game Arrows=Kleinwildpfeile
+Improved Arrows=Verbesserte Pfeile
+Poisoned Arrows=Giftpfeile
+Rifle Cartridges - Regular=Gewehrmunition – Normal
+Rifle Cartridges - High Velocity=Gewehrmunition – HG
+Rifle Cartridges - Express=Gewehrmunition – Express

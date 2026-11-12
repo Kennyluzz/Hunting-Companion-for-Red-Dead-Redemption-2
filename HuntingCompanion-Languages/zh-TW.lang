@@ -248,7 +248,7 @@ ANIMAL PARTS READY=動物材料已備妥
 OTHER COSTS NEEDED=仍需其他材料
 USES YOUR HAUL=使用目前獵物材料
 
-# Added in 1.13.1: settings, crafting-uses and weapon/ammo icon strings
+# Settings, Crafting Uses and weapon/ammo icon strings
 Craftable filter key: %s=可製作篩選鍵：%s
 PRESS A KEY FOR THE CRAFTABLE FILTER=請按下可製作篩選所用的按鍵
 Toggle Filter=切換篩選
@@ -264,15 +264,17 @@ Counts include Arthur, satchel and saddle horse.=數量包含亞瑟、掛包和�
 No material costs were exposed for this catalog entry.=此目錄項目未提供材料費用。
 HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=已有 / 需要（獵獲物＋商人庫存）
 Cash=現金
+
+# Weapon and ammunition names (Rockstar wording)
 Bow=弓
-Varmint Rifle=小型獵物步槍
-Long-scope rifle=遠距瞄準鏡步槍
-Carcano Rifle=卡爾卡諾步槍
-Rifle=步槍
+Varmint Rifle=狐鼠步槍
+Sniper rifle=狙擊槍
+Carcano Rifle=卡爾卡諾狙擊槍
+Springfield Rifle=春田步槍
 Repeater=連發步槍
-Improved Arrow=強化箭
-Poison Arrow=毒箭
-Small Game Arrow=小型獵物箭
-Normal Ammo=普通彈藥
-High Velocity Ammo=高速彈藥
-Express Ammo=爆裂彈藥
+Small Game Arrows=小型獵物箭
+Improved Arrows=改良箭
+Poisoned Arrows=淬毒箭
+Rifle Cartridges - Regular=步槍子彈（一般）
+Rifle Cartridges - High Velocity=步槍子彈（高速彈）
+Rifle Cartridges - Express=步槍子彈（空尖彈）
