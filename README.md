@@ -100,8 +100,9 @@ g++ -std=c++17 -I src src/official_strings.cpp tests/test_official_strings.cpp -
 
 Text for a language the game cannot draw is queued by the script thread and
 drawn with Dear ImGui into the Vulkan swapchain just before each present, using
-embedded subsets of Noto Sans CJK (and a Latin/Cyrillic font for accented
-letters when the game itself is in a CJK language). No files are created. Set
+embedded subsets of Noto Sans CJK. (A Latin or Cyrillic menu on a game running
+in an Asian language needs no overlay: it uses a plain font the game keeps
+loaded.) No files are created. Set
 `[Overlay] OverlayLog=1` in the ini for diagnostics, and `CjkTextScalePercent` /
 `CjkTextYOffsetPermille` to adjust size and position.
 

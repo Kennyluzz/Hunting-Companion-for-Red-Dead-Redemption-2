@@ -2121,12 +2121,20 @@ int requested_language() noexcept {
 // CJK text needs the overlay only when the game itself is NOT running in that
 // language; otherwise the game's own fonts already contain the glyphs.
 bool needs_overlay(int language) noexcept {
-    // Overlay when the companion language is CJK but the game is not in it, or when the
-    // game runs in a CJK language (whose native fonts lack accented Latin letters and
-    // Cyrillic) and the companion language is anything else.
+    // Overlay only when the companion language is CJK and the game is not running
+    // in it. A Latin or Cyrillic companion language on a CJK game needs no overlay:
+    // the game keeps a plain face with those letters loaded (see selected_font_face).
     if (language == g_detectedGameLanguage) return false;
-    return hunting_companion::uses_cjk_font(language) ||
-           hunting_companion::uses_cjk_font(g_detectedGameLanguage);
+    return hunting_companion::uses_cjk_font(language);
+}
+
+// True when a Latin/Cyrillic companion language is shown on a game running in a
+// CJK language. The game's styled CJK faces lack accented Latin letters and only
+// have wide Cyrillic, but its plain "standard"/"utility" face has both (checked
+// in-game for Polish and Russian on a Japanese game).
+bool plain_face_needed() noexcept {
+    return hunting_companion::uses_cjk_font(g_detectedGameLanguage) &&
+           !hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
 }
 
 // The language that can really be drawn right now. If the user picked a CJK
@@ -3311,6 +3319,11 @@ const char* selected_font_face() noexcept {
     // itself running in cannot use native text (the game has not loaded those
     // glyphs); draw_text_impl() sends it to the CJK overlay instead. When the
     // companion language equals the game language the native font is correct.
+    if (plain_face_needed()) {
+        // Simplified Chinese maps the "standard" face to a Chinese font; its
+        // "utility" face is the plain one there.
+        return g_detectedGameLanguage == 12 ? "$util" : "$Font2";
+    }
     return "$catalog1";
 }
 
