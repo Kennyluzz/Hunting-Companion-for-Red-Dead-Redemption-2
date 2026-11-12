@@ -32,7 +32,7 @@ The mod only reads game data. It never changes your progress, inventory or saves
 
 ## Install
 
-1. Install [ScriptHookRDR2](http://www.dev-c.com/rdr2/scripthookrdr2/) and an ASI loader.
+1. Install [ScriptHookRDR2](https://www.nexusmods.com/reddeadredemption2/mods/1472) and an [ASI loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases).
 2. Copy `HuntingCompanion.asi` (and optionally `HuntingCompanion.ini`) into the game
    folder, next to `RDR2.exe`.
 3. Start Story Mode and press **F8**.
