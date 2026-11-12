@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(HuntingCompanion VERSION 1.10.0 LANGUAGES C CXX)
+project(HuntingCompanion VERSION 1.15.0 LANGUAGES C CXX)
 
 if(NOT WIN32)
     message(FATAL_ERROR "Configure with cmake/mingw-w64-toolchain.cmake to target Windows x64.")
@@ -42,6 +42,7 @@ add_library(HuntingCompanion SHARED
     src/embedded_languages.hpp
     src/embedded_official_strings.hpp
     src/embedded_challenge_objective_hashes.hpp
+    src/embedded_hunting_recommendations.hpp
     src/embedded_cjk_fonts.hpp
     ${HC_THIRD_PARTY_SOURCES})
 

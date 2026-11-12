@@ -11,3 +11,10 @@ CjkTextScalePercent=100
 CjkTextYOffsetPermille=0
 ; 1 = write HuntingCompanion.overlay.log next to the ASI (for troubleshooting).
 OverlayLog=0
+
+; 1.13.1: weapon/ammo icons and their hotkeys (also changeable in the in-game Settings page).
+; Key numbers are Windows virtual-key codes. 219 = [  221 = ]
+; [General]
+; FilterKey=219
+; WeaponIconsKey=221
+; ShowWeaponIcons=1

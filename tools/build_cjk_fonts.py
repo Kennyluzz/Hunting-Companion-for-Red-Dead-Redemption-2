@@ -74,10 +74,30 @@ def official_chars(locale):
     return chars
 
 
+def tsv_chars(locale):
+    """Characters of the embedded challenge-objective translations for one locale."""
+    path = ROOT / "data" / "challenge_translations.tsv"
+    if not path.exists():
+        return set()
+    lines = path.read_text(encoding="utf-8").splitlines()
+    header = [c.strip() for c in lines[0].lstrip("# ").split("|")]
+    if locale not in header:
+        return set()
+    col = header.index(locale)
+    chars = set()
+    for line in lines[1:]:
+        parts = line.split("=")
+        if len(parts) == len(header):
+            chars.update(parts[col])
+        else:  # '=' inside text: be generous and take everything
+            chars.update(line)
+    return chars
+
+
 def string_chars(sources):
     chars = set()
     for loc in sources:
-        chars |= lang_chars(loc) | official_chars(loc)
+        chars |= lang_chars(loc) | official_chars(loc) | tsv_chars(loc)
     return {c for c in chars if c not in "\r\n\t"}
 
 

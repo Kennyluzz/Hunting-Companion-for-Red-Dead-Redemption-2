@@ -1,4 +1,4 @@
-// Hunting Companion 1.10.0-rc1
+// Hunting Companion 1.11.0-rc1
 // Read-only RDR2 Story Mode companion for Pearson, Trapper, challenges, and gear.
 //
 // The companion reads game catalog, inventory, vendor-storage, and challenge-rank
@@ -9,6 +9,7 @@
 #include "localization.hpp"
 #include "cjk_overlay.hpp"
 #include "embedded_challenge_objective_hashes.hpp"
+#include "embedded_hunting_recommendations.hpp"
 
 #include <algorithm>
 #include <array>
@@ -93,6 +94,20 @@ Return invoke_native(std::uint64_t hash, Args... args) noexcept {
 
 // ScriptHook / RDR2 natives.
 constexpr std::uint64_t kPlayerPedId = 0x096275889B8E0EE0ull;
+constexpr std::uint64_t kPlayerId = 0x217E9DC48139933Dull;
+constexpr std::uint64_t kGetSaddleHorseForPlayer = 0xB48050D326E9A2F3ull;
+constexpr std::uint64_t kGetCarriedAttachedInfoForSlot = 0x608BC6A6AACD5036ull;
+constexpr std::uint64_t kFindAllAttachedCarriableEntities = 0xB5ACE8B23A438EC0ull;
+constexpr std::uint64_t kCreateItemset = 0xA1AF16083320065Aull;
+constexpr std::uint64_t kDestroyItemset = 0x712BC69F10549B92ull;
+constexpr std::uint64_t kGetItemsetSize = 0x55F2E375AC6018A9ull;
+constexpr std::uint64_t kGetIndexedItemInItemset = 0x275A2E2C0FAB7612ull;
+constexpr std::uint64_t kGetEntityFromItem = 0xEE04C0AFD4EFAF0Eull;
+constexpr std::uint64_t kDoesEntityExist = 0xD42BD6EB2E0F1677ull;
+constexpr std::uint64_t kIsEntityAPed = 0xCF8176912DDA4EA5ull;
+constexpr std::uint64_t kGetIsCarriablePelt = 0x255B6DB4E3AD3C3Eull;
+constexpr std::uint64_t kGetCarcassFromPelt = 0x2A77EF9BEC8518F4ull;
+constexpr std::uint64_t kGetPedQuality = 0x7BCC6087D130312Aull;
 constexpr std::uint64_t kInventoryGetInventoryIdFromPed = 0x13D234A2A3F66E63ull;
 constexpr std::uint64_t kCountInventoryItems = 0xE787F05DFC977BDEull;
 constexpr std::uint64_t kInventoryGetGuidFromItemId = 0x886DFD3E185C8A89ull;
@@ -743,6 +758,14 @@ const char* find_material_name(std::uint32_t materialHash) noexcept {
     return nullptr;
 }
 
+// Craftable Now deliberately measures animal-part readiness only. The curated
+// material-name table contains pelts, hides, feathers, antlers and carcasses;
+// money and any other non-animal acquisition costs are outside this filter.
+bool is_animal_part_material(std::uint32_t materialHash) noexcept {
+    return materialHash != 0 && materialHash != kMoneyHash &&
+           find_material_name(materialHash) != nullptr;
+}
+
 struct MaterialNeed {
     std::uint32_t hash{};
     int totalRequired{};
@@ -1062,8 +1085,8 @@ void read_recipe_cost_rows(VendorDemand& vendor, RecipeEntry& recipe,
                 remember_official_item_label(localizedNames, materialHash);
                 add_recipe_cost(recipe, materialHash, amount);
                 recipe.hasAnyCosts = true;
-                // Money is a purchase cost, not a donated animal material.
-                if (includeInVendorDemand && materialHash != kMoneyHash) {
+                // Only recognized animal parts contribute to Craftable Now.
+                if (includeInVendorDemand && is_animal_part_material(materialHash)) {
                     add_requirement(vendor, materialHash, amount);
                 }
             }
@@ -1366,7 +1389,7 @@ constexpr auto kAnimalModels = std::array{
     AnimalModel{joaat("a_c_boar_01"), "Boar"}, AnimalModel{joaat("a_c_buck_01"), "Buck"},
     AnimalModel{joaat("a_c_buffalo_01"), "Bison"}, AnimalModel{joaat("a_c_bull_01"), "Bull"},
     AnimalModel{joaat("a_c_californiacondor_01"), "California Condor"}, AnimalModel{joaat("a_c_cardinal_01"), "Cardinal"},
-    AnimalModel{joaat("a_c_cedarwaxwing_01"), "Cedar Waxwing"}, AnimalModel{joaat("a_c_chipmunk_01"), "Western Chipmunk"},
+    AnimalModel{joaat("a_c_cedarwaxwing_01"), "Cedar Waxwing"}, AnimalModel{joaat("a_c_chipmunk_01"), "Squirrel"},
     AnimalModel{joaat("a_c_cougar_01"), "Cougar"}, AnimalModel{joaat("a_c_cow"), "Cow"},
     AnimalModel{joaat("a_c_coyote_01"), "Coyote"}, AnimalModel{joaat("a_c_crow_01"), "Crow"},
     AnimalModel{joaat("a_c_deer_01"), "Deer"}, AnimalModel{joaat("a_c_duck_01"), "Duck"},
@@ -1374,7 +1397,7 @@ constexpr auto kAnimalModels = std::array{
     AnimalModel{joaat("a_c_fox_01"), "Fox"}, AnimalModel{joaat("a_c_goat_01"), "Goat"},
     AnimalModel{joaat("a_c_gilamonster_01"), "Gila Monster"}, AnimalModel{joaat("a_c_goosecanada_01"), "Canada Goose"},
     AnimalModel{joaat("a_c_hawk_01"), "Hawk"}, AnimalModel{joaat("a_c_iguana_01"), "Iguana"},
-    AnimalModel{joaat("a_c_iguanadesert_01"), "Desert Iguana"}, AnimalModel{joaat("a_c_javelina_01"), "Javelina"},
+    AnimalModel{joaat("a_c_iguanadesert_01"), "Iguana"}, AnimalModel{joaat("a_c_javelina_01"), "Javelina"},
     AnimalModel{joaat("a_c_loon_01"), "Loon"}, AnimalModel{joaat("a_c_moose_01"), "Moose"},
     AnimalModel{joaat("a_c_muskrat_01"), "Muskrat"}, AnimalModel{joaat("a_c_oriole_01"), "Oriole"},
     AnimalModel{joaat("a_c_owl_01"), "Owl"}, AnimalModel{joaat("a_c_ox_01"), "Ox"},
@@ -1389,17 +1412,199 @@ constexpr auto kAnimalModels = std::array{
     AnimalModel{joaat("a_c_snakeblacktailrattle_01"), "Rattlesnake"}, AnimalModel{joaat("a_c_songbird_01"), "Songbird"},
     AnimalModel{joaat("a_c_sparrow_01"), "Sparrow"}, AnimalModel{joaat("a_c_squirrel_01"), "Squirrel"},
     AnimalModel{joaat("a_c_turkey_01"), "Turkey"}, AnimalModel{joaat("a_c_turkey_02"), "Turkey"},
-    AnimalModel{joaat("a_c_turkeywild_01"), "Turkey"}, AnimalModel{joaat("a_c_wolf"), "Wolf"},
+    AnimalModel{joaat("a_c_turkeywild_01"), "Turkey"}, AnimalModel{joaat("a_c_vulture_01"), "Vulture"},
+    AnimalModel{joaat("a_c_wolf"), "Wolf"},
     AnimalModel{joaat("a_c_wolf_medium"), "Wolf"}, AnimalModel{joaat("a_c_wolf_small"), "Wolf"},
     AnimalModel{joaat("a_c_woodpecker_01"), "Woodpecker"}, AnimalModel{joaat("a_c_woodpecker_02"), "Woodpecker"},
-    AnimalModel{joaat("a_c_chicken_01"), "Chicken"}
+    AnimalModel{joaat("a_c_chicken_01"), "Chicken"},
+    AnimalModel{joaat("a_c_bat_01"), "Bat"},
+    AnimalModel{joaat("a_c_frogbull_01"), "Bullfrog"},
+    AnimalModel{joaat("a_c_prairiechicken_01"), "Prairie Chicken"},
+    AnimalModel{joaat("a_c_cormorant_01"), "Cormorant"},
+    AnimalModel{joaat("a_c_crab_01"), "Crab"},
+    AnimalModel{joaat("a_c_crawfish_01"), "Crayfish"},
+    AnimalModel{joaat("a_c_cranewhooping_01"), "Crane"},
+    AnimalModel{joaat("a_c_egret_01"), "Egret"},
+    AnimalModel{joaat("a_c_heron_01"), "Heron"},
+    AnimalModel{joaat("a_c_carolinaparakeet_01"), "Parakeet"},
+    AnimalModel{joaat("a_c_parrot_01"), "Macaw"},
+    AnimalModel{joaat("a_c_pelican_01"), "Pelican"},
+    AnimalModel{joaat("a_c_redfootedbooby_01"), "Booby"},
+    AnimalModel{joaat("a_c_roseatespoonbill_01"), "Spoonbill"},
+    AnimalModel{joaat("a_c_toad_01"), "Toad"},
+    AnimalModel{joaat("a_c_turtlesnapping_01"), "Turtle"}
 };
+
+struct CurrentHaulMaterial {
+    std::uint32_t hash{};
+    int inventoryCount{};
+    int carriedCount{};
+    int horseCount{};
+};
+struct CurrentHaulState {
+    std::array<CurrentHaulMaterial, kMaxMaterials> materials{};
+    std::size_t count{};
+    int inventoryId{-1};
+    DWORD lastRefreshTick{};
+    bool ready{};
+    bool hasAnyAnimalPart{};
+};
+CurrentHaulState g_currentHaul{};
+volatile LONG g_haulDirty = 1;
 
 const char* find_animal_species(std::uint32_t modelHash) noexcept {
     for (const auto& animal : kAnimalModels) {
         if (animal.hash == modelHash) return animal.species;
     }
     return nullptr;
+}
+
+int current_haul_index(std::uint32_t hash) noexcept {
+    for (std::size_t i = 0; i < g_currentHaul.count; ++i) {
+        if (g_currentHaul.materials[i].hash == hash) return static_cast<int>(i);
+    }
+    return -1;
+}
+
+void add_current_haul_count(std::uint32_t hash, int amount, int source) noexcept {
+    if (hash == 0 || amount <= 0 || !is_animal_part_material(hash)) return;
+    int index = current_haul_index(hash);
+    if (index < 0) {
+        if (g_currentHaul.count >= g_currentHaul.materials.size()) return;
+        index = static_cast<int>(g_currentHaul.count++);
+        g_currentHaul.materials[static_cast<std::size_t>(index)].hash = hash;
+    }
+    CurrentHaulMaterial& material = g_currentHaul.materials[static_cast<std::size_t>(index)];
+    int* destination = source == 0 ? &material.inventoryCount :
+                       source == 1 ? &material.carriedCount : &material.horseCount;
+    *destination = std::min(1000000, *destination + amount);
+    g_currentHaul.hasAnyAnimalPart = true;
+}
+
+int current_haul_count(std::uint32_t hash) noexcept {
+    const int index = current_haul_index(hash);
+    if (index < 0) return 0;
+    const CurrentHaulMaterial& material = g_currentHaul.materials[static_cast<std::size_t>(index)];
+    return material.inventoryCount + material.carriedCount + material.horseCount;
+}
+
+bool current_haul_has_any() noexcept {
+    if (g_currentHaul.hasAnyAnimalPart) return true;
+    for (std::size_t i = 0; i < g_currentHaul.count; ++i) {
+        const CurrentHaulMaterial& material = g_currentHaul.materials[i];
+        if (material.inventoryCount + material.carriedCount + material.horseCount > 0) return true;
+    }
+    return false;
+}
+
+struct CarriedAttachedInfo {
+    std::uint64_t model{};
+    std::uint64_t carryConfig{};
+    std::uint64_t carriableSlot{};
+    std::uint64_t entity{};
+};
+static_assert(sizeof(CarriedAttachedInfo) == 32);
+
+void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcept {
+    if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) return;
+    const bool isPelt = knownPelt ||
+        invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
+    if (isPelt) g_currentHaul.hasAnyAnimalPart = true;
+    int carcass = entity;
+    if (isPelt) carcass = invoke_native<int>(kGetCarcassFromPelt, entity);
+    if (carcass == 0 || invoke_native<int>(kDoesEntityExist, carcass) == 0 ||
+        invoke_native<int>(kIsEntityAPed, carcass) == 0) return;
+
+    const std::uint32_t model = invoke_native<std::uint32_t>(kGetEntityModel, carcass);
+    const char* species = find_animal_species(model);
+    if (species == nullptr) return;
+    g_currentHaul.hasAnyAnimalPart = true;
+    // Chipmunks share a HUD recommendation group with squirrels, but do not
+    // yield squirrel pelts. Do not let that display grouping invent loot.
+    if (model == joaat("a_c_chipmunk_01")) return;
+
+    // _GET_PED_QUALITY reports the ordinary skinning grade (0=poor,
+    // 1=good, 2=perfect). It does not identify a legendary animal; do not
+    // infer a Legendary material from a quality value.
+    const int quality = invoke_native<int>(kGetPedQuality, carcass);
+    for (const auto& sourceEntry : kMaterialSources) {
+        if (std::strcmp(sourceEntry.species, species) != 0) continue;
+        const char* name = find_material_name(sourceEntry.hash);
+        if (name == nullptr) continue;
+        const bool perfectOnly = std::strstr(name, "Perfect") != nullptr;
+        const bool legendaryOnly = std::strstr(name, "Legendary") != nullptr;
+        const bool carcassMaterial = std::strstr(name, "Carcass") != nullptr;
+        if (perfectOnly && quality != 2) continue;
+        // A legendary pelt has a distinct inventory item identity. The public
+        // carried-entity natives do not expose that identity reliably, so
+        // only count it when the player's inventory native reports the item.
+        if (legendaryOnly) continue;
+        // A carried pelt yields its pelt/hide/skin material. An intact animal
+        // yields only a catalogued carcass material until it has been skinned;
+        // do not promise pelt, feather or antler recipes prematurely.
+        if (isPelt ? (carcassMaterial || !perfectOnly) : !carcassMaterial) continue;
+        add_current_haul_count(sourceEntry.hash, 1, source);
+    }
+}
+
+void update_current_haul() noexcept {
+    g_currentHaul = {};
+    const int playerPed = invoke_native<int>(kPlayerPedId);
+    if (playerPed == 0) return;
+    const int inventoryId = invoke_native<int>(kInventoryGetInventoryIdFromPed, playerPed);
+    if (inventoryId < 0) return;
+    g_currentHaul.inventoryId = inventoryId;
+    g_currentHaul.ready = true;
+
+    // Player inventory covers satchel animal parts, feathers, antlers and pelts.
+    for (const auto& material : kMaterialNames) {
+        if (!is_animal_part_material(material.hash)) continue;
+        const int count = player_owned_count(inventoryId, material.hash);
+        if (count > 0) add_current_haul_count(material.hash, count, 0);
+    }
+
+    // Read the player's carriable slots (0-4). Slots 5-7 are the saddle
+    // horse's left, right and rear attachment points.
+    for (int slot = 0; slot <= 4; ++slot) {
+        CarriedAttachedInfo info{};
+        if (invoke_native<bool>(kGetCarriedAttachedInfoForSlot, &info, playerPed, slot, 0) == 0)
+            continue;
+        const int entity = static_cast<int>(info.entity);
+        if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) continue;
+        const bool isPelt = invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
+        const bool isPed = invoke_native<int>(kIsEntityAPed, entity) != 0;
+        if (isPelt || isPed) add_entity_animal_materials(entity, 1, isPelt);
+    }
+
+    // Use the saddle horse even when Arthur is standing beside it.
+    const int playerId = invoke_native<int>(kPlayerId);
+    const int horse = invoke_native<int>(kGetSaddleHorseForPlayer, playerId);
+    if (horse != 0 && invoke_native<int>(kDoesEntityExist, horse) != 0) {
+        const int itemSet = invoke_native<int>(kCreateItemset, true);
+        if (itemSet != 0) {
+            invoke_native<void>(kFindAllAttachedCarriableEntities, horse, itemSet);
+            const int rawSize = invoke_native<int>(kGetItemsetSize, itemSet);
+            const int size = std::clamp(rawSize, 0, 128);
+            for (int i = 0; i < size; ++i) {
+                const int item = invoke_native<int>(kGetIndexedItemInItemset, i, itemSet);
+                const int entity = invoke_native<int>(kGetEntityFromItem, item);
+                if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) continue;
+                const bool isPelt = invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
+                const bool isPed = invoke_native<int>(kIsEntityAPed, entity) != 0;
+                if (isPelt || isPed) add_entity_animal_materials(entity, 2, isPelt);
+            }
+            invoke_native<void>(kDestroyItemset, itemSet);
+        }
+    }
+}
+
+void refresh_current_haul_if_due() noexcept {
+    const DWORD now = GetTickCount();
+    if (g_currentHaul.lastRefreshTick != 0 &&
+        now - g_currentHaul.lastRefreshTick < 500u) return;
+    update_current_haul();
+    g_currentHaul.lastRefreshTick = now;
+    InterlockedExchange(&g_haulDirty, 1);
 }
 
 bool blip_texture_dictionary_ready() noexcept {
@@ -1457,6 +1662,95 @@ void draw_vendor_icon(const char* spriteName, float centerX, float centerY,
                         width, height, 0.0f, red, green, blue, 255, false);
 }
 
+bool inventory_texture_dictionary_ready() noexcept {
+    constexpr const char* kInventoryTextureDictionary = "inventory_items";
+    if (invoke_native<int>(kHasStreamedTextureDictLoaded, kInventoryTextureDictionary) != 0) {
+        return true;
+    }
+    invoke_native<void>(kRequestStreamedTextureDict, kInventoryTextureDictionary, false);
+    return false;
+}
+
+void draw_rect(float x, float y, float width, float height,
+               int red, int green, int blue, int alpha) noexcept;
+
+bool g_showWeaponIcons = true;  // toggled from Settings or the icons hotkey
+
+void draw_text_impl(const char* text, float x, float y, float referencePixelHeight,
+                    int red, int green, int blue, int alpha,
+                    bool localize, bool centered) noexcept;
+
+// Short, translated name of an ammunition icon (the inventory sprites differ from the
+// weapon wheel's ring icons, so each ammo type is also named in text).
+const char* ammo_icon_name(const char* texture) noexcept {
+    if (texture == nullptr) return nullptr;
+    if (std::strcmp(texture, "ammo_arrow_improved") == 0) return "Improved";
+    if (std::strcmp(texture, "ammo_arrow_poison") == 0) return "Poison";
+    if (std::strcmp(texture, "ammo_arrow_small_game") == 0) return "Small Game";
+    if (std::strcmp(texture, "ammo_bullet_normal") == 0) return "Normal";
+    if (std::strcmp(texture, "ammo_bullet_high_velocity") == 0) return "High Velocity";
+    if (std::strcmp(texture, "ammo_bullet_express") == 0) return "Express";
+    return nullptr;
+}
+
+void draw_hunting_recommendation_icons(
+    const hunting_companion::hunting::Recommendation& recommendation,
+    const HudIconLayout& layout) noexcept {
+    constexpr std::size_t kMaxIcons = 8;
+    const char* textures[kMaxIcons]{};
+    std::size_t textureCount = 0;
+    char ammoNames[160]{};
+    std::size_t ammoNameLength = 0;
+    for (std::size_t i = 0; i < recommendation.choiceCount; ++i) {
+        const auto& choice = recommendation.choices[i];
+        if (textureCount < kMaxIcons) textures[textureCount++] = choice.texture;
+        for (std::size_t ammo = 0; ammo < choice.ammoCount && textureCount < kMaxIcons; ++ammo) {
+            textures[textureCount++] = choice.ammo[ammo].texture;
+            const char* name = ammo_icon_name(choice.ammo[ammo].texture);
+            if (name != nullptr && ammoNameLength + 40 < sizeof(ammoNames)) {
+                const int written = std::snprintf(
+                    ammoNames + ammoNameLength, sizeof(ammoNames) - ammoNameLength, "%s%s",
+                    ammoNameLength == 0 ? "" : " / ", hunting_companion::ui_text(name));
+                if (written > 0) ammoNameLength += static_cast<std::size_t>(written);
+            }
+        }
+    }
+    if (textureCount == 0) return;
+
+    constexpr float kIconHeight = 0.0435f;
+    constexpr float kGapHeight = 0.0060f;
+    constexpr float kRightEdge = 0.945f;        // keep clear of the screen edge
+    constexpr float kLiftAboveVendorIcons = 0.050f;
+    const float heightOverWidth = layout.width / layout.height;
+    const float iconHeight = kIconHeight;
+    const float iconWidth = iconHeight * heightOverWidth;
+    const float gap = kGapHeight * heightOverWidth;
+    const float groupWidth = static_cast<float>(textureCount) * iconWidth +
+                             static_cast<float>(textureCount - 1) * gap;
+    const bool hasLabel = ammoNameLength > 0;
+    const float backdropWidth = std::max(groupWidth + iconWidth * 0.6f,
+                                         hasLabel ? 0.115f : 0.0f);
+    const float backdropHeight = iconHeight * (hasLabel ? 1.75f : 1.45f);
+    const float boxCenterX = kRightEdge - backdropWidth * 0.5f;
+    const float boxBottom = layout.centerY - layout.height * 0.5f - kLiftAboveVendorIcons;
+    const float boxCenterY = boxBottom - backdropHeight * 0.5f;
+    const float iconCenterY = boxCenterY - (hasLabel ? iconHeight * 0.20f : 0.0f);
+    const float leftEdge = boxCenterX - groupWidth * 0.5f;
+    // A single flat grey plate behind the icons.
+    draw_rect(boxCenterX, boxCenterY, backdropWidth, backdropHeight, 40, 40, 42, 200);
+
+    for (std::size_t i = 0; i < textureCount; ++i) {
+        const float centerX = leftEdge + iconWidth * 0.5f +
+                              static_cast<float>(i) * (iconWidth + gap);
+        invoke_native<void>(kDrawSprite, "inventory_items", textures[i], centerX, iconCenterY,
+                            iconWidth, iconHeight, 0.0f, 255, 255, 255, 255, false);
+    }
+    if (hasLabel) {
+        draw_text_impl(ammoNames, boxCenterX, boxCenterY + iconHeight * 0.42f, 8.5f,
+                       225, 220, 205, 255, false, true);
+    }
+}
+
 void update_hud() noexcept {
     if (!g_tracker.ready) return;
     const int player = invoke_native<int>(0x217E9DC48139933Dull);
@@ -1470,12 +1764,18 @@ void update_hud() noexcept {
 
     const bool needsPearson = species_needed(g_tracker.pearson.demand, species);
     const bool needsTrapper = species_needed(g_tracker.trapper.demand, species);
-    if (!needsPearson && !needsTrapper) return;
-    if (!blip_texture_dictionary_ready()) return;
 
     HudIconLayout layout{};
     if (!get_hud_icon_layout(&layout)) return;
 
+    // Recommendations are useful for every recognized animal, not only species
+    // currently needed by Pearson or the Trapper.
+    const auto* recommendation = hunting_companion::hunting::find(species);
+    if (recommendation != nullptr && g_showWeaponIcons && inventory_texture_dictionary_ready()) {
+        draw_hunting_recommendation_icons(*recommendation, layout);
+    }
+
+    if ((!needsPearson && !needsTrapper) || !blip_texture_dictionary_ready()) return;
     if (needsPearson) {
         draw_vendor_icon("blip_shop_butcher", layout.pearsonCenterX, layout.centerY,
                          layout.width, layout.height, 245, 184, 72);
@@ -1492,13 +1792,14 @@ void update_hud() noexcept {
 // -----------------------------------------------------------------------------
 
 enum class MenuPage {
-    Closed, Root, Categories, Recipes, Detail, Challenges,
-    ChallengeDetail, Settings
+    Closed, Root, Categories, Recipes, Detail, CraftingUses,
+    CraftingUseDetail, Challenges, ChallengeDetail, Settings
 };
 struct MenuCategory { std::uint32_t hash{}; const char* label{}; int recipeCount{}; };
 struct MenuState {
     MenuPage page{MenuPage::Closed};
     bool trapper{};
+    bool craftableNow{};
     int selection{};
     int scroll{};
     int rootReturnSelection{};
@@ -1510,9 +1811,12 @@ struct MenuState {
     int recipeReturnScroll{};
     MenuPage detailReturnPage{MenuPage::Recipes};
     int challengeIndex{};
+    int craftingUseIndex{-1};
     int challengeReturnSelection{};
     int challengeReturnScroll{};
     bool captureHotkey{};
+    bool captureFilterHotkey{};
+    bool captureIconsHotkey{};
 };
 MenuState g_menu{};
 std::array<MenuCategory, kMaxCategories> g_menuCategories{};
@@ -1521,7 +1825,21 @@ std::array<int, kMaxRecipesPerShop> g_menuRecipeIndices{};
 std::size_t g_menuRecipeCount{};
 std::array<bool, 256> g_keyDown{};
 std::array<bool, 256> g_keyPressed{};
+struct CraftingUseEntry {
+    bool trapper{};
+    int recipeIndex{-1};
+    const char* setName{};
+    int readiness{};
+};
+std::array<CraftingUseEntry, kMaxRecipesPerShop * 2> g_craftingUseEntries{};
+std::size_t g_craftingUseCount{};
 DWORD g_menuHotkey = kDefaultMenuKey;
+// Defaults avoid RDR2's own keyboard bindings and the keys most trainers use
+// (F-keys, Numpad, Insert/Delete/Home/End, Space, letters).
+constexpr DWORD kDefaultFilterKey = VK_OEM_4;  // [
+constexpr DWORD kDefaultIconsKey = VK_OEM_6;   // ]
+DWORD g_filterHotkey = kDefaultFilterKey;
+DWORD g_iconsHotkey = kDefaultIconsKey;
 bool g_refreshWorkerRegistered{};
 volatile LONG g_refreshRequested = 1;
 char g_iniPath[MAX_PATH]{};
@@ -1581,6 +1899,13 @@ void load_configuration() noexcept {
     }
     const UINT key = GetPrivateProfileIntA("General", "MenuKey", kDefaultMenuKey, g_iniPath);
     g_menuHotkey = (key > 0 && key < 256) ? key : kDefaultMenuKey;
+    const UINT filterKey = GetPrivateProfileIntA("General", "FilterKey", kDefaultFilterKey, g_iniPath);
+    // Older versions defaulted to Space, which the game uses for jumping/sprinting.
+    g_filterHotkey = (filterKey > 0 && filterKey < 256 && filterKey != VK_SPACE)
+        ? filterKey : kDefaultFilterKey;
+    const UINT iconsKey = GetPrivateProfileIntA("General", "WeaponIconsKey", kDefaultIconsKey, g_iniPath);
+    g_iconsHotkey = (iconsKey > 0 && iconsKey < 256) ? iconsKey : kDefaultIconsKey;
+    g_showWeaponIcons = GetPrivateProfileIntA("General", "ShowWeaponIcons", 1, g_iniPath) != 0;
     const UINT configuredLanguage = GetPrivateProfileIntA(
         "General", "UILanguage", 0xFFFFFFFFu, g_iniPath);
     g_uiLanguageOverride = configuredLanguage == 0xFFFFFFFFu
@@ -1589,6 +1914,11 @@ void load_configuration() noexcept {
     char value[16]{};
     std::snprintf(value, sizeof(value), "%u", static_cast<unsigned>(g_menuHotkey));
     WritePrivateProfileStringA("General", "MenuKey", value, g_iniPath);
+    std::snprintf(value, sizeof(value), "%u", static_cast<unsigned>(g_filterHotkey));
+    WritePrivateProfileStringA("General", "FilterKey", value, g_iniPath);
+    std::snprintf(value, sizeof(value), "%u", static_cast<unsigned>(g_iconsHotkey));
+    WritePrivateProfileStringA("General", "WeaponIconsKey", value, g_iniPath);
+    WritePrivateProfileStringA("General", "ShowWeaponIcons", g_showWeaponIcons ? "1" : "0", g_iniPath);
     char languageValue[16]{};
     std::snprintf(languageValue, sizeof(languageValue), "%d", g_uiLanguageOverride);
     WritePrivateProfileStringA("General", "UILanguage", languageValue, g_iniPath);
@@ -1599,6 +1929,21 @@ void save_menu_hotkey() noexcept {
     char value[16]{};
     std::snprintf(value, sizeof(value), "%u", static_cast<unsigned>(g_menuHotkey));
     WritePrivateProfileStringA("General", "MenuKey", value, g_iniPath);
+}
+
+void save_filter_hotkey() noexcept {
+    if (g_iniPath[0] == '\0') return;
+    char value[16]{};
+    std::snprintf(value, sizeof(value), "%u", static_cast<unsigned>(g_filterHotkey));
+    WritePrivateProfileStringA("General", "FilterKey", value, g_iniPath);
+}
+
+void save_icons_settings() noexcept {
+    if (g_iniPath[0] == '\0') return;
+    char value[16]{};
+    std::snprintf(value, sizeof(value), "%u", static_cast<unsigned>(g_iconsHotkey));
+    WritePrivateProfileStringA("General", "WeaponIconsKey", value, g_iniPath);
+    WritePrivateProfileStringA("General", "ShowWeaponIcons", g_showWeaponIcons ? "1" : "0", g_iniPath);
 }
 
 void save_ui_language() noexcept {
@@ -1696,6 +2041,17 @@ const char* key_name(DWORD key) noexcept {
     }
     switch (key) {
         case VK_SPACE: return "Space";
+        case VK_OEM_1: return ";";
+        case VK_OEM_PLUS: return "=";
+        case VK_OEM_COMMA: return ",";
+        case VK_OEM_MINUS: return "-";
+        case VK_OEM_PERIOD: return ".";
+        case VK_OEM_2: return "/";
+        case VK_OEM_3: return "`";
+        case VK_OEM_4: return "[";
+        case VK_OEM_5: return "\\";
+        case VK_OEM_6: return "]";
+        case VK_OEM_7: return "'";
         case VK_TAB: return "Tab";
         case VK_HOME: return "Home";
         case VK_END: return "End";
@@ -1762,13 +2118,17 @@ bool key_repeated(unsigned key) noexcept {
     return false;
 }
 
+bool recipe_craftable_now(const VendorState& vendor, const RecipeEntry& recipe) noexcept;
+
 void build_menu_categories() noexcept {
     g_menuCategoryCount = 0;
     VendorState& vendor = active_vendor();
     auto append_if_used = [&](std::uint32_t hash, const char* label) {
         int count = 0;
         for (std::size_t i = 0; i < vendor.recipeCount; ++i) {
-            if (vendor.recipes[i].categoryHash == hash) ++count;
+            const RecipeEntry& recipe = vendor.recipes[i];
+            if (recipe.categoryHash == hash &&
+                (!g_menu.craftableNow || recipe_craftable_now(vendor, recipe))) ++count;
         }
         if (count > 0 && g_menuCategoryCount < g_menuCategories.size()) {
             g_menuCategories[g_menuCategoryCount++] = MenuCategory{hash, label, count};
@@ -1789,9 +2149,13 @@ void build_menu_categories() noexcept {
         if (!known && g_menuCategoryCount < g_menuCategories.size()) {
             int count = 0;
             for (std::size_t j = 0; j < vendor.recipeCount; ++j) {
-                if (vendor.recipes[j].categoryHash == hash) ++count;
+                const RecipeEntry& recipe = vendor.recipes[j];
+                if (recipe.categoryHash == hash &&
+                    (!g_menu.craftableNow || recipe_craftable_now(vendor, recipe))) ++count;
             }
-            g_menuCategories[g_menuCategoryCount++] = MenuCategory{hash, "Other / new category", count};
+            if (count > 0) {
+                g_menuCategories[g_menuCategoryCount++] = MenuCategory{hash, "Other / new category", count};
+            }
         }
     }
 }
@@ -1801,6 +2165,7 @@ void build_menu_recipe_list() noexcept {
     VendorState& vendor = active_vendor();
     for (std::size_t i = 0; i < vendor.recipeCount; ++i) {
         if (vendor.recipes[i].categoryHash == g_menu.categoryHash &&
+            (!g_menu.craftableNow || recipe_craftable_now(vendor, vendor.recipes[i])) &&
             g_menuRecipeCount < g_menuRecipeIndices.size()) {
             g_menuRecipeIndices[g_menuRecipeCount++] = static_cast<int>(i);
         }
@@ -2081,6 +2446,360 @@ const MaterialNeed* find_vendor_material(const VendorDemand& demand, std::uint32
     return nullptr;
 }
 
+bool recipe_materials_ready(const VendorState& vendor, const RecipeEntry& recipe) noexcept {
+    if (recipe.owned || !recipe.hasAnyCosts || !vendor.demand.ready) return false;
+    bool hasAnimalMaterials = false;
+    for (std::size_t i = 0; i < recipe.costCount; ++i) {
+        const RecipeCost& cost = recipe.costs[i];
+        // Cash and all other non-animal costs are intentionally ignored.
+        if (!is_animal_part_material(cost.hash)) continue;
+        hasAnimalMaterials = true;
+        const MaterialNeed* stock = find_vendor_material(vendor.demand, cost.hash);
+        if (stock == nullptr || stock->vendorStock < cost.amount) return false;
+    }
+    return hasAnimalMaterials;
+}
+
+bool garment_set_craftable_now(const VendorState& vendor,
+                               const GarmentSetDefinition& set) noexcept {
+    std::array<RecipeCost, kMaxMaterials> required{};
+    std::size_t requiredCount = 0;
+    bool hasUnownedPiece = false;
+
+    for (std::size_t piece = 0; piece < set.componentCount; ++piece) {
+        const RecipeEntry* component = find_trapper_recipe_by_name(set.components[piece]);
+        if (component == nullptr) return false;
+        if (component->owned) continue;
+        hasUnownedPiece = true;
+        if (!component->hasAnyCosts || component->costCount == 0) return false;
+
+        for (std::size_t costIndex = 0; costIndex < component->costCount; ++costIndex) {
+            const RecipeCost& cost = component->costs[costIndex];
+            // Aggregate only animal parts; cash and other costs do not affect
+            // this material-readiness indicator.
+            if (!is_animal_part_material(cost.hash)) continue;
+
+            std::size_t existing = 0;
+            while (existing < requiredCount && required[existing].hash != cost.hash) ++existing;
+            if (existing < requiredCount) {
+                const long long sum = static_cast<long long>(required[existing].amount) + cost.amount;
+                required[existing].amount = static_cast<int>(std::min<long long>(sum, 1000000));
+            } else {
+                if (requiredCount >= required.size()) return false;
+                required[requiredCount++] = cost;
+            }
+        }
+    }
+
+    if (!hasUnownedPiece || requiredCount == 0) return false;
+    // Garment components draw from shared Trapper stock. Aggregate repeated
+    // materials across every remaining piece before comparing the pool.
+    for (std::size_t i = 0; i < requiredCount; ++i) {
+        const MaterialNeed* stock = find_vendor_material(vendor.demand, required[i].hash);
+        if (stock == nullptr || stock->vendorStock < required[i].amount) return false;
+    }
+    return true;
+}
+
+bool recipe_craftable_now(const VendorState& vendor, const RecipeEntry& recipe) noexcept {
+    if (recipe.owned || !vendor.demand.ready) return false;
+
+    if (g_menu.trapper && recipe.categoryHash == kTrapperGarmentSetsCategoryHash) {
+        const GarmentSetDefinition* set = find_garment_set_definition(recipe.name);
+        return set != nullptr && garment_set_craftable_now(vendor, *set);
+    }
+
+    // Reinforced equipment is challenge-unlocked and purchased, not crafted
+    // from donated pelts; it is intentionally absent from this filter.
+    if (g_menu.trapper && find_reinforced_equipment(recipe.name) != nullptr) return false;
+    return recipe_materials_ready(vendor, recipe);
+}
+
+bool recipe_uses_current_haul(const RecipeEntry& recipe) noexcept {
+    if (recipe.owned || !recipe.hasAnyCosts) return false;
+    for (std::size_t i = 0; i < recipe.costCount; ++i) {
+        const RecipeCost& cost = recipe.costs[i];
+        if (is_animal_part_material(cost.hash) && current_haul_count(cost.hash) > 0) return true;
+    }
+    return false;
+}
+
+enum class CraftingUseReadiness {
+    UsesHaul, NeedsOtherMaterials, AnimalPartsReady, ReadyAfterDonation
+};
+
+CraftingUseReadiness crafting_use_readiness(const VendorState& vendor,
+                                             const RecipeEntry& recipe) noexcept {
+    bool hasAnimalCost = false;
+    bool animalCostsReady = true;
+    bool otherCostsReady = true;
+    bool hasCashCost = false;
+    for (std::size_t i = 0; i < recipe.costCount; ++i) {
+        const RecipeCost& cost = recipe.costs[i];
+        if (is_animal_part_material(cost.hash)) {
+            hasAnimalCost = true;
+            const MaterialNeed* stock = find_vendor_material(vendor.demand, cost.hash);
+            const int donated = stock != nullptr ? stock->vendorStock : 0;
+            if (current_haul_count(cost.hash) + donated < cost.amount) animalCostsReady = false;
+        } else if (cost.hash == kMoneyHash) {
+            // Wallet cash is not represented by the inventory count native.
+            hasCashCost = true;
+        } else if (g_currentHaul.inventoryId < 0 ||
+                   player_owned_count(g_currentHaul.inventoryId, cost.hash) < cost.amount) {
+            otherCostsReady = false;
+        }
+    }
+    if (!hasAnimalCost || !recipe.hasAnyCosts) return CraftingUseReadiness::NeedsOtherMaterials;
+    if (!animalCostsReady) return CraftingUseReadiness::UsesHaul;
+    if (!otherCostsReady) return CraftingUseReadiness::NeedsOtherMaterials;
+    return hasCashCost ? CraftingUseReadiness::AnimalPartsReady
+                       : CraftingUseReadiness::ReadyAfterDonation;
+}
+
+const RecipeEntry* crafting_use_recipe(const CraftingUseEntry& entry) noexcept {
+    const VendorState& vendor = entry.trapper ? g_tracker.trapper : g_tracker.pearson;
+    if (entry.recipeIndex < 0 ||
+        static_cast<std::size_t>(entry.recipeIndex) >= vendor.recipeCount) return nullptr;
+    return &vendor.recipes[static_cast<std::size_t>(entry.recipeIndex)];
+}
+
+const VendorState& crafting_use_vendor(const CraftingUseEntry& entry) noexcept {
+    return entry.trapper ? g_tracker.trapper : g_tracker.pearson;
+}
+
+void append_crafting_use_entry(bool trapper, int recipeIndex, const char* setName) noexcept {
+    const VendorState& vendor = trapper ? g_tracker.trapper : g_tracker.pearson;
+    if (!vendor.demand.ready || recipeIndex < 0 ||
+        static_cast<std::size_t>(recipeIndex) >= vendor.recipeCount) return;
+    const RecipeEntry& recipe = vendor.recipes[static_cast<std::size_t>(recipeIndex)];
+    if (!recipe_uses_current_haul(recipe)) return;
+    for (std::size_t i = 0; i < g_craftingUseCount; ++i) {
+        if (g_craftingUseEntries[i].trapper == trapper &&
+            g_craftingUseEntries[i].recipeIndex == recipeIndex) return;
+    }
+    if (g_craftingUseCount < g_craftingUseEntries.size()) {
+        g_craftingUseEntries[g_craftingUseCount++] =
+            CraftingUseEntry{trapper, recipeIndex, setName};
+    }
+}
+
+const char* crafting_use_label(const CraftingUseEntry& entry,
+                               char* buffer, std::size_t size) noexcept {
+    const RecipeEntry* recipe = crafting_use_recipe(entry);
+    if (recipe == nullptr) return "";
+    if (entry.setName != nullptr) {
+        std::snprintf(buffer, size, "%s - %s - %s",
+                      hunting_companion::ui_text("Trapper"), entry.setName,
+                      recipe_display_name(*recipe));
+    } else {
+        std::snprintf(buffer, size, "%s - %s",
+                      hunting_companion::ui_text(entry.trapper ? "Trapper" : "Pearson"),
+                      recipe_display_name(*recipe));
+    }
+    return buffer;
+}
+
+void build_crafting_uses_list() noexcept {
+    std::uint32_t previousHash = 0;
+    bool previousTrapper = false;
+    const bool hadSelection = g_menu.page == MenuPage::CraftingUses ||
+                              g_menu.page == MenuPage::CraftingUseDetail;
+    if (hadSelection) {
+        const int selectedIndex = g_menu.page == MenuPage::CraftingUseDetail
+            ? g_menu.craftingUseIndex : g_menu.selection;
+        if (selectedIndex >= 0 && static_cast<std::size_t>(selectedIndex) < g_craftingUseCount) {
+            const CraftingUseEntry& previous = g_craftingUseEntries[static_cast<std::size_t>(selectedIndex)];
+            const RecipeEntry* recipe = crafting_use_recipe(previous);
+            if (recipe != nullptr) {
+                previousHash = recipe->itemHash;
+                previousTrapper = previous.trapper;
+            }
+        }
+    }
+
+    g_craftingUseCount = 0;
+    if (!g_currentHaul.ready || !current_haul_has_any()) {
+        if (g_menu.page == MenuPage::CraftingUseDetail) {
+            g_menu.page = MenuPage::CraftingUses;
+            g_menu.craftingUseIndex = -1;
+            g_menu.selection = g_menu.scroll = 0;
+        } else if (g_menu.page == MenuPage::CraftingUses) {
+            g_menu.selection = g_menu.scroll = 0;
+        }
+        return;
+    }
+
+    for (std::size_t i = 0; i < g_tracker.pearson.recipeCount; ++i) {
+        append_crafting_use_entry(false, static_cast<int>(i), nullptr);
+    }
+
+    // Trapper garment-set catalog rows are bundles. Show the individual
+    // uncrafted garments instead, so a hat already made is never suggested.
+    for (std::size_t i = 0; i < g_tracker.trapper.recipeCount; ++i) {
+        const RecipeEntry& recipe = g_tracker.trapper.recipes[i];
+        if (recipe.categoryHash == kTrapperGarmentSetsCategoryHash ||
+            find_reinforced_equipment(recipe.name) != nullptr) continue;
+        append_crafting_use_entry(true, static_cast<int>(i), nullptr);
+    }
+    for (const auto& set : kGarmentSets) {
+        for (std::size_t piece = 0; piece < set.componentCount; ++piece) {
+            const int recipeIndex = find_trapper_recipe_index_by_name(set.components[piece]);
+            if (recipeIndex >= 0) append_crafting_use_entry(true, recipeIndex, set.setName);
+        }
+    }
+
+    // Stable alphabetical ordering keeps the same recipe grouping predictable.
+    for (std::size_t i = 1; i < g_craftingUseCount; ++i) {
+        const CraftingUseEntry value = g_craftingUseEntries[i];
+        char valueLabel[160]{};
+        crafting_use_label(value, valueLabel, sizeof(valueLabel));
+        std::size_t j = i;
+        while (j > 0) {
+            char previousLabel[160]{};
+            crafting_use_label(g_craftingUseEntries[j - 1], previousLabel, sizeof(previousLabel));
+            if (std::strcmp(previousLabel, valueLabel) <= 0) break;
+            g_craftingUseEntries[j] = g_craftingUseEntries[j - 1];
+            --j;
+        }
+        g_craftingUseEntries[j] = value;
+    }
+
+    int restored = -1;
+    if (previousHash != 0) {
+        for (std::size_t i = 0; i < g_craftingUseCount; ++i) {
+            const CraftingUseEntry& entry = g_craftingUseEntries[i];
+            const RecipeEntry* recipe = crafting_use_recipe(entry);
+            if (entry.trapper == previousTrapper && recipe != nullptr &&
+                recipe->itemHash == previousHash) {
+                restored = static_cast<int>(i);
+                break;
+            }
+        }
+    }
+    for (std::size_t i = 0; i < g_craftingUseCount; ++i) {
+        const CraftingUseEntry& entry = g_craftingUseEntries[i];
+        const RecipeEntry* recipe = crafting_use_recipe(entry);
+        g_craftingUseEntries[i].readiness = recipe != nullptr
+            ? static_cast<int>(crafting_use_readiness(crafting_use_vendor(entry), *recipe))
+            : static_cast<int>(CraftingUseReadiness::UsesHaul);
+    }
+
+    if (g_menu.page == MenuPage::CraftingUseDetail) {
+        if (restored >= 0) g_menu.craftingUseIndex = restored;
+        else {
+            g_menu.page = MenuPage::CraftingUses;
+            g_menu.craftingUseIndex = -1;
+            g_menu.selection = 0;
+            g_menu.scroll = 0;
+        }
+    } else if (g_menu.page == MenuPage::CraftingUses) {
+        g_menu.selection = restored >= 0 ? restored :
+            std::clamp(g_menu.selection, 0, std::max(0, static_cast<int>(g_craftingUseCount) - 1));
+        if (g_craftingUseCount == 0) g_menu.selection = g_menu.scroll = 0;
+        else {
+            if (g_menu.selection < g_menu.scroll) g_menu.scroll = g_menu.selection;
+            if (g_menu.selection >= g_menu.scroll + kVisibleMenuRows)
+                g_menu.scroll = g_menu.selection - kVisibleMenuRows + 1;
+        }
+    }
+}
+
+CraftingUseReadiness selected_crafting_use_readiness() noexcept {
+    if (g_menu.craftingUseIndex < 0 ||
+        static_cast<std::size_t>(g_menu.craftingUseIndex) >= g_craftingUseCount)
+        return CraftingUseReadiness::UsesHaul;
+    const CraftingUseEntry& entry = g_craftingUseEntries[static_cast<std::size_t>(g_menu.craftingUseIndex)];
+    const RecipeEntry* recipe = crafting_use_recipe(entry);
+    return recipe != nullptr
+        ? crafting_use_readiness(crafting_use_vendor(entry), *recipe)
+        : CraftingUseReadiness::UsesHaul;
+}
+
+const char* crafting_use_readiness_label(CraftingUseReadiness readiness) noexcept {
+    switch (readiness) {
+        case CraftingUseReadiness::ReadyAfterDonation: return "READY AFTER DONATION";
+        case CraftingUseReadiness::AnimalPartsReady: return "ANIMAL PARTS READY";
+        case CraftingUseReadiness::NeedsOtherMaterials: return "OTHER COSTS NEEDED";
+        case CraftingUseReadiness::UsesHaul: return "USES YOUR HAUL";
+    }
+    return "USES YOUR HAUL";
+}
+
+void toggle_craftable_filter() noexcept {
+    const MenuPage previousPage = g_menu.page;
+    const int previousSelection = g_menu.selection;
+    std::uint32_t previousCategoryHash = g_menu.categoryHash;
+    std::uint32_t previousRecipeHash = 0;
+
+    if (previousPage == MenuPage::Categories &&
+        previousSelection >= 0 &&
+        static_cast<std::size_t>(previousSelection) < g_menuCategoryCount) {
+        previousCategoryHash = g_menuCategories[static_cast<std::size_t>(previousSelection)].hash;
+    } else if (previousPage == MenuPage::Recipes &&
+               previousSelection >= 0 &&
+               static_cast<std::size_t>(previousSelection) < g_menuRecipeCount) {
+        const VendorState& vendor = active_vendor();
+        const int recipeIndex = g_menuRecipeIndices[static_cast<std::size_t>(previousSelection)];
+        previousRecipeHash = vendor.recipes[static_cast<std::size_t>(recipeIndex)].itemHash;
+    }
+
+    g_menu.craftableNow = !g_menu.craftableNow;
+    build_menu_categories();
+
+    auto find_category = [&]() noexcept -> int {
+        for (std::size_t i = 0; i < g_menuCategoryCount; ++i) {
+            if (g_menuCategories[i].hash == previousCategoryHash) return static_cast<int>(i);
+        }
+        return -1;
+    };
+    auto restore_scroll = [](int& selection, int& scroll, int count) noexcept {
+        if (count <= 0) { selection = 0; scroll = 0; return; }
+        selection = std::clamp(selection, 0, count - 1);
+        if (selection < scroll) scroll = selection;
+        if (selection >= scroll + kVisibleMenuRows) scroll = selection - kVisibleMenuRows + 1;
+        scroll = std::clamp(scroll, 0, std::max(0, count - kVisibleMenuRows));
+    };
+
+    if (previousPage == MenuPage::Categories) {
+        const int restored = find_category();
+        g_menu.selection = restored >= 0 ? restored : previousSelection;
+        restore_scroll(g_menu.selection, g_menu.scroll, static_cast<int>(g_menuCategoryCount));
+        return;
+    }
+
+    build_menu_recipe_list();
+    if (g_menuRecipeCount == 0) {
+        g_menu.page = MenuPage::Categories;
+        const int restored = find_category();
+        g_menu.selection = restored >= 0 ? restored : 0;
+        restore_scroll(g_menu.selection, g_menu.scroll, static_cast<int>(g_menuCategoryCount));
+        return;
+    }
+
+    int restoredRecipe = -1;
+    if (previousRecipeHash != 0) {
+        const VendorState& vendor = active_vendor();
+        for (std::size_t i = 0; i < g_menuRecipeCount; ++i) {
+            const int recipeIndex = g_menuRecipeIndices[i];
+            if (vendor.recipes[static_cast<std::size_t>(recipeIndex)].itemHash == previousRecipeHash) {
+                restoredRecipe = static_cast<int>(i);
+                break;
+            }
+        }
+    }
+    g_menu.selection = restoredRecipe >= 0 ? restoredRecipe : previousSelection;
+    restore_scroll(g_menu.selection, g_menu.scroll, static_cast<int>(g_menuRecipeCount));
+
+    const int categoryIndex = find_category();
+    if (categoryIndex >= 0) {
+        g_menu.categoryReturnSelection = categoryIndex;
+        restore_scroll(g_menu.categoryReturnSelection, g_menu.categoryReturnScroll,
+                       static_cast<int>(g_menuCategoryCount));
+    }
+}
+
+bool root_item_disabled(int index) noexcept;
+
 void move_selection(int delta, int count) noexcept {
     if (count <= 0) { g_menu.selection = 0; g_menu.scroll = 0; return; }
     g_menu.selection = std::clamp(g_menu.selection + delta, 0, count - 1);
@@ -2089,11 +2808,22 @@ void move_selection(int delta, int count) noexcept {
         g_menu.scroll = g_menu.selection - kVisibleMenuRows + 1;
     }
 }
+void move_root_selection(int delta) noexcept {
+    constexpr int kRootCount = 6;
+    int candidate = g_menu.selection;
+    for (int attempt = 0; attempt < kRootCount; ++attempt) {
+        candidate = std::clamp(candidate + delta, 0, kRootCount - 1);
+        if (!root_item_disabled(candidate)) { g_menu.selection = candidate; break; }
+        if (candidate == 0 || candidate == kRootCount - 1) break;
+    }
+}
 
 void open_menu() noexcept {
     g_menu = {};
     g_menu.page = MenuPage::Root;
-    // Refresh on demand when the player opens the compendium; no periodic scan.
+    g_currentHaul.lastRefreshTick = 0;
+    InterlockedExchange(&g_haulDirty, 1);
+    // Vendor data refreshes on open; the separate haul snapshot polls while the menu stays open.
     InterlockedExchange(&g_refreshRequested, 1);
 }
 
@@ -2118,9 +2848,19 @@ void go_back() noexcept {
             g_menu.selection = g_menu.recipeReturnSelection;
             g_menu.scroll = g_menu.recipeReturnScroll;
             break;
-        case MenuPage::Challenges:
+        case MenuPage::CraftingUses:
             g_menu.page = MenuPage::Root;
             g_menu.selection = 2;
+            g_menu.scroll = 0;
+            break;
+        case MenuPage::CraftingUseDetail:
+            g_menu.page = MenuPage::CraftingUses;
+            g_menu.selection = g_menu.craftingUseIndex;
+            g_menu.scroll = std::max(0, g_menu.selection - kVisibleMenuRows + 1);
+            break;
+        case MenuPage::Challenges:
+            g_menu.page = MenuPage::Root;
+            g_menu.selection = 3;
             g_menu.scroll = 0;
             break;
         case MenuPage::ChallengeDetail:
@@ -2130,7 +2870,7 @@ void go_back() noexcept {
             break;
         case MenuPage::Settings:
             g_menu.page = MenuPage::Root;
-            g_menu.selection = 3;
+            g_menu.selection = 4;
             g_menu.scroll = 0;
             break;
         case MenuPage::Closed:
@@ -2140,7 +2880,7 @@ void go_back() noexcept {
 
 int current_page_count() noexcept {
     switch (g_menu.page) {
-        case MenuPage::Root: return 5;
+        case MenuPage::Root: return 6;
         case MenuPage::Categories: return static_cast<int>(g_menuCategoryCount);
         case MenuPage::Recipes: return static_cast<int>(g_menuRecipeCount);
         case MenuPage::Detail: {
@@ -2148,11 +2888,18 @@ int current_page_count() noexcept {
             DetailLine lines[64]{};
             return static_cast<int>(build_detail_lines(recipe, lines, std::size(lines)));
         }
+        case MenuPage::CraftingUses: return static_cast<int>(g_craftingUseCount);
+        case MenuPage::CraftingUseDetail: {
+            if (g_menu.craftingUseIndex < 0 ||
+                static_cast<std::size_t>(g_menu.craftingUseIndex) >= g_craftingUseCount) return 0;
+            const RecipeEntry* recipe = crafting_use_recipe(g_craftingUseEntries[static_cast<std::size_t>(g_menu.craftingUseIndex)]);
+            return recipe != nullptr ? static_cast<int>(recipe->costCount) : 0;
+        }
         case MenuPage::Challenges: return static_cast<int>(kChallengeCount);
         case MenuPage::ChallengeDetail:
             return reinforced_equipment_count_for_challenge(
                 static_cast<std::size_t>(g_menu.challengeIndex));
-        case MenuPage::Settings: return 3;
+        case MenuPage::Settings: return 6;
         case MenuPage::Closed: return 0;
     }
     return 0;
@@ -2160,6 +2907,11 @@ int current_page_count() noexcept {
 
 void update_menu_input() noexcept {
     update_keyboard_edges();
+    if (!g_menu.captureHotkey && !g_menu.captureFilterHotkey && !g_menu.captureIconsHotkey &&
+        key_pressed(g_iconsHotkey) && g_iconsHotkey != g_menuHotkey) {
+        g_showWeaponIcons = !g_showWeaponIcons;
+        save_icons_settings();
+    }
     const bool upRepeated = key_repeated(VK_UP);
     const bool downRepeated = key_repeated(VK_DOWN);
     if (g_menu.page != MenuPage::Closed && !g_tracker.ready) {
@@ -2167,6 +2919,44 @@ void update_menu_input() noexcept {
         // menu, but cannot enter empty categories before the first snapshot.
         if (key_pressed(g_menuHotkey) || key_pressed(VK_ESCAPE) || key_pressed(VK_BACK)) {
             g_menu.page = MenuPage::Closed;
+        }
+        return;
+    }
+
+    if (g_menu.captureIconsHotkey) {
+        if (key_pressed(VK_ESCAPE)) {
+            g_menu.captureIconsHotkey = false;
+            return;
+        }
+        for (unsigned key = 1; key < 256; ++key) {
+            if (!key_pressed(key)) continue;
+            if (key == VK_SHIFT || key == VK_CONTROL || key == VK_MENU ||
+                key == VK_LSHIFT || key == VK_RSHIFT || key == VK_LCONTROL ||
+                key == VK_RCONTROL || key == VK_LMENU || key == VK_RMENU ||
+                key == g_menuHotkey) continue;
+            g_iconsHotkey = key;
+            save_icons_settings();
+            g_menu.captureIconsHotkey = false;
+            break;
+        }
+        return;
+    }
+
+    if (g_menu.captureFilterHotkey) {
+        if (key_pressed(VK_ESCAPE)) {
+            g_menu.captureFilterHotkey = false;
+            return;
+        }
+        for (unsigned key = 1; key < 256; ++key) {
+            if (!key_pressed(key)) continue;
+            if (key == VK_SHIFT || key == VK_CONTROL || key == VK_MENU ||
+                key == VK_LSHIFT || key == VK_RSHIFT || key == VK_LCONTROL ||
+                key == VK_RCONTROL || key == VK_LMENU || key == VK_RMENU ||
+                key == g_menuHotkey) continue;
+            g_filterHotkey = key;
+            save_filter_hotkey();
+            g_menu.captureFilterHotkey = false;
+            break;
         }
         return;
     }
@@ -2193,6 +2983,8 @@ void update_menu_input() noexcept {
         if (key_pressed(g_menuHotkey)) open_menu();
         return;
     }
+    if (g_menu.page == MenuPage::Root && root_item_disabled(2) && g_menu.selection == 2)
+        g_menu.selection = 3;
     if (key_pressed(g_menuHotkey)) {
         g_menu.page = MenuPage::Closed;
         return;
@@ -2201,7 +2993,12 @@ void update_menu_input() noexcept {
         go_back();
         return;
     }
-    if (g_menu.page == MenuPage::Detail) {
+    if ((g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes) &&
+        key_pressed(g_filterHotkey)) {
+        toggle_craftable_filter();
+        return;
+    }
+    if (g_menu.page == MenuPage::Detail || g_menu.page == MenuPage::CraftingUseDetail) {
         const int count = current_page_count();
         const int delta = upRepeated ? -1 : (downRepeated ? 1 :
                           (key_pressed(VK_PRIOR) ? -8 : (key_pressed(VK_NEXT) ? 8 : 0)));
@@ -2213,6 +3010,11 @@ void update_menu_input() noexcept {
                 g_menu.scroll = g_menu.selection - kDetailRows + 1;
             }
         }
+    } else if (g_menu.page == MenuPage::Root) {
+        if (upRepeated) move_root_selection(-1);
+        if (downRepeated) move_root_selection(1);
+        if (key_pressed(VK_PRIOR)) move_root_selection(-kVisibleMenuRows);
+        if (key_pressed(VK_NEXT)) move_root_selection(kVisibleMenuRows);
     } else {
         if (upRepeated) move_selection(-1, current_page_count());
         if (downRepeated) move_selection(1, current_page_count());
@@ -2220,6 +3022,13 @@ void update_menu_input() noexcept {
         if (key_pressed(VK_NEXT)) move_selection(kVisibleMenuRows, current_page_count());
     }
 
+    if (g_menu.page == MenuPage::Settings && g_menu.selection == 3) {
+        if (key_pressed(VK_LEFT) || key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) {
+            g_showWeaponIcons = !g_showWeaponIcons;
+            save_icons_settings();
+            return;
+        }
+    }
     if (g_menu.page == MenuPage::Settings && g_menu.selection == 1) {
         if (key_pressed(VK_LEFT)) { change_ui_language(-1); return; }
         if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_ui_language(1); return; }
@@ -2234,10 +3043,14 @@ void update_menu_input() noexcept {
                 build_menu_categories();
                 g_menu.page = MenuPage::Categories;
                 g_menu.selection = g_menu.scroll = 0;
-            } else if (g_menu.selection == 2) {
-                g_menu.page = MenuPage::Challenges;
+            } else if (g_menu.selection == 2 && !root_item_disabled(2)) {
+                build_crafting_uses_list();
+                g_menu.page = MenuPage::CraftingUses;
                 g_menu.selection = g_menu.scroll = 0;
             } else if (g_menu.selection == 3) {
+                g_menu.page = MenuPage::Challenges;
+                g_menu.selection = g_menu.scroll = 0;
+            } else if (g_menu.selection == 4) {
                 g_menu.page = MenuPage::Settings;
                 g_menu.selection = g_menu.scroll = 0;
             } else {
@@ -2265,6 +3078,15 @@ void update_menu_input() noexcept {
             }
             break;
         case MenuPage::Detail: break;
+        case MenuPage::CraftingUses:
+            if (g_menu.selection >= 0 &&
+                static_cast<std::size_t>(g_menu.selection) < g_craftingUseCount) {
+                g_menu.craftingUseIndex = g_menu.selection;
+                g_menu.page = MenuPage::CraftingUseDetail;
+                g_menu.selection = g_menu.scroll = 0;
+            }
+            break;
+        case MenuPage::CraftingUseDetail: break;
         case MenuPage::Challenges:
             if (g_menu.selection >= 0 &&
                 static_cast<std::size_t>(g_menu.selection) < kChallengeCount) {
@@ -2295,8 +3117,12 @@ void update_menu_input() noexcept {
             if (g_menu.selection == 0) {
                 g_menu.captureHotkey = true;
             } else if (g_menu.selection == 2) {
+                g_menu.captureFilterHotkey = true;
+            } else if (g_menu.selection == 4) {
+                g_menu.captureIconsHotkey = true;
+            } else if (g_menu.selection == 5) {
                 g_menu.page = MenuPage::Root;
-                g_menu.selection = 3;
+                g_menu.selection = 4;
                 g_menu.scroll = 0;
             }
             break;
@@ -2520,7 +3346,7 @@ void draw_challenge_progress_bar(const ChallengeProgress& progress,
 
 void draw_menu_row(const char* label, const char* status, int row,
                    int selected, bool accent = false,
-                   bool localizeLabel = true) noexcept {
+                   bool localizeLabel = true, bool disabled = false) noexcept {
     // Match the header title plate's exact horizontal bounds. Keep row height
     // compact so the list rows remain separate and do not overlap vertically.
     constexpr float kPanelCenter = 0.212f;
@@ -2534,8 +3360,10 @@ void draw_menu_row(const char* label, const char* status, int row,
     // Rampage-inspired row rhythm and bronze selection accent.
     draw_rect(kPanelCenter, y + 0.020f,
               kPanelWidth, 0.052f,
-              selected ? 108 : 18, selected ? 96 : 16, selected ? 78 : 14,
-              selected ? 235 : 152);
+              selected ? 108 : (disabled ? 10 : 18),
+              selected ? 96 : (disabled ? 10 : 16),
+              selected ? 78 : (disabled ? 10 : 14),
+              selected ? 235 : (disabled ? 110 : 152));
     if (selected) {
         draw_rect(kPanelLeft + 0.004f, y + 0.020f, 0.0035f, 0.052f,
                   191, 150, 86, 245);
@@ -2544,31 +3372,33 @@ void draw_menu_row(const char* label, const char* status, int row,
     if (cjkLabel || std::strlen(label) > 28) {
         if (localizeLabel) {
             draw_wrapped_text(label, 0.063f, y - 0.001f, 36, 2, 0.018f, 12.5f,
-                              selected ? 255 : (accent ? 235 : 222),
-                              selected ? 250 : (accent ? 206 : 216),
-                              selected ? 238 : (accent ? 150 : 204));
+                              selected ? 255 : (disabled ? 112 : (accent ? 235 : 222)),
+                              selected ? 250 : (disabled ? 112 : (accent ? 206 : 216)),
+                              selected ? 238 : (disabled ? 112 : (accent ? 150 : 204)));
         } else {
             draw_wrapped_text_raw(label, 0.063f, y - 0.001f, 36, 2, 0.018f, 12.5f,
-                                  selected ? 255 : (accent ? 235 : 222),
-                                  selected ? 250 : (accent ? 206 : 216),
-                                  selected ? 238 : (accent ? 150 : 204));
+                                  selected ? 255 : (disabled ? 112 : (accent ? 235 : 222)),
+                                  selected ? 250 : (disabled ? 112 : (accent ? 206 : 216)),
+                                  selected ? 238 : (disabled ? 112 : (accent ? 150 : 204)));
         }
     } else {
         if (localizeLabel) {
             draw_text(label, 0.063f, y, 18.0f,
-                      selected ? 255 : (accent ? 235 : 222),
-                      selected ? 250 : (accent ? 206 : 216),
-                      selected ? 238 : (accent ? 150 : 204));
+                      selected ? 255 : (disabled ? 112 : (accent ? 235 : 222)),
+                      selected ? 250 : (disabled ? 112 : (accent ? 206 : 216)),
+                      selected ? 238 : (disabled ? 112 : (accent ? 150 : 204)));
         } else {
             draw_text_raw(label, 0.063f, y, 18.0f,
-                          selected ? 255 : (accent ? 235 : 222),
-                          selected ? 250 : (accent ? 206 : 216),
-                          selected ? 238 : (accent ? 150 : 204));
+                          selected ? 255 : (disabled ? 112 : (accent ? 235 : 222)),
+                          selected ? 250 : (disabled ? 112 : (accent ? 206 : 216)),
+                          selected ? 238 : (disabled ? 112 : (accent ? 150 : 204)));
         }
     }
     if (status != nullptr && status[0] != '\0') {
         draw_text(status, 0.315f, y + 0.004f, 13.0f,
-                  selected ? 245 : 194, selected ? 229 : 184, selected ? 205 : 163);
+                  selected ? 245 : (disabled ? 112 : 194),
+                  selected ? 229 : (disabled ? 112 : 184),
+                  selected ? 205 : (disabled ? 112 : 163));
     }
 }
 
@@ -2589,6 +3419,12 @@ void draw_menu_header(const char* title, const char* subtitle,
         else draw_text_raw(title, 0.071f, 0.112f, 20.0f, 228, 190, 119);
     }
     if (subtitle != nullptr) draw_text(subtitle, 0.071f, 0.168f, 14.0f, 196, 190, 176);
+    if (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes) {
+        draw_rect(0.324f, 0.111f, 0.125f, 0.040f, 76, 53, 28, 235);
+        draw_rect(0.324f, 0.092f, 0.125f, 0.002f, 191, 150, 86, 230);
+        draw_text(hunting_companion::ui_text(g_menu.craftableNow ? "FILTER: CRAFTABLE" : "FILTER: ALL"),
+                  0.269f, 0.104f, 11.5f, 255, 222, 170);
+    }
 }
 
 void draw_menu_footer() noexcept {
@@ -2597,12 +3433,19 @@ void draw_menu_footer() noexcept {
     char footer[48]{};
     std::snprintf(footer, sizeof(footer), hunting_companion::ui_text("%s Close"), key_name(g_menuHotkey));
     draw_text(footer, 0.065f, 0.910f, 12.0f, 190, 184, 170);
+    if (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes) {
+        char filterHint[64]{};
+        std::snprintf(filterHint, sizeof(filterHint), "%s: %s",
+                      key_name(g_filterHotkey), hunting_companion::ui_text("Toggle Filter"));
+        draw_text(filterHint, 0.258f, 0.910f, 10.5f, 190, 184, 170);
+    }
 }
 
 void draw_list_page(const char* title, const char* subtitle,
                     int total, const char* (*labelAt)(int, char*, std::size_t),
                     const char* (*statusAt)(int, char*, std::size_t),
-                    bool officialItemLabels = false) noexcept {
+                    bool officialItemLabels = false,
+                    bool (*disabledAt)(int) = nullptr) noexcept {
     draw_menu_header(title, subtitle);
     const int start = g_menu.scroll;
     const int end = std::min(total, start + kVisibleMenuRows);
@@ -2611,8 +3454,9 @@ void draw_list_page(const char* title, const char* subtitle,
         char status[40]{};
         const char* labelText = labelAt ? labelAt(i, label, sizeof(label)) : "";
         const char* statusText = statusAt ? statusAt(i, status, sizeof(status)) : "";
+        const bool disabled = disabledAt != nullptr && disabledAt(i);
         draw_menu_row(labelText, statusText, i - start, i == g_menu.selection,
-                      false, !officialItemLabels);
+                      false, !officialItemLabels, disabled);
     }
     char count[48]{};
     std::snprintf(count, sizeof(count), hunting_companion::ui_text("%d of %d"), total > 0 ? g_menu.selection + 1 : 0, total);
@@ -2622,11 +3466,28 @@ void draw_list_page(const char* title, const char* subtitle,
 
 const char* root_label(int index, char*, std::size_t) noexcept {
     static const char* labels[] = {
-        "Pearson", "Trapper", "Challenges", "Settings", "Close"
+        "Pearson", "Trapper", "Crafting Uses", "Challenges", "Settings", "Close"
     };
-    return (index >= 0 && index < 5) ? labels[index] : "";
+    return (index >= 0 && index < 6) ? labels[index] : "";
+}
+bool root_item_disabled(int index) noexcept {
+    return index == 2 && (!g_currentHaul.ready || !current_haul_has_any());
+}
+const char* root_row_status(int index, char*, std::size_t) noexcept {
+    if (index != 2) return "";
+    return root_item_disabled(index) ? "NO HAUL" : "AVAILABLE";
 }
 const char* no_status(int, char*, std::size_t) noexcept { return ""; }
+
+const char* crafting_use_row_label(int index, char* buffer, std::size_t size) noexcept {
+    if (index < 0 || static_cast<std::size_t>(index) >= g_craftingUseCount) return "";
+    return crafting_use_label(g_craftingUseEntries[static_cast<std::size_t>(index)], buffer, size);
+}
+const char* crafting_use_row_status(int index, char*, std::size_t) noexcept {
+    if (index < 0 || static_cast<std::size_t>(index) >= g_craftingUseCount) return "";
+    const CraftingUseEntry& entry = g_craftingUseEntries[static_cast<std::size_t>(index)];
+    return crafting_use_readiness_label(static_cast<CraftingUseReadiness>(entry.readiness));
+}
 
 const char* challenge_row_label(int index, char*, std::size_t) noexcept {
     if (index < 0 || static_cast<std::size_t>(index) >= kChallengeCount) return "";
@@ -2728,26 +3589,37 @@ void draw_settings_page() noexcept {
         ? hunting_companion::ui_text("Auto (RDR2)")
         : hunting_companion::ui_text(kLanguageNames[g_uiLanguageOverride]);
     draw_menu_row("Interface language", interfaceName, 1, g_menu.selection == 1);
-    draw_menu_row("Back", "", 2, g_menu.selection == 2);
+    char filterKeyLine[128]{};
+    std::snprintf(filterKeyLine, sizeof(filterKeyLine),
+                  hunting_companion::ui_text("Craftable filter key: %s"), key_name(g_filterHotkey));
+    draw_menu_row(filterKeyLine, "CHANGE", 2, g_menu.selection == 2);
+    draw_menu_row("Weapon/ammo icons", g_showWeaponIcons ? "SHOWN" : "HIDDEN", 3,
+                  g_menu.selection == 3);
+    char iconsKeyLine[128]{};
+    std::snprintf(iconsKeyLine, sizeof(iconsKeyLine),
+                  hunting_companion::ui_text("Weapon/ammo icons key: %s"), key_name(g_iconsHotkey));
+    draw_menu_row(iconsKeyLine, "CHANGE", 4, g_menu.selection == 4);
+    draw_menu_row("Back", "", 5, g_menu.selection == 5);
 
+    // The six rows end near y = 0.59, so the information block starts below them.
     char languageLine[256]{};
     std::snprintf(languageLine, sizeof(languageLine), hunting_companion::ui_text("RDR2 language: %s (%s)"),
                   game_language_name(g_detectedGameLanguage),
                   game_language_locale(g_detectedGameLanguage));
-    draw_text(languageLine, 0.071f, 0.405f, 12.5f, 192, 186, 171);
+    draw_text(languageLine, 0.071f, 0.625f, 12.5f, 192, 186, 171);
     char interfaceLine[256]{};
     std::snprintf(interfaceLine, sizeof(interfaceLine),
                   hunting_companion::ui_text("Companion interface: %s (%s)"),
                   game_language_name(selectedLanguage),
                   hunting_companion::ui_locale());
-    draw_text(interfaceLine, 0.071f, 0.444f, 11.0f, 160, 154, 142);
-    draw_text("LEFT/RIGHT or ENTER changes the companion language.",
-              0.071f, 0.480f, 10.0f, 160, 154, 142);
+    draw_text(interfaceLine, 0.071f, 0.660f, 11.0f, 160, 154, 142);
+    draw_wrapped_text("LEFT/RIGHT or ENTER changes the companion language.",
+                      0.071f, 0.692f, 52, 2, 0.026f, 10.0f, 160, 154, 142);
     if (overlay_fallback_active()) {
         // Only shown while the UI is in English (the fallback), so it is not translated.
         static constexpr char kOverlayFallbackNotice[] =
             "CJK overlay not ready (Vulkan only): showing English.";
-        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.498f, 10.0f, 224, 160, 120);
+        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.752f, 10.0f, 224, 160, 120);
     }
     const std::size_t officialCount = hunting_companion::loaded_official_string_count();
     char officialStatus[160]{};
@@ -2755,17 +3627,20 @@ void draw_settings_page() noexcept {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official Rockstar language entries loaded: %llu"),
                       static_cast<unsigned long long>(officialCount));
-        draw_wrapped_text(officialStatus, 0.071f, 0.514f, 52, 2, 0.014f, 9.5f, 145, 194, 157);
+        draw_wrapped_text(officialStatus, 0.071f, 0.780f, 52, 2, 0.026f, 9.5f, 145, 194, 157);
     } else {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official item-name data unavailable for %s; English names used."),
                       hunting_companion::ui_text(hunting_companion::locale_name(selectedLanguage)));
-        draw_wrapped_text(officialStatus, 0.071f, 0.514f, 52, 2, 0.014f, 9.5f, 220, 174, 128);
+        draw_wrapped_text(officialStatus, 0.071f, 0.780f, 52, 2, 0.026f, 9.5f, 220, 174, 128);
     }
-    if (g_menu.captureHotkey) {
+    if (g_menu.captureHotkey || g_menu.captureFilterHotkey || g_menu.captureIconsHotkey) {
         draw_rect(0.212f, 0.52f, 0.34f, 0.12f, 0, 0, 0, 245);
-        draw_text("PRESS A KEY TO ASSIGN THE MENU HOTKEY", 0.083f, 0.49f, 16.0f, 230, 205, 150);
-        draw_text("ESC cancels", 0.15f, 0.55f, 13.0f, 210, 205, 195);
+        const char* prompt = g_menu.captureFilterHotkey ? "PRESS A KEY FOR THE CRAFTABLE FILTER" :
+                             (g_menu.captureIconsHotkey ? "PRESS A KEY FOR THE WEAPON/AMMO ICONS" :
+                              "PRESS A KEY TO ASSIGN THE MENU HOTKEY");
+        draw_wrapped_text(prompt, 0.060f, 0.485f, 38, 2, 0.032f, 14.0f, 230, 205, 150);
+        draw_text("ESC cancels", 0.15f, 0.565f, 13.0f, 210, 205, 195);
     }
     draw_menu_footer();
 }
@@ -3041,6 +3916,86 @@ void draw_recipe_detail() noexcept {
     draw_menu_footer();
 }
 
+void draw_crafting_uses_page() noexcept {
+    draw_list_page("CRAFTING USES", "Uncrafted recipes that use your current haul",
+                   static_cast<int>(g_craftingUseCount), crafting_use_row_label,
+                   crafting_use_row_status, false);
+    if (g_craftingUseCount == 0) {
+        draw_wrapped_text("NO UNCRAFTED RECIPES MATCH YOUR CURRENT HAUL",
+                          0.071f, 0.300f, 48, 2, 0.030f, 14.0f, 185, 177, 161);
+        draw_text("Try another pelt or animal part.",
+                  0.071f, 0.385f, 11.5f, 170, 164, 150);
+    }
+    draw_text("Counts include Arthur, satchel and saddle horse.",
+              0.071f, 0.790f, 10.5f, 160, 154, 142);
+}
+
+void draw_crafting_use_detail() noexcept {
+    if (g_menu.craftingUseIndex < 0 ||
+        static_cast<std::size_t>(g_menu.craftingUseIndex) >= g_craftingUseCount) return;
+    const CraftingUseEntry& entry = g_craftingUseEntries[static_cast<std::size_t>(g_menu.craftingUseIndex)];
+    const RecipeEntry* recipe = crafting_use_recipe(entry);
+    if (recipe == nullptr) return;
+    const VendorState& vendor = crafting_use_vendor(entry);
+    const CraftingUseReadiness readiness = crafting_use_readiness(vendor, *recipe);
+    char subtitle[128]{};
+    if (entry.setName != nullptr) {
+        std::snprintf(subtitle, sizeof(subtitle), "%s - %s",
+                      hunting_companion::ui_text("TRAPPER RECIPE"), entry.setName);
+    } else {
+        std::snprintf(subtitle, sizeof(subtitle), "%s",
+                      hunting_companion::ui_text(entry.trapper ? "TRAPPER RECIPE" : "PEARSON RECIPE"));
+    }
+    draw_menu_header(recipe_display_name(*recipe), subtitle, false);
+
+    const char* readinessText = crafting_use_readiness_label(readiness);
+    const bool ready = readiness == CraftingUseReadiness::ReadyAfterDonation;
+    const bool partsReady = ready || readiness == CraftingUseReadiness::AnimalPartsReady;
+    draw_wrapped_text(readinessText, 0.071f, 0.208f, 30, 2, 0.030f, 14.0f,
+                      partsReady ? 130 : 218, partsReady ? 205 : 184, partsReady ? 145 : 120);
+    draw_wrapped_text("HELD / NEEDED (YOUR HAUL + VENDOR STOCK)", 0.071f, 0.275f, 44, 2, 0.022f,
+                      10.5f, 220, 184, 112);
+
+    constexpr int kVisibleCosts = 8;
+    const int start = g_menu.scroll;
+    const int end = std::min(static_cast<int>(recipe->costCount), start + kVisibleCosts);
+    for (int i = start; i < end; ++i) {
+        const RecipeCost& cost = recipe->costs[static_cast<std::size_t>(i)];
+        const char* materialName = display_material_name(cost.hash);
+        char label[128]{};
+        if (cost.hash == kMoneyHash)
+            std::snprintf(label, sizeof(label), "%s", hunting_companion::ui_text("Cash"));
+        else if (materialName != nullptr) std::snprintf(label, sizeof(label), "%s", materialName);
+        else std::snprintf(label, sizeof(label), "Material %08X", cost.hash);
+        const float y = 0.350f + static_cast<float>(i - start) * 0.052f;
+        draw_wrapped_text_raw(label, 0.071f, y, 28, 2, 0.016f, 11.5f,
+                              224, 218, 205);
+        char amount[48]{};
+        bool met = false;
+        if (is_animal_part_material(cost.hash)) {
+            const int haul = current_haul_count(cost.hash);
+            const MaterialNeed* stock = find_vendor_material(vendor.demand, cost.hash);
+            const int donated = stock != nullptr ? stock->vendorStock : 0;
+            std::snprintf(amount, sizeof(amount), "%d / %d", haul + donated, cost.amount);
+            met = haul + donated >= cost.amount;
+        } else if (cost.hash == kMoneyHash) {
+            std::snprintf(amount, sizeof(amount), "CASH ?");
+        } else {
+            const int owned = g_currentHaul.inventoryId >= 0
+                ? player_owned_count(g_currentHaul.inventoryId, cost.hash) : 0;
+            std::snprintf(amount, sizeof(amount), "%d / %d", owned, cost.amount);
+            met = owned >= cost.amount;
+        }
+        draw_text(amount, 0.315f, y + 0.001f, 12.0f,
+                  met ? 130 : 218, met ? 205 : 184, met ? 145 : 120);
+    }
+    if (recipe->costCount == 0) {
+        draw_text("No material costs were exposed for this catalog entry.",
+                  0.071f, 0.340f, 12.0f, 190, 182, 168);
+    }
+    draw_menu_footer();
+}
+
 void draw_scan_progress() noexcept {
     const ScanStage stage = static_cast<ScanStage>(
         InterlockedCompareExchange(&g_scanStage, 0, 0));
@@ -3116,7 +4071,8 @@ void draw_menu() noexcept {
     }
     switch (g_menu.page) {
         case MenuPage::Root:
-            draw_list_page("HUNTING COMPANION", "Crafting, challenges and garment sets", 5, root_label, no_status);
+            draw_list_page("HUNTING COMPANION", "Crafting, challenges and garment sets",
+                           6, root_label, root_row_status, false, root_item_disabled);
             break;
         case MenuPage::Categories: {
             char subtitle[80]{};
@@ -3136,6 +4092,8 @@ void draw_menu() noexcept {
             break;
         }
         case MenuPage::Detail: draw_recipe_detail(); break;
+        case MenuPage::CraftingUses: draw_crafting_uses_page(); break;
+        case MenuPage::CraftingUseDetail: draw_crafting_use_detail(); break;
         case MenuPage::Challenges:
             draw_list_page("CHALLENGES", "Live Story Mode rank totals (read-only)",
                            static_cast<int>(kChallengeCount), challenge_row_label,
@@ -3173,15 +4131,22 @@ void ScriptMain() {
     hunting_companion::overlay::set_language(effective_language());
 
     // Fallback for ScriptHook builds without the additional-thread export:
-    // refresh on compendium open, never on a timer.
+    // vendor catalog data refreshes on compendium open; the haul scan remains a
+    // lightweight, read-only poll while the menu is visible.
     if (!g_refreshWorkerRegistered) {
         build_tracker_state();
         InterlockedExchange(&g_refreshRequested, 0);
     }
 
     for (;;) {
+        if (g_menu.page != MenuPage::Closed) refresh_current_haul_if_due();
         {
             TrackerReadLock trackerReadLock;
+            if (g_tracker.ready &&
+                InterlockedCompareExchange(&g_haulDirty, 0, 0) != 0) {
+                build_crafting_uses_list();
+                InterlockedExchange(&g_haulDirty, 0);
+            }
             update_menu_input();
         }
         if (!g_refreshWorkerRegistered && InterlockedExchange(&g_refreshRequested, 0) != 0) {
