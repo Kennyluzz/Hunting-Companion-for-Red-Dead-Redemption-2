@@ -10,9 +10,9 @@ UP/DOWN Navigate   ENTER Select   BACKSPACE Back=ВВЕРХ/ВНИЗ Навиг�
 %s Close=%s Закрыть
 %d of %d=%d из %d
 UNAVAILABLE=НЕДОСТУПНО
-OWNED=ЕСТЬ
+OWNED=ПРИОБРЕТЕНО
 RANK ?=РАНГ ?
-LOCKED R%u=ЗАКРЫТО R%u
+RANK %u=УРОВЕНЬ %u
 UNLOCKED=ОТКРЫТО
 CRAFTED=СОЗДАНО
 MATERIALS=МАТЕРИАЛЫ
@@ -45,7 +45,7 @@ NOT IN CATALOG=НЕТ В КАТАЛОГЕ
 UP/DOWN scrolls through the garment pieces and costs.=ВВЕРХ/ВНИЗ — прокрутка частей комплекта и затрат.
 This item is already in your owned catalog.=Этот предмет уже есть в вашем каталоге.
 DONATED / NEEDED FOR THIS RECIPE=ПЕРЕДАНО / НУЖНО ДЛЯ РЕЦЕПТА
-Counts use vendor donation stock, not Arthur's inventory.=Учитываются запасы, переданные торговцу, а не инвентарь Артура.
+Counts use vendor donation stock, not your inventory.=Учитываются запасы, переданные торговцу, а не ваш инвентарь.
 No animal-material donation costs for this item.=Для этого предмета не нужны материалы животных.
 Cash or other catalog requirements are not shown here.=Денежные и прочие требования каталога здесь не показаны.
 No animal-material costs were exposed for this entry.=Для этой позиции не найдены затраты на материалы животных.
@@ -217,7 +217,7 @@ Western Chipmunk=западный бурундук
 
 # Vendor names and official Rockstar label-pack status.
 Pearson=Пирсон
-Trapper=Зверолов
+Trapper=Охотник
 Official Rockstar language entries loaded: %llu=Загружено официальных языковых записей Rockstar: %llu
 Official item-name data unavailable for %s; English names used.=Официальные названия предметов для языка %s недоступны; используются английские названия.
 
@@ -236,3 +236,46 @@ Kill 5 scavengers while they feed on corpses.=Убейте 5 падальщик�
 Pick and eat 4 different berry species.=Соберите и съешьте 4 разных вида ягод.
 Pick one of every herb species.=Соберите по одному экземпляру каждого вида трав.
 Win 3 Blackjack hands with at least 3 hits each.=Выиграйте 3 раздачи в блэкджек, взяв не менее 3 дополнительных карт в каждой.
+FILTER: ALL=ФИЛЬТР: ВСЕ
+FILTER: CRAFTABLE=ФИЛЬТР: ИЗГОТАВЛИВАЕМЫЕ
+SPACE: Toggle Filter=ПРОБЕЛ: СМЕНИТЬ ФИЛЬТР
+Crafting Uses=Для чего пригодно
+NO HAUL=НЕТ ДОБЫЧИ
+AVAILABLE=ДОСТУПНО
+CRAFTING USES=ДЛЯ ЧЕГО ПРИГОДНО
+READY AFTER DONATION=ГОТОВО ПОСЛЕ СДАЧИ
+ANIMAL PARTS READY=ЧАСТИ ЖИВОТНЫХ ГОТОВЫ
+OTHER COSTS NEEDED=НУЖНЫ ДРУГИЕ МАТЕРИАЛЫ
+USES YOUR HAUL=ИСПОЛЬЗУЕТ ВАШУ ДОБЫЧУ
+
+# Settings, Crafting Uses and weapon/ammo icon strings
+Craftable filter key: %s=Клавиша фильтра изготавливаемых рецептов: %s
+PRESS A KEY FOR THE CRAFTABLE FILTER=НАЖМИТЕ КЛАВИШУ ДЛЯ ФИЛЬТРА ИЗГОТАВЛИВАЕМЫХ РЕЦЕПТОВ
+Toggle Filter=Переключить фильтр
+Weapon/ammo icons=Значки оружия/боеприпасов
+Weapon/ammo icons key: %s=Клавиша значков оружия/боеприпасов: %s
+PRESS A KEY FOR THE WEAPON/AMMO ICONS=НАЖМИТЕ КЛАВИШУ ДЛЯ ЗНАЧКОВ ОРУЖИЯ/БОЕПРИПАСОВ
+SHOWN=ПОКАЗАНЫ
+HIDDEN=СКРЫТЫ
+Uncrafted recipes that use your current haul=Не изготовленные рецепты, использующие вашу добычу
+NO UNCRAFTED RECIPES MATCH YOUR CURRENT HAUL=НЕТ НЕСОЗДАННЫХ РЕЦЕПТОВ ДЛЯ ВАШЕЙ ДОБЫЧИ
+Try another pelt or animal part.=Попробуйте другую шкуру или часть животного.
+Counts include what you carry, your satchel and saddle horse.=В подсчёт входят ваша ноша, сумка и верховая лошадь.
+No material costs were exposed for this catalog entry.=Для этой записи каталога стоимость материалов не указана.
+HELD / NEEDED (YOUR HAUL + VENDOR STOCK)=ЕСТЬ / НУЖНО (ВАША ДОБЫЧА + ЗАПАС ТОРГОВЦА)
+Cash=Деньги
+
+# Weapon and ammunition names (Rockstar wording)
+Bow=Лук
+Varmint Rifle=Винтовка «Варминт»
+Sniper rifle=Снайперская винтовка
+Carcano Rifle=Винтовка Каркано
+Springfield Rifle=Винтовка Спрингфилда
+Repeater=Карабин
+Small Game Arrows=Стрелы для мелкой дичи
+Improved Arrows=Улучшенные стрелы
+Poisoned Arrows=Отравленные стрелы
+Rifle Cartridges - Regular=Патроны (винтовка)
+Rifle Cartridges - High Velocity=Скоростные патроны (винтовка)
+Rifle Cartridges - Express=Экспресс-патроны (винтовка)
+Menu font=Шрифт меню

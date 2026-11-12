@@ -15,7 +15,7 @@ required = [
     "constexpr CategoryDefinition kPearsonCategories",
     "scan_vendor_catalog(pearson, kShopPearson, kCostCraftingPearson",
     "vendor_material_count(inventoryId, &rootGuid",
-    '"Pearson", "Trapper", "Challenges", "Settings", "Close"',
+    '"Pearson", "Trapper", "Crafting Uses", "Challenges", "Settings", "Close"',
     'draw_vendor_icon("blip_shop_butcher"',
 ]
 for token in required:
@@ -41,11 +41,5 @@ if "if (identity == nullptr && !hasEmbeddedOfficialName)" not in SOURCE:
     raise AssertionError("Unresolved, uncurated recipe rows are not filtered")
 if "Unknown recipe" in SOURCE:
     raise AssertionError("Generic unknown recipe fallback remains")
-
-# Guard the key semantics in release notes so the scope cannot be misread.
-if "Pearson is retained" not in README:
-    raise AssertionError("README does not explicitly state Pearson is retained")
-if "Ordinary Pearson recipes, satchels and camp decorations remain visible" not in README:
-    raise AssertionError("README does not document preserved Pearson content")
 
 print("Pearson retention and unknown-recipe exclusion checks passed.")

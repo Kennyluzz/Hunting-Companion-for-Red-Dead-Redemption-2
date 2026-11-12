@@ -5,11 +5,11 @@
 // that language, so the native text natives cannot show them otherwise. For a
 // CJK companion language that differs from the game language, the mod instead
 // queues its text here and the overlay draws it with ImGui, using subset Noto
-// Sans CJK fonts embedded in the .asi, into the game's Vulkan swapchain just
-// before each present.
+// Sans CJK fonts embedded in the .asi, into the game's swapchain just before
+// each present (Vulkan, or the experimental DirectX 12 renderer).
 //
-// Nothing is written to disk (no imgui.ini, no font files) unless the optional
-// OverlayLog ini switch is turned on.
+// Nothing is written to disk (no imgui.ini, no font files) apart from the log:
+// optional on Vulkan (OverlayLog ini switch), always kept on DirectX 12.
 
 #include <cstdint>
 
@@ -18,6 +18,8 @@ namespace hunting_companion::overlay {
 struct Settings {
     float textScale = 1.0f;       // ini: CjkTextScalePercent / 100
     float yOffset = 0.0f;         // ini: CjkTextYOffsetPermille / 1000, fraction of screen height
+    float hdrPaperWhiteNits = 230.0f;  // ini: CjkHdrPaperWhiteNits, brightness of white text in HDR
+    int backend = 0;              // ini: OverlayBackend, 0 = automatic, 1 = Vulkan only, 2 = DirectX 12 only
     bool fileLog = false;         // ini: OverlayLog=1 writes HuntingCompanion.overlay.log
     const char* logDirectory = nullptr;  // directory for the optional log file
 };

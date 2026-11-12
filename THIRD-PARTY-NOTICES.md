@@ -4,7 +4,7 @@ Hunting Companion's original source code is licensed under MIT; see `LICENSE`.
 The following components retain their own licences. These notices apply to
 both the source distribution and the compiled ASI.
 
-## Dear ImGui v1.91.9
+## Dear ImGui v1.91.9 (core, Vulkan and DirectX 12 backends)
 Copyright (c) 2014-2025 Omar Cornut.
 MIT licence. Full text: `LICENSES/IMGUI-MIT.txt`.
 
@@ -19,7 +19,7 @@ Distributed under Apache-2.0 OR MIT. Full texts:
 
 ## Noto Sans CJK subsets (upstream version 2.004)
 The embedded Japanese, Korean, Simplified Chinese and Traditional Chinese subsets
-are derived from Noto Sans CJK Regular, developed by Google and Adobe. The embedded
+are derived from Noto Sans CJK Bold, developed by Google and Adobe. The embedded
 font metadata carries the notice "Copyright 2014-2021 Adobe"; Noto is a trademark
 of Google and Source is a Reserved Font Name/trademark of Adobe. The fonts are
 licensed under SIL Open Font License 1.1. The family identity remains Noto Sans CJK;
@@ -35,9 +35,8 @@ Copyright/licence metadata is retained. SIL Open Font License 1.1. Full text: `L
 
 ## Rockstar-authored localization content — separate rights
 The embedded official item/material and challenge labels are Rockstar-authored
-game text extracted from supplied RDR2 language resources and are not original
+game text taken from RDR2's own language resources and are not original
 Hunting Companion translations. They are **not** relicensed under MIT or under
-any third-party open-source licence by this project. This notice does not grant
-permission to redistribute Rockstar content. The maintainer should confirm
-that the intended distribution is permitted by applicable Rockstar modding
-terms or obtain any required permission before public release.
+any third-party open-source licence by this project, and this notice does not
+grant any right to redistribute Rockstar content. Anyone redistributing builds
+is responsible for complying with Rockstar's modding terms.

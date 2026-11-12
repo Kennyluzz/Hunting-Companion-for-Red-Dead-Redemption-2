@@ -1,93 +1,87 @@
-# Hunting Companion 1.10.0
+# Hunting Companion
 
-A read-only RDR2 Story Mode companion for Pearson, the Trapper, challenges,
-reinforced equipment, garment sets and focused-animal crafting indicators.
+An in-game hunting and crafting companion for **Red Dead Redemption 2 (Story Mode)**.
+Focus an animal and it tells you what you still need from it, which weapon and
+ammunition give the cleanest kill, and what you can craft with what you are carrying.
 
-## Release highlights
+> The mod is AI-coded. The ideas, direction and in-game testing are human; the
+> code was written by AI assistants.
 
-- **Independent CJK rendering:** Japanese, Korean, Simplified Chinese and
-  Traditional Chinese text can render even when RDR2 is running in another
-  language. Regional Noto Sans CJK subsets and the Latin/Cyrillic fallback font
-  are embedded in the ASI.
-- **One-file installation:** all companion code, localization dictionaries,
-  official item/challenge label tables and font subsets are compiled into
-  `HuntingCompanion.asi`. The mod creates no `commonx` folder, `fontmap.xml`,
-  language directory or external font files.
-- **All 82 challenge objectives localized:** 68 objectives use Rockstar's
-  official locale string hashes; 14 companion-authored composite objectives
-  use exact full-sentence translations in all 12 non-English locales.
-- **Official item/material names:** 290 recipe/material hashes are embedded
-  for all 13 supported locales.
-- **Immediate language switching:** item/material and challenge strings resolve
-  against the newly selected locale on the next draw.
-- **Read-only challenge tracking:** progress is read from the game's challenge
-  system and is never modified.
+## Features
 
-## Supported languages
+- **Animal indicators:** see whether the animal you are looking at can supply a
+  material that an unowned Pearson or Trapper recipe still needs.
+- **Weapon and ammo suggestions:** icons and names of the weapon and ammunition
+  for a clean kill. Toggle them in Settings or with a hotkey.
+- **Pearson and Trapper:** recipes, required materials, what you own, donation
+  stock, and a "craftable now" filter.
+- **Crafting Uses:** the uncrafted recipes that can use the pelts and parts you are
+  carrying. Greyed out when nothing you carry matches.
+- **Challenges:** live rank totals for all nine Story Mode challenge categories and
+  what the next rank asks for.
+- **Reinforced equipment:** unlock requirements for all 36 bandoliers, gun belts and holsters.
+- **Garment sets:** progress for all 16 Trapper garment sets.
+- **13 languages, switchable in-game:** English, French, German, Italian, Spanish
+  (Spain and Mexico), Brazilian Portuguese, Polish, Russian, Japanese, Korean,
+  Simplified Chinese and Traditional Chinese. Item and challenge names are the
+  game's own.
+- **Menu fonts:** five game fonts to choose from in Settings.
 
-English, French, German, Italian, Spanish (Spain), Portuguese (Brazil), Polish,
-Russian, Korean, Chinese (Traditional), Japanese, Spanish (Mexico), and
-Chinese (Simplified).
+The mod only reads game data. It never changes your progress, inventory or saves.
+**Do not use it in Red Dead Online.**
 
-## Installation
+## Install
 
-Copy `HuntingCompanion.asi` into the RDR2 game directory alongside the normal
-ScriptHookRDR2/ASI-loader requirements. No other Hunting Companion files are
-required by end users.
+1. Install [ScriptHookRDR2](http://www.dev-c.com/rdr2/scripthookrdr2/) and an ASI loader.
+2. Copy `HuntingCompanion.asi` (and optionally `HuntingCompanion.ini`) into the game
+   folder, next to `RDR2.exe`.
+3. Start Story Mode and press **F8**.
 
-## Build (Windows x64 / MinGW-w64)
+Everything else is built into the `.asi`. To uninstall, delete the files.
 
-**Always configure a fresh build directory.** Do not reuse a copied
-`build-win64` folder or its CMake/Ninja cache; those files can retain absolute
-paths from another machine and can produce an old binary.
+## Controls
 
-```bash
-cmake -S . -B build-release -G Ninja \
-  -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-toolchain.cmake \
-  -DCMAKE_BUILD_TYPE=Release
-cmake --build build-release --clean-first --verbose
-python tools/verify_release_binary.py build-release/HuntingCompanion.asi
-python tools/package_release.py build-release/HuntingCompanion.asi
-```
+| Action | Default |
+|---|---|
+| Open / close the menu | F8 |
+| Toggle the "craftable now" filter | `[` |
+| Toggle weapon/ammo icons | `]` |
+| Navigate | Up / Down, Enter, Backspace |
 
-The verifier checks that the compiled x64 ASI actually contains all 68 official
-challenge objective translations in all 13 locales, plus the 14 custom challenge
-translations in every non-English locale. The package script reruns that verifier
-and creates a clean end-user ZIP with the ASI and all required licence notices.
+All keys, the language and the menu font can be changed on the in-game Settings
+page. Settings are saved to `HuntingCompanion.ini`.
 
-Development-only generators and source inputs are in `tools/` and `data/`.
-The official game-language ZIP archives are not needed to build or run this
-release: the generated string tables are already included in `src/`.
+## Japanese, Korean and Chinese
 
-## Source checks
+If the game itself is set to one of these languages, the mod uses the game's own
+fonts. If you pick one of them in the mod while the game runs in another language,
+the mod draws the text itself, which works on both renderers:
 
-```bash
-python tools/embed_languages.py
-python tools/validate_localizations.py
-python tests/test_catalog_contract.py
-python tests/test_overlay_integration.py
-g++ -std=c++17 -Wall -Wextra -Wpedantic -Werror -I src \
-  src/official_strings.cpp tests/test_official_strings.cpp \
-  -o /tmp/test_official_strings
-/tmp/test_official_strings
-g++ -std=c++17 -pthread -I src tests/test_overlay_queue.cpp \
-  -o /tmp/test_overlay_queue
-/tmp/test_overlay_queue
-```
+- **Vulkan** (including Linux/Proton): tested and reliable.
+- **DirectX 12:** **experimental.** If it cannot start, the mod shows English instead.
+  If you hit a problem, set `OverlayBackend=1` in `HuntingCompanion.ini` to
+  switch it off, or set `OverlayLog=1`, reproduce the problem, and report it with the
+  generated `HuntingCompanion.overlay.log`.
 
-## Runtime notes
+On HDR displays the text brightness can be tuned with `CjkHdrPaperWhiteNits`.
 
-- The CJK overlay uses Vulkan. Native Windows DirectX 12 currently falls back
-  to English when the selected companion language requires the overlay.
-- HDR output is not specially handled.
-- Overlay text is composited above the game frame, so it cannot be occluded by
-  later native game UI draws.
-- ScriptHookRDR2 and a compatible ASI loader remain external game-plugin-host
-  requirements; they are not Hunting Companion dependencies.
+## Configuration
 
-## Licensing
+`HuntingCompanion.ini` is optional; the defaults work. Options are described in the file.
 
-Hunting Companion's original source code is MIT-licensed. Third-party code and
-fonts retain their own licences; see `THIRD-PARTY-NOTICES.md` and `LICENSES/`.
-Rockstar-authored localization strings are not relicensed by this project MIT
-licence. See the release/legal note in `THIRD-PARTY-NOTICES.md`.
+## Credits
+
+- Texture names were checked against the community catalogue
+  <https://github.com/femga/rdr3_discoveries>.
+- Built with [Dear ImGui](https://github.com/ocornut/imgui),
+  [MinHook](https://github.com/TsudaKageyu/minhook) and Noto Sans CJK; see
+  `THIRD-PARTY-NOTICES.md`.
+
+## Licence
+
+The mod's code is MIT-licensed (`LICENSE`). Third-party components keep their own
+licences (`THIRD-PARTY-NOTICES.md`, `LICENSES/`). Rockstar's text and trademarks are
+not covered by the MIT licence. Hunting Companion is an unofficial fan modification,
+not affiliated with or endorsed by Rockstar Games or Take-Two Interactive.
+
+Building from source: see `BUILDING.md`.

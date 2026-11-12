@@ -7,6 +7,7 @@
 // enable OverlayLog=1 in the ini and read the log (or WINEDEBUG=+debugstr).
 
 #include "cjk_overlay.hpp"
+#include "cjk_overlay_internal.hpp"
 #include "embedded_cjk_fonts.hpp"
 #include "overlay_queue.hpp"
 
@@ -73,6 +74,7 @@ FrameQueue g_queue;
 std::atomic<int> g_language{0};
 std::atomic<bool> g_ready{false};
 std::atomic<bool> g_disabled{false};  // set after an unrecoverable error
+std::atomic<int> g_backend{0};        // detail::Backend that owns ImGui
 
 std::uint64_t now_ms() noexcept { return static_cast<std::uint64_t>(GetTickCount64()); }
 
@@ -108,6 +110,7 @@ struct Swap {
     VkDevice device = VK_NULL_HANDLE;
     VkSwapchainKHR handle = VK_NULL_HANDLE;
     VkFormat format = VK_FORMAT_UNDEFINED;
+    VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
     VkExtent2D extent{};
     bool canRender = false;       // swapchain images have COLOR_ATTACHMENT usage
     bool failed = false;
@@ -345,6 +348,7 @@ bool create_render_pass(VkDevice device, VkFormat format) noexcept {
 // thread, from inside a present so the queue is known). Idempotent.
 bool ensure_ready(Swap& s, VkQueue queue) noexcept {
     if (s.failed || !s.canRender) return false;
+    if (!detail::claim_backend(detail::Backend::Vulkan)) return false;
     if (s.resourcesReady && g->imguiVulkan && g->renderPassFormat == s.format) return true;
     if (!load_device_fns(s.device)) { s.failed = true; return false; }
     const DeviceFns& f = g->fn;
@@ -465,7 +469,7 @@ bool ensure_ready(Swap& s, VkQueue queue) noexcept {
 // ---------------------------------------------------------------------------
 // Drawing
 // ---------------------------------------------------------------------------
-void build_imgui_frame(const std::vector<TextCmd>& cmds, const Swap& s) noexcept {
+void imgui_begin_io(float width, float height) noexcept {
     ImGuiIO& io = ImGui::GetIO();
     LARGE_INTEGER nowTick;
     QueryPerformanceCounter(&nowTick);
@@ -473,31 +477,39 @@ void build_imgui_frame(const std::vector<TextCmd>& cmds, const Swap& s) noexcept
                 static_cast<double>(g->frequency.QuadPart);
     g->lastTime = nowTick;
     io.DeltaTime = dt > 0.0001 ? static_cast<float>(dt) : 0.0001f;
-    io.DisplaySize = ImVec2(static_cast<float>(s.extent.width), static_cast<float>(s.extent.height));
+    io.DisplaySize = ImVec2(width, height);
+}
 
-    ImGui_ImplVulkan_NewFrame();  // creates the font texture on first use
-    ImGui::NewFrame();
-
+void imgui_add_text(const std::vector<TextCmd>& cmds, float W, float H,
+                    TargetEncoding encoding) noexcept {
     const int slot = overlay_font_slot(g_language.load());
     ImFont* font = g->fonts[slot];
     const float boost = slot_size_boost(slot);
-    if (font) {
-        const float W = io.DisplaySize.x, H = io.DisplaySize.y;
-        const bool srgb = is_srgb(s.format);
-        ImDrawList* dl = ImGui::GetBackgroundDrawList();
-        for (const TextCmd& c : cmds) {
-            if (c.empty()) continue;
-            const float px = font_pixels(c.referencePixelHeight, H, g_settings.textScale * boost);
-            ImVec2 pos(c.x * W, (c.y + g_settings.yOffset) * H);
-            if (c.centered) {
-                const ImVec2 size = font->CalcTextSizeA(px, FLT_MAX, 0.0f, c.text);
-                pos.x = left_edge(pos.x, size.x, true);
-            }
-            const ImU32 col = IM_COL32(color_channel(c.r, srgb), color_channel(c.g, srgb),
-                                       color_channel(c.b, srgb), c.a);
-            dl->AddText(font, px, pos, col, c.text);
+    if (!font) return;
+    ImDrawList* dl = ImGui::GetBackgroundDrawList();
+    for (const TextCmd& c : cmds) {
+        if (c.empty()) continue;
+        const float px = font_pixels(c.referencePixelHeight, H, g_settings.textScale * boost);
+        ImVec2 pos(c.x * W, (c.y + g_settings.yOffset) * H);
+        if (c.centered) {
+            const ImVec2 size = font->CalcTextSizeA(px, FLT_MAX, 0.0f, c.text);
+            pos.x = left_edge(pos.x, size.x, true);
         }
+        std::uint8_t rgb[3];
+        encode_color(static_cast<std::uint8_t>(c.r), static_cast<std::uint8_t>(c.g),
+                     static_cast<std::uint8_t>(c.b), encoding,
+                     g_settings.hdrPaperWhiteNits, rgb);
+        const ImU32 col = IM_COL32(rgb[0], rgb[1], rgb[2], c.a);
+        dl->AddText(font, px, pos, col, c.text);
     }
+}
+
+void build_imgui_frame(const std::vector<TextCmd>& cmds, const Swap& s) noexcept {
+    const float W = static_cast<float>(s.extent.width), H = static_cast<float>(s.extent.height);
+    imgui_begin_io(W, H);
+    ImGui_ImplVulkan_NewFrame();  // creates the font texture on first use
+    ImGui::NewFrame();
+    imgui_add_text(cmds, W, H, target_encoding(is_srgb(s.format), static_cast<int>(s.colorSpace)));
     ImGui::Render();
 }
 
@@ -639,6 +651,7 @@ VkResult on_create_swapchain(PFN_vkCreateSwapchainKHR real, VkDevice device,
     s.device = device;
     s.handle = *out;
     s.format = ci->imageFormat;
+    s.colorSpace = ci->imageColorSpace;
     s.extent = ci->imageExtent;
     s.canRender = canRender;
     if (!load_device_fns(device)) {
@@ -652,8 +665,9 @@ VkResult on_create_swapchain(PFN_vkCreateSwapchainKHR real, VkDevice device,
             s.failed = true;
         }
     }
-    hc_log("vkCreateSwapchainKHR observed: %ux%u format %d, %zu images, drawable=%d",
-           s.extent.width, s.extent.height, static_cast<int>(s.format), s.images.size(),
+    hc_log("vkCreateSwapchainKHR observed: %ux%u format %d colour space %d, %zu images, drawable=%d",
+           s.extent.width, s.extent.height, static_cast<int>(s.format),
+           static_cast<int>(s.colorSpace), s.images.size(),
            s.canRender && !s.failed);
     g->swaps[*out] = std::move(s);
     return r;
@@ -682,6 +696,12 @@ VkResult on_present(PFN_vkQueuePresentKHR real, VkQueue queue, const VkPresentIn
     Depth depth;
     if (depth.nested || g_disabled.load() || !pi || pi->swapchainCount != 1 ||
         !pi->pSwapchains || !pi->pImageIndices) {
+        return real(queue, pi);
+    }
+    // The DirectX 12 renderer owns the overlay (or the ini asks for it): stay out of
+    // the way entirely, including the ready flag.
+    if (g_settings.backend == 2 ||
+        g_backend.load() == static_cast<int>(detail::Backend::Dx12)) {
         return real(queue, pi);
     }
 
@@ -773,14 +793,18 @@ DWORD WINAPI install_thread(LPVOID) {
     // Load the loader ourselves (refcounted; the game will get the same module) so the
     // hooks are in place before the game creates its VkInstance.
     HMODULE vk = LoadLibraryW(L"vulkan-1.dll");
-    if (!vk) { hc_log("vulkan-1.dll could not be loaded; overlay unavailable"); return 0; }
-    g->vulkan = vk;
-
     const MH_STATUS init = MH_Initialize();
     if (init != MH_OK && init != MH_ERROR_ALREADY_INITIALIZED) {
         hc_log("MH_Initialize failed: %s", MH_StatusToString(init));
         return 0;
     }
+    if (!vk) {
+        // No Vulkan on this machine: the DirectX 12 renderer can still work.
+        hc_log("vulkan-1.dll could not be loaded; Vulkan overlay unavailable");
+        if (g_settings.backend != 1) detail::install_dx12_hooks();
+        return 0;
+    }
+    g->vulkan = vk;
 
     bool ok = true;
     ok &= hook_export(vk, "vkGetInstanceProcAddr", reinterpret_cast<void*>(&hk_GetInstanceProcAddr), &g->realGIPA);
@@ -800,10 +824,55 @@ DWORD WINAPI install_thread(LPVOID) {
     const MH_STATUS en = MH_EnableHook(MH_ALL_HOOKS);
     if (en != MH_OK) { hc_log("MH_EnableHook failed: %s", MH_StatusToString(en)); return 0; }
     hc_log("Vulkan hooks installed; waiting for the game to create a swapchain");
+    if (g_settings.backend != 1) detail::install_dx12_hooks();
     return 0;
 }
 
 } // namespace
+
+// ---------------------------------------------------------------------------
+// Shared with the DirectX 12 renderer (cjk_overlay_internal.hpp)
+// ---------------------------------------------------------------------------
+namespace detail {
+
+void log(const char* fmt, ...) noexcept {
+    char line[400];
+    va_list ap;
+    va_start(ap, fmt);
+    std::vsnprintf(line, sizeof(line), fmt, ap);
+    va_end(ap);
+    hc_log("%s", line);
+}
+
+const Settings& settings() noexcept { return g_settings; }
+
+void lock() noexcept { AcquireSRWLockExclusive(&g->lock); }
+void unlock() noexcept { ReleaseSRWLockExclusive(&g->lock); }
+
+bool claim_backend(Backend backend) noexcept {
+    int expected = 0;
+    const int wanted = static_cast<int>(backend);
+    return g_backend.compare_exchange_strong(expected, wanted) || expected == wanted;
+}
+Backend current_backend() noexcept { return static_cast<Backend>(g_backend.load()); }
+
+bool create_context() noexcept { return create_imgui_context(); }
+void begin_frame_io(float width, float height) noexcept {
+    imgui_begin_io(width, height);
+}
+void add_text(const std::vector<TextCmd>& cmds, float width, float height,
+              TargetEncoding encoding) noexcept {
+    imgui_add_text(cmds, width, height, encoding);
+}
+
+bool take_frame(std::vector<TextCmd>& out) noexcept {
+    return g_queue.snapshot(out, now_ms(), 80) && !out.empty();
+}
+
+void set_ready(bool ready) noexcept { g_ready = ready; }
+bool disabled() noexcept { return g_disabled.load(); }
+
+} // namespace detail
 
 // ---------------------------------------------------------------------------
 // Public API

@@ -1,0 +1,1384 @@
+{
+  "schemaVersion": 1,
+  "description": "Weapon and ammunition guidance for huntable species across the complete 162-entry standard Story Mode Animal Compendium. Entries without a meaningful hunting recommendation are explicitly listed separately.",
+  "source": {
+    "title": "Bloxodes — All 162 Animals in Red Dead Redemption 2 Story Mode",
+    "updated": "2026-11-02",
+    "page1": "https://bloxodes.com/wiki/red-dead-redemption-2/animals",
+    "page2": "https://bloxodes.com/wiki/red-dead-redemption-2/animals/page/2",
+    "method": "Bloxodes animal-specific entries and group table are used where available. The missing Compendium species are supplemented with species-level clean-kill notes and animal-size guidance from the listed guides. Entries with no sensible clean-kill target are explicitly listed in noRecommendationEntries instead of receiving guessed weapon advice.",
+    "note": "For some runtime species, the guide groups multiple Compendium variants. Those unions are called out in modelNote rather than silently claiming the game can distinguish the variants.",
+    "additionalSources": [
+      {
+        "title": "PowerPyx — Red Dead Redemption 2 Full Compendium",
+        "url": "https://www.powerpyx.com/red-dead-redemption-2-full-compendium/",
+        "usedFor": "Authoritative Compendium numbering and names for standard animal entries 1–162."
+      },
+      {
+        "title": "PowerPyx — How to Get Perfect Pelts",
+        "url": "https://www.powerpyx.com/red-dead-redemption-2-how-to-get-perfect-pelts/",
+        "usedFor": "Animal-size weapon classes for birds, tiny mammals, reptiles, amphibians and turtles."
+      },
+      {
+        "title": "Fullclear — RDR2 Perfect Pelt Guide",
+        "url": "https://fullclear.gg/rdr2/articles/perfect-pelt-guide",
+        "usedFor": "Cross-check of Varmint Rifle bird classes and small-game-arrow groups."
+      },
+      {
+        "title": "PowerPyx — All Animal Locations",
+        "url": "https://www.powerpyx.com/red-dead-redemption-2-all-animal-locations-zoologist-skin-deep/",
+        "usedFor": "Species-level notes for cormorants, cranes and other missing Compendium entries."
+      },
+      {
+        "title": "Red Dead Wiki — Crustaceans",
+        "url": "https://reddead.fandom.com/wiki/Crustaceans",
+        "usedFor": "Cuban Land Crab and Red Swamp Crayfish collection / weapon guidance."
+      },
+      {
+        "title": "GTABase — Alligator Snapping Turtle",
+        "url": "https://www.gtabase.com/red-dead-redemption-2/animals/turtle",
+        "usedFor": "Alligator Snapping Turtle clean-kill recommendation."
+      }
+    ]
+  },
+  "weaponTextures": {
+    "Bow": "weapon_bow",
+    "Varmint Rifle": "weapon_rifle_varmint",
+    "Repeater": "weapon_repeater_lancaster",
+    "Springfield Rifle": "weapon_rifle_springfield",
+    "Sniper rifle": "weapon_sniperrifle_carcano",
+    "Carcano Rifle": "weapon_sniperrifle_carcano"
+  },
+  "ammoTextures": {
+    "Small Game Arrows": "ammo_arrow_small_game",
+    "Improved Arrows": "ammo_arrow_improved",
+    "Poisoned Arrows": "ammo_arrow_poison",
+    "Rifle Cartridges - Regular": "ammo_bullet_normal",
+    "Rifle Cartridges - High Velocity": "ammo_bullet_high_velocity",
+    "Rifle Cartridges - Express": "ammo_bullet_express"
+  },
+  "recommendations": [
+    {
+      "species": "Alligator",
+      "compendiumNumbers": [
+        1,
+        2
+      ],
+      "sourceRule": "Named exception: American Alligator",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Improved Arrows"
+          ]
+        },
+        {
+          "weapon": "Sniper rifle",
+          "ammo": [
+            "Rifle Cartridges - Regular"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Armadillo",
+      "compendiumNumbers": [
+        3
+      ],
+      "sourceRule": "Varmint Rifle group",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Badger",
+      "compendiumNumbers": [
+        4
+      ],
+      "sourceRule": "Varmint Rifle group",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Bat",
+      "compendiumNumbers": [
+        5
+      ],
+      "sourceRule": "Tiny mammal: bat",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Beaver",
+      "compendiumNumbers": [
+        8
+      ],
+      "sourceRule": "Varmint Rifle group",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Bison",
+      "compendiumNumbers": [
+        13
+      ],
+      "sourceRule": "Named exception: Bison",
+      "choices": [
+        {
+          "weapon": "Carcano Rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Improved Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Black Bear",
+      "compendiumNumbers": [
+        6
+      ],
+      "sourceRule": "Bear group: Long-scope rifle",
+      "choices": [
+        {
+          "weapon": "Sniper rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Blue Jay",
+      "compendiumNumbers": [
+        9
+      ],
+      "sourceRule": "Small birds: jays",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Boar",
+      "compendiumNumbers": [
+        10
+      ],
+      "sourceRule": "Deer and boar group",
+      "choices": [
+        {
+          "weapon": "Springfield Rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Poisoned Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Booby",
+      "compendiumNumbers": [
+        124
+      ],
+      "sourceRule": "Tiny bird: Red-footed Booby",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Buck",
+      "compendiumNumbers": [
+        11
+      ],
+      "sourceRule": "Deer and boar group",
+      "choices": [
+        {
+          "weapon": "Sniper rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Poisoned Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Bull",
+      "compendiumNumbers": [
+        14,
+        15,
+        16
+      ],
+      "sourceRule": "Elk, moose, bulls and oxen group",
+      "choices": [
+        {
+          "weapon": "Sniper rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Improved Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Bullfrog",
+      "compendiumNumbers": [
+        17
+      ],
+      "sourceRule": "Tiny amphibian: bullfrog",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "California Condor",
+      "compendiumNumbers": [
+        29
+      ],
+      "sourceRule": "Varmint Rifle bird group",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Canada Goose",
+      "compendiumNumbers": [
+        67
+      ],
+      "sourceRule": "Varmint Rifle bird group",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Cardinal",
+      "compendiumNumbers": [
+        18
+      ],
+      "sourceRule": "Small birds: songbirds and jays",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Cedar Waxwing",
+      "compendiumNumbers": [
+        20
+      ],
+      "sourceRule": "Small birds: songbirds and jays",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Chicken",
+      "compendiumNumbers": [
+        21,
+        23,
+        25
+      ],
+      "sourceRule": "Small bird / poultry entry",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Cormorant",
+      "compendiumNumbers": [
+        31,
+        32
+      ],
+      "sourceRule": "Small bird: cormorant",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ],
+      "modelNote": "The two cormorant Compendium entries share one runtime cormorant model."
+    },
+    {
+      "species": "Cougar",
+      "compendiumNumbers": [
+        30
+      ],
+      "sourceRule": "Large animal guidance: Rifle or Bow",
+      "choices": [
+        {
+          "weapon": "Springfield Rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Poisoned Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Cow",
+      "compendiumNumbers": [
+        33
+      ],
+      "sourceRule": "Named entry: Florida Cracker Cow",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Improved Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Coyote",
+      "compendiumNumbers": [
+        34
+      ],
+      "sourceRule": "Repeater group",
+      "choices": [
+        {
+          "weapon": "Repeater",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Crab",
+      "compendiumNumbers": [
+        35
+      ],
+      "sourceRule": "Crustacean: Cuban Land Crab",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Crane",
+      "compendiumNumbers": [
+        37,
+        38
+      ],
+      "sourceRule": "Small bird: cranes",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ],
+      "modelNote": "Whooping and Sandhill Crane Compendium entries share one runtime crane model."
+    },
+    {
+      "species": "Crayfish",
+      "compendiumNumbers": [
+        36
+      ],
+      "sourceRule": "Crustacean: Red Swamp Crayfish; Compendium guidance",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ],
+      "modelNote": "Usually collected from crayfish holes rather than hunted as a roaming animal; the Compendium guidance associates Bow and arrows with the entry."
+    },
+    {
+      "species": "Crow",
+      "compendiumNumbers": [
+        39
+      ],
+      "sourceRule": "Small birds: crows",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Deer",
+      "compendiumNumbers": [
+        12
+      ],
+      "sourceRule": "Deer and boar group",
+      "choices": [
+        {
+          "weapon": "Springfield Rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Poisoned Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Duck",
+      "compendiumNumbers": [
+        53,
+        54
+      ],
+      "sourceRule": "Varmint Rifle bird group",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Eagle",
+      "compendiumNumbers": [
+        55,
+        56
+      ],
+      "sourceRule": "Eagles, hawks, owls, herons, turkeys and vultures",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Egret",
+      "compendiumNumbers": [
+        57,
+        58,
+        59
+      ],
+      "sourceRule": "Small bird: egrets",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ],
+      "modelNote": "Reddish, Little and Snowy Egret Compendium entries share one runtime egret model."
+    },
+    {
+      "species": "Elk",
+      "compendiumNumbers": [
+        60,
+        61
+      ],
+      "sourceRule": "Elk, moose, bulls and oxen group",
+      "choices": [
+        {
+          "weapon": "Sniper rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Improved Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Fox",
+      "compendiumNumbers": [
+        62,
+        63,
+        64
+      ],
+      "sourceRule": "Named entry: Fox",
+      "choices": [
+        {
+          "weapon": "Repeater",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Improved Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Gila Monster",
+      "compendiumNumbers": [
+        65
+      ],
+      "sourceRule": "Varmint Rifle small-reptile guidance",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Goat",
+      "compendiumNumbers": [
+        66
+      ],
+      "sourceRule": "Repeater group",
+      "choices": [
+        {
+          "weapon": "Repeater",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Grizzly Bear",
+      "compendiumNumbers": [
+        7
+      ],
+      "sourceRule": "Named exception: Grizzly Bear",
+      "choices": [
+        {
+          "weapon": "Sniper rifle",
+          "ammo": [
+            "Rifle Cartridges - High Velocity",
+            "Rifle Cartridges - Express"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Hawk",
+      "compendiumNumbers": [
+        68,
+        69,
+        70
+      ],
+      "sourceRule": "Eagles, hawks, owls, herons, turkeys and vultures",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Heron",
+      "compendiumNumbers": [
+        71,
+        72
+      ],
+      "sourceRule": "Small bird: herons",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ],
+      "modelNote": "The two heron Compendium entries share one runtime heron model."
+    },
+    {
+      "species": "Iguana",
+      "compendiumNumbers": [
+        73,
+        74
+      ],
+      "sourceRule": "Varmint Rifle small-reptile guidance",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Javelina",
+      "compendiumNumbers": [
+        75
+      ],
+      "sourceRule": "Named entry: Collared Peccary",
+      "choices": [
+        {
+          "weapon": "Repeater",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Loon",
+      "compendiumNumbers": [
+        76,
+        77,
+        78
+      ],
+      "sourceRule": "Varmint Rifle bird guidance",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Macaw",
+      "compendiumNumbers": [
+        93,
+        94,
+        95
+      ],
+      "sourceRule": "Tiny bird: Guarma macaws",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ],
+      "modelNote": "The three Guarma macaw entries share the generic parrot runtime model."
+    },
+    {
+      "species": "Moose",
+      "compendiumNumbers": [
+        79,
+        80
+      ],
+      "sourceRule": "Elk, moose, bulls and oxen group",
+      "choices": [
+        {
+          "weapon": "Sniper rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Improved Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Muskrat",
+      "compendiumNumbers": [
+        82
+      ],
+      "sourceRule": "Raccoons, skunks, opossums and muskrats group",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Opossum",
+      "compendiumNumbers": [
+        105
+      ],
+      "sourceRule": "Raccoons, skunks, opossums and muskrats group",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Oriole",
+      "compendiumNumbers": [
+        83,
+        84
+      ],
+      "sourceRule": "Small birds: songbirds",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Owl",
+      "compendiumNumbers": [
+        85,
+        86,
+        87
+      ],
+      "sourceRule": "Eagles, hawks, owls, herons, turkeys and vultures",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Ox",
+      "compendiumNumbers": [
+        88,
+        89
+      ],
+      "sourceRule": "Elk, moose, bulls and oxen group",
+      "choices": [
+        {
+          "weapon": "Sniper rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Improved Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Panther",
+      "compendiumNumbers": [
+        90,
+        91
+      ],
+      "sourceRule": "Named exception: Panther and Florida Panther",
+      "choices": [
+        {
+          "weapon": "Springfield Rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Improved Arrows",
+            "Poisoned Arrows"
+          ]
+        }
+      ],
+      "modelNote": "The runtime species lookup groups Panther and Florida Panther; Bloxodes specifies Improved Arrow for Panther and Poison Arrow for Florida Panther."
+    },
+    {
+      "species": "Parakeet",
+      "compendiumNumbers": [
+        92
+      ],
+      "sourceRule": "Tiny bird: Carolina Parakeet",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Pelican",
+      "compendiumNumbers": [
+        96,
+        97
+      ],
+      "sourceRule": "Small bird: pelicans",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ],
+      "modelNote": "American White and Brown Pelican Compendium entries share one runtime pelican model."
+    },
+    {
+      "species": "Pheasant",
+      "compendiumNumbers": [
+        98,
+        99
+      ],
+      "sourceRule": "Varmint Rifle bird guidance",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Pig",
+      "compendiumNumbers": [
+        100,
+        101,
+        102
+      ],
+      "sourceRule": "Repeater group",
+      "choices": [
+        {
+          "weapon": "Repeater",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Pigeon",
+      "compendiumNumbers": [
+        103,
+        104
+      ],
+      "sourceRule": "Varmint Rifle bird guidance",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Prairie Chicken",
+      "compendiumNumbers": [
+        27
+      ],
+      "sourceRule": "Tiny bird: Greater Prairie Chicken",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Pronghorn",
+      "compendiumNumbers": [
+        106,
+        107,
+        108,
+        109,
+        110,
+        111
+      ],
+      "sourceRule": "Named regional entries: American, Sonoran and Baja California Pronghorn",
+      "choices": [
+        {
+          "weapon": "Springfield Rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Poisoned Arrows"
+          ]
+        }
+      ],
+      "modelNote": "The runtime lookup groups all pronghorn variants. The Bow/Poison Arrow choice is for American Pronghorn; Sonoran and Baja California entries list Rifle only."
+    },
+    {
+      "species": "Quail",
+      "compendiumNumbers": [
+        112
+      ],
+      "sourceRule": "Small birds: quail",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Rabbit",
+      "compendiumNumbers": [
+        119
+      ],
+      "sourceRule": "Varmint Rifle group",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Raccoon",
+      "compendiumNumbers": [
+        120
+      ],
+      "sourceRule": "Raccoons, skunks, opossums and muskrats group",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Ram",
+      "compendiumNumbers": [
+        113,
+        114,
+        115,
+        116,
+        117,
+        118
+      ],
+      "sourceRule": "Bighorn rams and sheep group",
+      "choices": [
+        {
+          "weapon": "Springfield Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Rat",
+      "compendiumNumbers": [
+        121,
+        122
+      ],
+      "sourceRule": "Small animals: rats",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Rattlesnake",
+      "compendiumNumbers": [
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143
+      ],
+      "sourceRule": "Small animals: snakes",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Raven",
+      "compendiumNumbers": [
+        123
+      ],
+      "sourceRule": "Bird guidance: medium bird",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Robin",
+      "compendiumNumbers": [
+        125
+      ],
+      "sourceRule": "Small birds: songbirds",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Rooster",
+      "compendiumNumbers": [
+        22,
+        24,
+        26
+      ],
+      "sourceRule": "Small bird / poultry entry",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Seagull",
+      "compendiumNumbers": [
+        127,
+        128,
+        129
+      ],
+      "sourceRule": "Varmint Rifle bird guidance",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Sheep",
+      "compendiumNumbers": [
+        130
+      ],
+      "sourceRule": "Repeater group: Merino sheep",
+      "choices": [
+        {
+          "weapon": "Repeater",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Skunk",
+      "compendiumNumbers": [
+        131
+      ],
+      "sourceRule": "Raccoons, skunks, opossums and muskrats group",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Songbird",
+      "compendiumNumbers": [
+        144,
+        145
+      ],
+      "sourceRule": "Small birds: songbirds",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Sparrow",
+      "compendiumNumbers": [
+        146,
+        147,
+        148
+      ],
+      "sourceRule": "Small birds: songbirds",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Spoonbill",
+      "compendiumNumbers": [
+        126
+      ],
+      "sourceRule": "Small bird: Roseate Spoonbill",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Squirrel",
+      "compendiumNumbers": [
+        28,
+        149,
+        150,
+        151
+      ],
+      "sourceRule": "Small animals: squirrels",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Toad",
+      "compendiumNumbers": [
+        152,
+        153
+      ],
+      "sourceRule": "Tiny amphibian: toads",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Turkey",
+      "compendiumNumbers": [
+        154,
+        155
+      ],
+      "sourceRule": "Eagles, hawks, owls, herons, turkeys and vultures",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Turtle",
+      "compendiumNumbers": [
+        156
+      ],
+      "sourceRule": "Alligator Snapping Turtle: clean-kill guide",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ],
+      "modelNote": "Small Game Arrow is the common guide recommendation, but some players report inconsistent carcass results; compare with the animal's in-game Show Info."
+    },
+    {
+      "species": "Vulture",
+      "compendiumNumbers": [
+        157,
+        158
+      ],
+      "sourceRule": "Eagles, hawks, owls, herons, turkeys and vultures",
+      "choices": [
+        {
+          "weapon": "Varmint Rifle",
+          "ammo": []
+        }
+      ]
+    },
+    {
+      "species": "Wolf",
+      "compendiumNumbers": [
+        159,
+        160
+      ],
+      "sourceRule": "Wolf group",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Poisoned Arrows"
+          ]
+        }
+      ]
+    },
+    {
+      "species": "Woodpecker",
+      "compendiumNumbers": [
+        161,
+        162
+      ],
+      "sourceRule": "Small birds: woodpeckers",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ]
+    }
+  ],
+  "noRecommendationEntries": [
+    {
+      "name": "American Domestic Cat",
+      "compendiumNumbers": [
+        19
+      ],
+      "reason": "Domestic companion animal; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "American Fox Hound",
+      "compendiumNumbers": [
+        40
+      ],
+      "reason": "Domestic hunting dog; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Australian Shepherd",
+      "compendiumNumbers": [
+        41
+      ],
+      "reason": "Domestic herding dog; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Bloodhound",
+      "compendiumNumbers": [
+        42
+      ],
+      "reason": "Domestic dog; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Bluetick Coonhound",
+      "compendiumNumbers": [
+        43
+      ],
+      "reason": "Domestic hunting dog; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Border Collie",
+      "compendiumNumbers": [
+        44
+      ],
+      "reason": "Domestic herding dog; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Catahoula Cur",
+      "compendiumNumbers": [
+        45
+      ],
+      "reason": "Domestic dog; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Chesapeake Bay Retriever",
+      "compendiumNumbers": [
+        46
+      ],
+      "reason": "Domestic retriever; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Siberian Husky",
+      "compendiumNumbers": [
+        47
+      ],
+      "reason": "Domestic dog; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Labrador Retriever",
+      "compendiumNumbers": [
+        48
+      ],
+      "reason": "Domestic retriever; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Poodle",
+      "compendiumNumbers": [
+        49
+      ],
+      "reason": "Domestic companion dog; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Mutt",
+      "compendiumNumbers": [
+        50
+      ],
+      "reason": "Domestic companion dog; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Rufus",
+      "compendiumNumbers": [
+        51
+      ],
+      "reason": "Story companion dog; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Standard Donkey",
+      "compendiumNumbers": [
+        52
+      ],
+      "reason": "Working animal; no hunting weapon recommendation is provided."
+    },
+    {
+      "name": "Mule",
+      "compendiumNumbers": [
+        81
+      ],
+      "reason": "Working animal; no hunting weapon recommendation is provided."
+    }
+  ]
+}

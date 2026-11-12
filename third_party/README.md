@@ -4,7 +4,7 @@ These source dependencies are included in this source archive and are compiled
 into the single `HuntingCompanion.asi`. End users do not install them separately.
 Versions are pinned because the overlay is written against these APIs.
 
-- Dear ImGui v1.91.9 — MIT
+- Dear ImGui v1.91.9 — MIT (core, plus the Vulkan and DirectX 12 renderer backends)
 - MinHook v1.3.4 — BSD-2-Clause
 - Vulkan-Headers v1.4.368 — Apache-2.0 OR MIT (headers only)
 
