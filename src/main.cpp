@@ -1731,11 +1731,12 @@ constexpr MenuFont kMenuFonts[] = {
     {"$body1", "BODY 1", 0.94f},
     {"$title1", "TITLE", 0.74f},
     {"$ledger", "LEDGER", 0.92f},
-    {"$chalk", "CHALK", 0.92f},
-    {"$handwritten", "HANDWRITTEN", 0.92f},
 };
 constexpr int kMenuFontCount = static_cast<int>(std::size(kMenuFonts));
 int g_menuFontIndex = 0;
+// Settings > Text drawing: never use the overlay, draw everything with the
+// game's own fonts (what a DirectX 12 player gets anyway).
+bool g_useGameFontsOnly = false;
 
 float text_width_estimate(const char* text, float size, float correction) noexcept {
     float width = 0.0f;
@@ -2084,6 +2085,7 @@ void load_configuration() noexcept {
     const UINT iconsKey = GetPrivateProfileIntA("General", "WeaponIconsKey", kDefaultIconsKey, g_iniPath);
     g_iconsHotkey = (iconsKey > 0 && iconsKey < 256) ? iconsKey : kDefaultIconsKey;
     g_showWeaponIcons = GetPrivateProfileIntA("General", "ShowWeaponIcons", 1, g_iniPath) != 0;
+    g_useGameFontsOnly = GetPrivateProfileIntA("General", "UseGameFontsOnly", 0, g_iniPath) != 0;
     const UINT menuFont = GetPrivateProfileIntA("General", "MenuFont", 0, g_iniPath);
     g_menuFontIndex = menuFont < static_cast<UINT>(kMenuFontCount) ? static_cast<int>(menuFont) : 0;
     const UINT configuredLanguage = GetPrivateProfileIntA(
@@ -2153,7 +2155,7 @@ bool needs_overlay(int language) noexcept {
     // Overlay when the companion language is CJK but the game is not in it, or when the
     // game runs in a CJK language (whose native fonts lack accented Latin letters and
     // Cyrillic) and the companion language is anything else.
-    if (language == g_detectedGameLanguage) return false;
+    if (g_useGameFontsOnly || language == g_detectedGameLanguage) return false;
     return hunting_companion::uses_cjk_font(language) ||
            hunting_companion::uses_cjk_font(g_detectedGameLanguage);
 }
@@ -2177,6 +2179,15 @@ void apply_effective_language() noexcept {
         hunting_companion::load_ui_localization(g_detectedGameLanguage, effective);
     }
     hunting_companion::overlay::set_language(effective);
+}
+
+void toggle_game_fonts_only() noexcept {
+    g_useGameFontsOnly = !g_useGameFontsOnly;
+    if (g_iniPath[0] != '\0') {
+        WritePrivateProfileStringA("General", "UseGameFontsOnly",
+                                   g_useGameFontsOnly ? "1" : "0", g_iniPath);
+    }
+    apply_effective_language();
 }
 
 // Read once at attach time (the hooks must be installed before the game starts
@@ -3089,7 +3100,7 @@ int current_page_count() noexcept {
         case MenuPage::ChallengeDetail:
             return reinforced_equipment_count_for_challenge(
                 static_cast<std::size_t>(g_menu.challengeIndex));
-        case MenuPage::Settings: return 7;
+        case MenuPage::Settings: return 8;
         case MenuPage::Closed: return 0;
     }
     return 0;
@@ -3219,6 +3230,12 @@ void update_menu_input() noexcept {
             return;
         }
     }
+    if (g_menu.page == MenuPage::Settings && g_menu.selection == 6) {
+        if (key_pressed(VK_LEFT) || key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) {
+            toggle_game_fonts_only();
+            return;
+        }
+    }
     if (g_menu.page == MenuPage::Settings && g_menu.selection == 5) {
         if (key_pressed(VK_LEFT)) { change_menu_font(-1); return; }
         if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_menu_font(1); return; }
@@ -3314,7 +3331,7 @@ void update_menu_input() noexcept {
                 g_menu.captureFilterHotkey = true;
             } else if (g_menu.selection == 4) {
                 g_menu.captureIconsHotkey = true;
-            } else if (g_menu.selection == 6) {
+            } else if (g_menu.selection == 7) {
                 g_menu.page = MenuPage::Root;
                 g_menu.selection = 4;
                 g_menu.scroll = 0;
@@ -3998,27 +4015,27 @@ void draw_settings_page() noexcept {
                   hunting_companion::ui_text("Weapon/ammo icons key: %s"), key_name(g_iconsHotkey));
     draw_menu_row(iconsKeyLine, "CHANGE", 4, g_menu.selection == 4);
     draw_menu_row("Menu font", kMenuFonts[g_menuFontIndex].name, 5, g_menu.selection == 5);
-    draw_menu_row("Back", "", 6, g_menu.selection == 6);
+    draw_menu_row("Text drawing", g_useGameFontsOnly ? "GAME FONTS" : "AUTO", 6,
+                  g_menu.selection == 6);
+    draw_menu_row("Back", "", 7, g_menu.selection == 7);
 
-    // The seven rows end near y = 0.63, so the information block starts below them.
+    // The eight rows end near y = 0.69, so the information block starts below them.
     char languageLine[256]{};
     std::snprintf(languageLine, sizeof(languageLine), hunting_companion::ui_text("RDR2 language: %s (%s)"),
                   game_language_name(g_detectedGameLanguage),
                   game_language_locale(g_detectedGameLanguage));
-    draw_text(languageLine, 0.071f, 0.640f, 13.5f, 206, 200, 186);
+    draw_text(languageLine, 0.071f, 0.697f, 13.5f, 206, 200, 186);
     char interfaceLine[256]{};
     std::snprintf(interfaceLine, sizeof(interfaceLine),
                   hunting_companion::ui_text("Companion interface: %s (%s)"),
                   game_language_name(selectedLanguage),
                   hunting_companion::ui_locale());
-    draw_text(interfaceLine, 0.071f, 0.672f, 12.5f, 184, 178, 164);
-    draw_wrapped_text("LEFT/RIGHT or ENTER changes the companion language.",
-                      0.071f, 0.702f, 44, 2, 0.026f, 12.0f, 184, 178, 164);
+    draw_text(interfaceLine, 0.071f, 0.727f, 12.5f, 184, 178, 164);
     if (overlay_fallback_active()) {
         // Only shown while the UI is in English (the fallback), so it is not translated.
         static constexpr char kOverlayFallbackNotice[] =
             "CJK overlay not ready (Vulkan only): showing English.";
-        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.757f, 12.0f, 224, 160, 120);
+        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.812f, 12.0f, 224, 160, 120);
     }
     const std::size_t officialCount = hunting_companion::loaded_official_string_count();
     char officialStatus[160]{};
@@ -4026,12 +4043,12 @@ void draw_settings_page() noexcept {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official Rockstar language entries loaded: %llu"),
                       static_cast<unsigned long long>(officialCount));
-        draw_wrapped_text(officialStatus, 0.071f, 0.786f, 44, 2, 0.026f, 12.0f, 145, 194, 157);
+        draw_wrapped_text(officialStatus, 0.071f, 0.757f, 44, 2, 0.026f, 12.0f, 145, 194, 157);
     } else {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official item-name data unavailable for %s; English names used."),
                       hunting_companion::ui_text(hunting_companion::locale_name(selectedLanguage)));
-        draw_wrapped_text(officialStatus, 0.071f, 0.786f, 44, 2, 0.026f, 12.0f, 220, 174, 128);
+        draw_wrapped_text(officialStatus, 0.071f, 0.757f, 44, 2, 0.026f, 12.0f, 220, 174, 128);
     }
     if (g_menu.captureHotkey || g_menu.captureFilterHotkey || g_menu.captureIconsHotkey) {
         draw_rect(0.212f, 0.52f, 0.34f, 0.12f, 0, 0, 0, 245);
