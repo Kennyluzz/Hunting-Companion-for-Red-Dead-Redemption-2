@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Contract checks for 1.13.0 hunting recommendations and Craftable Now."""
+"""Contract checks for hunting recommendations and Craftable Now."""
 from __future__ import annotations
 
 import json
@@ -87,13 +87,13 @@ required_source = (
     'g_menu.captureFilterHotkey',
     'Craftable filter key: %s',
     'draw_hunting_recommendation_icons(*recommendation, layout)',
-    'backdropWidth',
+    'draw_icon_with_shadow',
     'count > 0',
     '"FILTER: CRAFTABLE"'
 )
 for token in required_source:
     if token not in SOURCE:
-        raise AssertionError(f"Missing 1.12.0 integration: {token}")
+        raise AssertionError(f"Missing integration token: {token}")
 
 if "SET_GAME_PAUSED" in SOURCE or "kSetGamePaused" in SOURCE:
     raise AssertionError("The explicitly rejected pause feature was added")

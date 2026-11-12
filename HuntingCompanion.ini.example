@@ -12,9 +12,10 @@ CjkTextYOffsetPermille=0
 ; 1 = write HuntingCompanion.overlay.log next to the ASI (for troubleshooting).
 OverlayLog=0
 
-; 1.13.1: weapon/ammo icons and their hotkeys (also changeable in the in-game Settings page).
-; Key numbers are Windows virtual-key codes. 219 = [  221 = ]
-; [General]
-; FilterKey=219
-; WeaponIconsKey=221
-; ShowWeaponIcons=1
+; Hotkeys and weapon/ammo icons (all also changeable on the in-game Settings page).
+; Key numbers are Windows virtual-key codes: 219 = [   221 = ]
+; These belong in the [General] section above.
+; FilterKey=219          ; toggles the "craftable now" filter
+; WeaponIconsKey=221     ; shows / hides the weapon and ammo icons
+; ShowWeaponIcons=1      ; 1 = show, 0 = hide
+; UseWheelAmmoIcons=1    ; 1 = weapon-wheel ammo icons, 0 = inventory ammo icons

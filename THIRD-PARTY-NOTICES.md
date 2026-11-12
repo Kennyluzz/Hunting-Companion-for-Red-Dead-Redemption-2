@@ -35,9 +35,8 @@ Copyright/licence metadata is retained. SIL Open Font License 1.1. Full text: `L
 
 ## Rockstar-authored localization content — separate rights
 The embedded official item/material and challenge labels are Rockstar-authored
-game text extracted from supplied RDR2 language resources and are not original
+game text taken from RDR2's own language resources and are not original
 Hunting Companion translations. They are **not** relicensed under MIT or under
-any third-party open-source licence by this project. This notice does not grant
-permission to redistribute Rockstar content. The maintainer should confirm
-that the intended distribution is permitted by applicable Rockstar modding
-terms or obtain any required permission before public release.
+any third-party open-source licence by this project, and this notice does not
+grant any right to redistribute Rockstar content. Anyone redistributing builds
+is responsible for complying with Rockstar's modding terms.

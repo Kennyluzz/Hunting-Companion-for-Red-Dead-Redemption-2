@@ -38,7 +38,7 @@ required = (
     "kFindAllAttachedCarriableEntities, horse, itemSet",
     "kGetCarcassFromPelt, entity",
     "kDestroyItemset, itemSet",
-    "if (perfectOnly && quality != 2) continue;",
+    "if (perfectOnly && qualityKnown && quality != 2) continue;",
     "g_currentHaul.hasAnyAnimalPart = true;",
     "if (isPelt ? (carcassMaterial || !perfectOnly) : !carcassMaterial) continue;",
     "if (legendaryOnly) continue;",

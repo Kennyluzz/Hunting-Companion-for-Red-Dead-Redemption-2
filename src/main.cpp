@@ -1,4 +1,4 @@
-// Hunting Companion 1.11.0-rc1
+// Hunting Companion
 // Read-only RDR2 Story Mode companion for Pearson, Trapper, challenges, and gear.
 //
 // The companion reads game catalog, inventory, vendor-storage, and challenge-rank
@@ -200,9 +200,8 @@ struct ChallengeDefinition {
 };
 
 // These are the actual single-player challenge root identifiers used by
-// RDR2's pause-menu challenge registry (not generic `challenge_<category>`
-// guesses). An independently in-game-tested ScriptHookRDR2 implementation
-// resolves the same roots with JOAAT and passes them to CHAL_GET_*.
+// RDR2's pause-menu challenge registry. Each root is hashed with JOAAT and
+// passed to the CHAL_GET_* natives.
 // The objective strings are concise paraphrases of the next rank's goal.
 // They are reference text only: actual progress remains exclusively game-read.
 constexpr auto kChallengeDefinitions = std::array{
@@ -371,8 +370,8 @@ constexpr bool all_challenge_objectives_fit_two_lines() noexcept {
 static_assert(all_challenge_objectives_fit_two_lines(),
               "Challenge objective copy must fit within two bounded panel lines");
 
-// Pin the expected JOAAT values at compile time. This catches accidental
-// edits to the root strings or the hash routine before a release build.
+// Pin the expected JOAAT values at compile time so an accidental edit to a
+// root string or the hash routine fails the build.
 static_assert(joaat("sp_chal_band_root") == 0xD5D688C1u, "Bandit root hash mismatch");
 static_assert(joaat("sp_chal_expl_root") == 0xB3CE15D7u, "Explorer root hash mismatch");
 static_assert(joaat("sp_chal_gamb_root") == 0x7011A716u, "Gambler root hash mismatch");
@@ -1441,7 +1440,19 @@ struct CurrentHaulMaterial {
     int carriedCount{};
     int horseCount{};
 };
+// What the scan saw for each carried pelt/carcass; shown on the Crafting Uses page
+// when something is carried but no material could be identified.
+struct HaulScanNote {
+    int source{};                    // 1 = Arthur, 2 = saddle horse
+    bool pelt{};
+    std::uint32_t entityModel{};
+    bool carcassFound{};
+    const char* species{};
+    int quality{-1};
+};
 struct CurrentHaulState {
+    std::array<HaulScanNote, 4> notes{};
+    std::size_t noteCount{};
     std::array<CurrentHaulMaterial, kMaxMaterials> materials{};
     std::size_t count{};
     int inventoryId{-1};
@@ -1512,21 +1523,25 @@ void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcep
     if (isPelt) g_currentHaul.hasAnyAnimalPart = true;
     int carcass = entity;
     if (isPelt) carcass = invoke_native<int>(kGetCarcassFromPelt, entity);
-    if (carcass == 0 || invoke_native<int>(kDoesEntityExist, carcass) == 0 ||
-        invoke_native<int>(kIsEntityAPed, carcass) == 0) return;
-
-    const std::uint32_t model = invoke_native<std::uint32_t>(kGetEntityModel, carcass);
-    const char* species = find_animal_species(model);
-    if (species == nullptr) return;
+    const bool carcassFound = carcass != 0 && invoke_native<int>(kDoesEntityExist, carcass) != 0 &&
+                              invoke_native<int>(kIsEntityAPed, carcass) != 0;
+    const std::uint32_t model = carcassFound ? invoke_native<std::uint32_t>(kGetEntityModel, carcass) : 0;
+    const char* species = carcassFound ? find_animal_species(model) : nullptr;
+    // _GET_PED_QUALITY reports the ordinary skinning grade (0=poor, 1=good, 2=perfect).
+    const int quality = carcassFound ? invoke_native<int>(kGetPedQuality, carcass) : -1;
+    if (g_currentHaul.noteCount < g_currentHaul.notes.size()) {
+        g_currentHaul.notes[g_currentHaul.noteCount++] = HaulScanNote{
+            source, isPelt, invoke_native<std::uint32_t>(kGetEntityModel, entity),
+            carcassFound, species, quality};
+    }
+    if (!carcassFound || species == nullptr) return;
     g_currentHaul.hasAnyAnimalPart = true;
     // Chipmunks share a HUD recommendation group with squirrels, but do not
     // yield squirrel pelts. Do not let that display grouping invent loot.
     if (model == joaat("a_c_chipmunk_01")) return;
 
-    // _GET_PED_QUALITY reports the ordinary skinning grade (0=poor,
-    // 1=good, 2=perfect). It does not identify a legendary animal; do not
-    // infer a Legendary material from a quality value.
-    const int quality = invoke_native<int>(kGetPedQuality, carcass);
+    // The quality value does not identify a legendary animal, so it is never used to infer one.
+    const bool qualityKnown = quality >= 0 && quality <= 2;
     for (const auto& sourceEntry : kMaterialSources) {
         if (std::strcmp(sourceEntry.species, species) != 0) continue;
         const char* name = find_material_name(sourceEntry.hash);
@@ -1534,7 +1549,7 @@ void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcep
         const bool perfectOnly = std::strstr(name, "Perfect") != nullptr;
         const bool legendaryOnly = std::strstr(name, "Legendary") != nullptr;
         const bool carcassMaterial = std::strstr(name, "Carcass") != nullptr;
-        if (perfectOnly && quality != 2) continue;
+        if (perfectOnly && qualityKnown && quality != 2) continue;
         // A legendary pelt has a distinct inventory item identity. The public
         // carried-entity natives do not expose that identity reliably, so
         // only count it when the player's inventory native reports the item.
@@ -1674,80 +1689,108 @@ bool inventory_texture_dictionary_ready() noexcept {
 void draw_rect(float x, float y, float width, float height,
                int red, int green, int blue, int alpha) noexcept;
 
-bool g_showWeaponIcons = true;  // toggled from Settings or the icons hotkey
+bool g_showWeaponIcons = true;       // toggled from Settings or the icons hotkey
+bool g_useWheelAmmoIcons = true;     // ammo icons from the weapon wheel's own texture set
 
 void draw_text_impl(const char* text, float x, float y, float referencePixelHeight,
                     int red, int green, int blue, int alpha,
                     bool localize, bool centered) noexcept;
 
-// Short, translated name of an ammunition icon (the inventory sprites differ from the
-// weapon wheel's ring icons, so each ammo type is also named in text).
-const char* ammo_icon_name(const char* texture) noexcept {
-    if (texture == nullptr) return nullptr;
-    if (std::strcmp(texture, "ammo_arrow_improved") == 0) return "Improved";
-    if (std::strcmp(texture, "ammo_arrow_poison") == 0) return "Poison";
-    if (std::strcmp(texture, "ammo_arrow_small_game") == 0) return "Small Game";
-    if (std::strcmp(texture, "ammo_bullet_normal") == 0) return "Normal";
-    if (std::strcmp(texture, "ammo_bullet_high_velocity") == 0) return "High Velocity";
-    if (std::strcmp(texture, "ammo_bullet_express") == 0) return "Express";
-    return nullptr;
+struct RecommendationIcon {
+    const char* dictionary;
+    const char* sprite;
+    const char* label;   // untranslated key; translated when drawn
+};
+
+// The weapon wheel draws its ammunition-type icons from the "ui_hud" texture set.
+bool wheel_ammo_texture(const char* inventoryName, const char** sprite, const char** label) noexcept {
+    struct Entry { const char* inventory; const char* wheel; const char* label; };
+    static constexpr Entry kEntries[] = {
+        {"ammo_arrow_improved", "arrow_type_improved", "Improved Arrow"},
+        {"ammo_arrow_poison", "arrow_type_poison", "Poison Arrow"},
+        {"ammo_arrow_small_game", "arrow_type_small_game", "Small Game Arrow"},
+        {"ammo_bullet_normal", "bullet_normal", "Normal Ammo"},
+        {"ammo_bullet_high_velocity", "bullet_high_velocity", "High Velocity Ammo"},
+        {"ammo_bullet_express", "bullet_express", "Express Ammo"},
+    };
+    if (inventoryName == nullptr) return false;
+    for (const Entry& entry : kEntries) {
+        if (std::strcmp(entry.inventory, inventoryName) == 0) {
+            *sprite = entry.wheel;
+            *label = entry.label;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool hud_texture_dictionary_ready() noexcept {
+    constexpr const char* kHudTextureDictionary = "ui_hud";
+    if (invoke_native<int>(kHasStreamedTextureDictLoaded, kHudTextureDictionary) != 0) return true;
+    invoke_native<void>(kRequestStreamedTextureDict, kHudTextureDictionary, false);
+    return false;
+}
+
+void draw_icon_with_shadow(const RecommendationIcon& icon, float centerX, float centerY,
+                           float width, float height) noexcept {
+    // Soft drop shadow: two dark copies offset down and to the right.
+    invoke_native<void>(kDrawSprite, icon.dictionary, icon.sprite, centerX + width * 0.045f,
+                        centerY + height * 0.055f, width, height, 0.0f, 0, 0, 0, 120, false);
+    invoke_native<void>(kDrawSprite, icon.dictionary, icon.sprite, centerX + width * 0.020f,
+                        centerY + height * 0.028f, width, height, 0.0f, 0, 0, 0, 150, false);
+    invoke_native<void>(kDrawSprite, icon.dictionary, icon.sprite, centerX, centerY,
+                        width, height, 0.0f, 255, 255, 255, 255, false);
+}
+
+void draw_label_with_shadow(const char* text, float centerX, float y) noexcept {
+    constexpr float kLabelSize = 8.0f;
+    draw_text_impl(text, centerX + 0.0006f, y + 0.0011f, kLabelSize, 0, 0, 0, 215, false, true);
+    draw_text_impl(text, centerX, y, kLabelSize, 238, 232, 218, 255, false, true);
 }
 
 void draw_hunting_recommendation_icons(
     const hunting_companion::hunting::Recommendation& recommendation,
     const HudIconLayout& layout) noexcept {
     constexpr std::size_t kMaxIcons = 8;
-    const char* textures[kMaxIcons]{};
-    std::size_t textureCount = 0;
-    char ammoNames[160]{};
-    std::size_t ammoNameLength = 0;
+    RecommendationIcon icons[kMaxIcons]{};
+    std::size_t iconCount = 0;
+    const bool wheelAmmo = g_useWheelAmmoIcons && hud_texture_dictionary_ready();
     for (std::size_t i = 0; i < recommendation.choiceCount; ++i) {
         const auto& choice = recommendation.choices[i];
-        if (textureCount < kMaxIcons) textures[textureCount++] = choice.texture;
-        for (std::size_t ammo = 0; ammo < choice.ammoCount && textureCount < kMaxIcons; ++ammo) {
-            textures[textureCount++] = choice.ammo[ammo].texture;
-            const char* name = ammo_icon_name(choice.ammo[ammo].texture);
-            if (name != nullptr && ammoNameLength + 40 < sizeof(ammoNames)) {
-                const int written = std::snprintf(
-                    ammoNames + ammoNameLength, sizeof(ammoNames) - ammoNameLength, "%s%s",
-                    ammoNameLength == 0 ? "" : " / ", hunting_companion::ui_text(name));
-                if (written > 0) ammoNameLength += static_cast<std::size_t>(written);
+        if (iconCount < kMaxIcons) {
+            icons[iconCount++] = RecommendationIcon{"inventory_items", choice.texture, choice.label};
+        }
+        for (std::size_t ammo = 0; ammo < choice.ammoCount && iconCount < kMaxIcons; ++ammo) {
+            const char* wheelSprite = nullptr;
+            const char* label = choice.ammo[ammo].label;
+            wheel_ammo_texture(choice.ammo[ammo].texture, &wheelSprite, &label);
+            if (wheelAmmo && wheelSprite != nullptr) {
+                icons[iconCount++] = RecommendationIcon{"ui_hud", wheelSprite, label};
+            } else {
+                icons[iconCount++] = RecommendationIcon{"inventory_items", choice.ammo[ammo].texture, label};
             }
         }
     }
-    if (textureCount == 0) return;
+    if (iconCount == 0) return;
 
-    constexpr float kIconHeight = 0.0435f;
-    constexpr float kGapHeight = 0.0060f;
-    constexpr float kRightEdge = 0.945f;        // keep clear of the screen edge
-    constexpr float kLiftAboveVendorIcons = 0.050f;
+    constexpr float kIconHeight = 0.050f;            // 15% larger than before
+    constexpr float kRightEdge = 0.972f;             // same right edge as the vendor icons
+    constexpr float kGapAboveVendorIcons = 0.014f;
+    constexpr float kLabelHeight = 0.022f;
     const float heightOverWidth = layout.width / layout.height;
-    const float iconHeight = kIconHeight;
-    const float iconWidth = iconHeight * heightOverWidth;
-    const float gap = kGapHeight * heightOverWidth;
-    const float groupWidth = static_cast<float>(textureCount) * iconWidth +
-                             static_cast<float>(textureCount - 1) * gap;
-    const bool hasLabel = ammoNameLength > 0;
-    const float backdropWidth = std::max(groupWidth + iconWidth * 0.6f,
-                                         hasLabel ? 0.115f : 0.0f);
-    const float backdropHeight = iconHeight * (hasLabel ? 1.75f : 1.45f);
-    const float boxCenterX = kRightEdge - backdropWidth * 0.5f;
-    const float boxBottom = layout.centerY - layout.height * 0.5f - kLiftAboveVendorIcons;
-    const float boxCenterY = boxBottom - backdropHeight * 0.5f;
-    const float iconCenterY = boxCenterY - (hasLabel ? iconHeight * 0.20f : 0.0f);
-    const float leftEdge = boxCenterX - groupWidth * 0.5f;
-    // A single flat grey plate behind the icons.
-    draw_rect(boxCenterX, boxCenterY, backdropWidth, backdropHeight, 40, 40, 42, 200);
+    const float iconWidth = kIconHeight * heightOverWidth;
+    const float cellWidth = std::min(0.062f, 0.36f / static_cast<float>(iconCount));
+    const float groupLeft = kRightEdge - cellWidth * static_cast<float>(iconCount);
+    const float vendorTop = layout.centerY - layout.height * 0.5f;
+    const float labelY = vendorTop - kGapAboveVendorIcons - kLabelHeight;
+    const float iconCenterY = labelY - 0.004f - kIconHeight * 0.5f;
 
-    for (std::size_t i = 0; i < textureCount; ++i) {
-        const float centerX = leftEdge + iconWidth * 0.5f +
-                              static_cast<float>(i) * (iconWidth + gap);
-        invoke_native<void>(kDrawSprite, "inventory_items", textures[i], centerX, iconCenterY,
-                            iconWidth, iconHeight, 0.0f, 255, 255, 255, 255, false);
-    }
-    if (hasLabel) {
-        draw_text_impl(ammoNames, boxCenterX, boxCenterY + iconHeight * 0.42f, 8.5f,
-                       225, 220, 205, 255, false, true);
+    char label[96]{};
+    for (std::size_t i = 0; i < iconCount; ++i) {
+        const float centerX = groupLeft + cellWidth * (static_cast<float>(i) + 0.5f);
+        draw_icon_with_shadow(icons[i], centerX, iconCenterY, iconWidth, kIconHeight);
+        std::snprintf(label, sizeof(label), "%s", hunting_companion::ui_text(icons[i].label));
+        draw_label_with_shadow(label, centerX, labelY);
     }
 }
 
@@ -1900,12 +1943,13 @@ void load_configuration() noexcept {
     const UINT key = GetPrivateProfileIntA("General", "MenuKey", kDefaultMenuKey, g_iniPath);
     g_menuHotkey = (key > 0 && key < 256) ? key : kDefaultMenuKey;
     const UINT filterKey = GetPrivateProfileIntA("General", "FilterKey", kDefaultFilterKey, g_iniPath);
-    // Older versions defaulted to Space, which the game uses for jumping/sprinting.
+    // Space is used by the game for jumping/sprinting, so it is not a valid default.
     g_filterHotkey = (filterKey > 0 && filterKey < 256 && filterKey != VK_SPACE)
         ? filterKey : kDefaultFilterKey;
     const UINT iconsKey = GetPrivateProfileIntA("General", "WeaponIconsKey", kDefaultIconsKey, g_iniPath);
     g_iconsHotkey = (iconsKey > 0 && iconsKey < 256) ? iconsKey : kDefaultIconsKey;
     g_showWeaponIcons = GetPrivateProfileIntA("General", "ShowWeaponIcons", 1, g_iniPath) != 0;
+    g_useWheelAmmoIcons = GetPrivateProfileIntA("General", "UseWheelAmmoIcons", 1, g_iniPath) != 0;
     const UINT configuredLanguage = GetPrivateProfileIntA(
         "General", "UILanguage", 0xFFFFFFFFu, g_iniPath);
     g_uiLanguageOverride = configuredLanguage == 0xFFFFFFFFu
@@ -2020,7 +2064,7 @@ void change_ui_language(int direction) noexcept {
     // Every visible string is resolved against the newly selected immutable
     // locale table on the very next draw. The ItemDB snapshot stores stable
     // Rockstar hashes, not localized text, so a background rescan is neither
-    // needed nor desirable here (it used to create a visible delayed refresh).
+    // needed nor desirable here.
 }
 
 const char* key_name(DWORD key) noexcept {
@@ -3356,8 +3400,6 @@ void draw_menu_row(const char* label, const char* status, int row,
     constexpr float kRowHeight = 0.062f;
     const float y = kRowStartY + static_cast<float>(row) * kRowHeight;
 
-    // Layered rows borrow the compact, high-contrast menu rhythm used by
-    // Rampage-inspired row rhythm and bronze selection accent.
     draw_rect(kPanelCenter, y + 0.020f,
               kPanelWidth, 0.052f,
               selected ? 108 : (disabled ? 10 : 18),
@@ -3925,6 +3967,17 @@ void draw_crafting_uses_page() noexcept {
                           0.071f, 0.300f, 48, 2, 0.030f, 14.0f, 185, 177, 161);
         draw_text("Try another pelt or animal part.",
                   0.071f, 0.385f, 11.5f, 170, 164, 150);
+        // Something is carried but it could not be matched to a recipe: show what the scan saw.
+        for (std::size_t i = 0; i < g_currentHaul.noteCount; ++i) {
+            const HaulScanNote& note = g_currentHaul.notes[i];
+            char line[160]{};
+            std::snprintf(line, sizeof(line), "%s: %s, model %08X, animal %s, quality %d",
+                          note.source == 2 ? "Horse" : "Arthur", note.pelt ? "pelt" : "carcass",
+                          static_cast<unsigned>(note.entityModel),
+                          note.species != nullptr ? note.species : (note.carcassFound ? "unknown" : "not found"),
+                          note.quality);
+            draw_text_raw(line, 0.071f, 0.470f + static_cast<float>(i) * 0.032f, 9.5f, 150, 146, 138);
+        }
     }
     draw_text("Counts include Arthur, satchel and saddle horse.",
               0.071f, 0.790f, 10.5f, 160, 154, 142);
@@ -4106,8 +4159,7 @@ void draw_menu() noexcept {
 }
 
 void TrackerRefreshMain() {
-    // One initial scan, then event-driven scans requested when the compendium
-    // is opened. No timer-based polling or 30-second refresh loop.
+    // One initial scan, then a scan each time the compendium is opened.
     bool initial = true;
     for (;;) {
         if (initial || InterlockedExchange(&g_refreshRequested, 0) != 0) {

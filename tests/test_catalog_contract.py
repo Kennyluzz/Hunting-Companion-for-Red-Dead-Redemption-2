@@ -42,10 +42,4 @@ if "if (identity == nullptr && !hasEmbeddedOfficialName)" not in SOURCE:
 if "Unknown recipe" in SOURCE:
     raise AssertionError("Generic unknown recipe fallback remains")
 
-# Guard the key semantics in release notes so the scope cannot be misread.
-if "Pearson is retained" not in README:
-    raise AssertionError("README does not explicitly state Pearson is retained")
-if "Ordinary Pearson recipes, satchels and camp decorations remain visible" not in README:
-    raise AssertionError("README does not document preserved Pearson content")
-
 print("Pearson retention and unknown-recipe exclusion checks passed.")

@@ -9,7 +9,7 @@ int main() {
     using hunting_companion::OfficialStringTable;
     OfficialStringTable table;
 
-    // All values below are read from Rockstar's supplied Translation.xml packs,
+    // All values below are read from Rockstar's Translation.xml language packs,
     // matched by the same stable label ID used by ItemDatabase.
     assert(table.select_locale("en-US"));
     assert(table.size() == 358);
