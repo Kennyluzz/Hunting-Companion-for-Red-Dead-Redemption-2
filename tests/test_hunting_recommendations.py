@@ -117,7 +117,7 @@ if "cost.hash == kMoneyHash" in craftable_block:
 if "src/embedded_hunting_recommendations.hpp" not in CMAKE:
     raise AssertionError("CMake does not include the generated recommendation header")
 if "VERSION 1.15.0" not in CMAKE:
-    raise AssertionError("CMake project version is not 1.13.0")
+    raise AssertionError("CMake project version is not 1.15.0")
 
 locales = ("en-US","fr-FR","de-DE","it-IT","es-ES","pt-BR","pl-PL","ru-RU","ko-KR","zh-TW","ja-JP","es-MX","zh-CN")
 for locale in locales:

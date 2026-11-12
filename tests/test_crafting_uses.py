@@ -68,8 +68,8 @@ if "SET_GAME_PAUSED" in SOURCE or "kSetGamePaused" in SOURCE:
 for forbidden in ("REMOVE_INVENTORY_ITEM", "CLEAR_PELT_FROM_HORSE", "SET_PELT_FOR_HORSE"):
     if forbidden in SOURCE:
         raise AssertionError(f"Crafting Uses must not mutate inventory/cargo: {forbidden}")
-if "VERSION 1.13.0" not in CMAKE:
-    raise AssertionError("CMake version is not 1.13.0")
+if "VERSION 1.15.0" not in CMAKE:
+    raise AssertionError("CMake version is not 1.15.0")
 
 locales = ("en-US","fr-FR","de-DE","it-IT","es-ES","pt-BR","pl-PL","ru-RU","ko-KR","zh-TW","ja-JP","es-MX","zh-CN")
 keys = ("Crafting Uses","NO HAUL","AVAILABLE","CRAFTING USES","READY AFTER DONATION",
