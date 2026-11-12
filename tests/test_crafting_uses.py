@@ -54,7 +54,6 @@ required = (
     "recipe_uses_current_haul(recipe)",
     "current_haul_count(cost.hash) + donated < cost.amount",
     "READY AFTER DONATION",
-    "ANIMAL PARTS READY",
     "OTHER COSTS NEEDED",
     "haul + donated, cost.amount",
     "g_menu.page = MenuPage::CraftingUseDetail",

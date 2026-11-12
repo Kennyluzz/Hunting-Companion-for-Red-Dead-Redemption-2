@@ -2939,8 +2939,10 @@ CraftingUseReadiness selected_crafting_use_readiness() noexcept {
 
 const char* crafting_use_readiness_label(CraftingUseReadiness readiness) noexcept {
     switch (readiness) {
-        case CraftingUseReadiness::ReadyAfterDonation: return "READY AFTER DONATION";
-        case CraftingUseReadiness::AnimalPartsReady: return "ANIMAL PARTS READY";
+        // Both mean "what you hold (plus vendor stock) covers the animal parts";
+        // one recipe also costs money, which is not worth a different label.
+        case CraftingUseReadiness::ReadyAfterDonation:
+        case CraftingUseReadiness::AnimalPartsReady: return "READY AFTER DONATION";
         case CraftingUseReadiness::NeedsOtherMaterials: return "OTHER COSTS NEEDED";
         case CraftingUseReadiness::UsesHaul: return "USES YOUR HAUL";
     }
@@ -3890,16 +3892,18 @@ void draw_list_page(const char* title, const char* subtitle,
     }
     char count[48]{};
     std::snprintf(count, sizeof(count), hunting_companion::ui_text("%d of %d"), total > 0 ? g_menu.selection + 1 : 0, total);
-    draw_text(count, 0.31f, 0.808f, 13.5f,
+    draw_text(count, 0.31f, 0.832f, 13.5f,
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     // Scroll arrows appear only while rows are hidden above or below.
     if (menu_textures_ready()) {
         const float arrowWidth = 0.0105f * screen_width_correction();
+        // The two arrow textures sit at different heights inside their sprites;
+        // the y values differ so both appear level with the "n of m" text.
         if (start > 0)
-            draw_sprite(theme::kMenu, theme::kArrowUp, 0.283f, 0.822f, arrowWidth, 0.0187f,
+            draw_sprite(theme::kMenu, theme::kArrowUp, 0.283f, 0.8365f, arrowWidth, 0.0187f,
                         theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 235);
         if (end < total)
-            draw_sprite(theme::kMenu, theme::kArrowDown, 0.297f, 0.822f, arrowWidth, 0.0187f,
+            draw_sprite(theme::kMenu, theme::kArrowDown, 0.297f, 0.8475f, arrowWidth, 0.0187f,
                         theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 235);
     }
     draw_menu_footer();
@@ -4376,7 +4380,7 @@ void draw_crafting_uses_page() noexcept {
                   0.071f, 0.385f, 11.5f, 170, 164, 150);
     }
     draw_text("Counts include what you carry, your satchel and saddle horse.",
-              0.071f, 0.790f, 10.5f, 160, 154, 142);
+              0.071f, 0.815f, 10.5f, 160, 154, 142);
 }
 
 void draw_crafting_use_detail() noexcept {
