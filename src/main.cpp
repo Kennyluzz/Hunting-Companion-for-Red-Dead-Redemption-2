@@ -7,8 +7,7 @@
 
 #include <windows.h>
 #include "localization.hpp"
-#include "native_fonts.hpp"
-#include "font_catalog.hpp"
+#include "cjk_overlay.hpp"
 #include "embedded_challenge_objective_hashes.hpp"
 #include "embedded_hunting_recommendations.hpp"
 
@@ -822,14 +821,6 @@ struct TrackerState {
     bool ready{};
 };
 TrackerState g_tracker{};
-
-// Zeroes a large all-zero-by-default aggregate in place. `value = T{}` would
-// build a temporary of the same size on the stack first.
-template <typename T>
-void reset_trivially(T& value) noexcept {
-    static_assert(std::is_trivially_copyable_v<T>, "reset_trivially needs a trivially copyable type");
-    std::memset(static_cast<void*>(&value), 0, sizeof(T));
-}
 SRWLOCK g_trackerLock = SRWLOCK_INIT;
 
 // Visible scan telemetry: expose the exact initialization stage and bounded
@@ -864,34 +855,6 @@ void set_scan_stage(ScanStage stage, int total = 0) noexcept {
 void set_scan_progress(int current) noexcept {
     const int total = InterlockedCompareExchange(&g_scanTotal, 0, 0);
     InterlockedExchange(&g_scanCurrent, std::clamp(current, 0, std::max(0, total)));
-    scan_heartbeat();
-}
-
-// The catalogue scan runs on a ScriptHook script fiber, so all of its work is
-// spent inside a game frame. Each frame gets a small, fixed time slice of scan
-// work and the scan yields once it is used up; yielding after every native
-// query would stretch a scan over thousands of frames.
-// [General] ScanSliceMicroseconds in the ini; 0 yields after every query.
-// Read at attach, before either script thread starts.
-constexpr int kDefaultScanSliceMicroseconds = 1000;
-int g_scanSliceMicroseconds = kDefaultScanSliceMicroseconds;
-
-void scan_yield() noexcept {
-    static LONGLONG ticksPerSlice = -1;
-    static LONGLONG sliceStart = 0;
-    LARGE_INTEGER now{};
-    QueryPerformanceCounter(&now);
-    if (ticksPerSlice < 0) {
-        LARGE_INTEGER frequency{};
-        QueryPerformanceFrequency(&frequency);
-        ticksPerSlice = frequency.QuadPart * g_scanSliceMicroseconds / 1000000;
-        sliceStart = now.QuadPart;
-    }
-    if (now.QuadPart - sliceStart >= ticksPerSlice) {
-        g_api.wait(0);
-        QueryPerformanceCounter(&now);
-        sliceStart = now.QuadPart;
-    }
     scan_heartbeat();
 }
 
@@ -1128,7 +1091,8 @@ void read_recipe_cost_rows(VendorDemand& vendor, RecipeEntry& recipe,
                 }
             }
         }
-        scan_yield();
+        g_api.wait(0);
+        scan_heartbeat();
     }
 }
 
@@ -1136,7 +1100,7 @@ void scan_vendor_catalog(VendorState& state, std::uint32_t shopHash,
                          std::uint32_t costTypeHash, std::uint32_t promoCostTypeHash,
                          int inventoryId, ScanStage stage,
                          LocalizedItemNameCache& localizedNames) noexcept {
-    reset_trivially(state);
+    state = {};
     VendorDemand& vendor = state.demand;
     const int rawCount = invoke_native<int>(kItemDatabaseGetShopItemsCount, shopHash);
     if (rawCount < 0 || rawCount > kMaxShopItems) {
@@ -1151,7 +1115,8 @@ void scan_vendor_catalog(VendorState& state, std::uint32_t shopHash,
         std::array<std::uint64_t, 3> itemInfo{};
         const int ok = invoke_native<int>(kItemDatabaseGetShopItemInfo, shopHash, index, itemInfo.data());
         if (!ok) {
-            scan_yield();
+            g_api.wait(0);
+            scan_heartbeat();
             set_scan_progress(index + 1);
             continue;
         }
@@ -1162,7 +1127,8 @@ void scan_vendor_catalog(VendorState& state, std::uint32_t shopHash,
         // records are excluded from the recipe list and scan totals.
         if (shopHash == kShopPearson && is_pearson_unlabelled_placeholder(itemHash)) {
             set_scan_progress(index + 1);
-            scan_yield();
+            g_api.wait(0);
+            scan_heartbeat();
             continue;
         }
         ++vendor.scannedItems;
@@ -1190,7 +1156,8 @@ void scan_vendor_catalog(VendorState& state, std::uint32_t shopHash,
         }
         if (identity == nullptr && !hasEmbeddedOfficialName) {
             set_scan_progress(index + 1);
-            scan_yield();
+            g_api.wait(0);
+            scan_heartbeat();
             continue;
         }
 
@@ -1235,7 +1202,8 @@ void scan_vendor_catalog(VendorState& state, std::uint32_t shopHash,
             state.recipes[state.recipeCount++] = recipe;
         }
         set_scan_progress(index + 1);
-        scan_yield();
+        g_api.wait(0);
+        scan_heartbeat();
     }
     vendor.ready = true;
     set_scan_progress(rawCount);
@@ -1271,16 +1239,9 @@ bool build_tracker_state() noexcept {
     }
     set_scan_progress(3);
 
-    // The scan builds into one static scratch snapshot (~400 KB) instead of the
-    // stack: ScriptHook runs this on a fiber whose stack size is not ours to pick.
-    // Only one thread ever scans (the refresh worker, or ScriptMain without it).
-    static TrackerState scratch;
-    reset_trivially(scratch.pearson);
-    reset_trivially(scratch.trapper);
-    reset_trivially(scratch.localizedNames);
-    VendorState& pearson = scratch.pearson;
-    VendorState& trapper = scratch.trapper;
-    LocalizedItemNameCache& localizedNames = scratch.localizedNames;
+    VendorState pearson{};
+    VendorState trapper{};
+    LocalizedItemNameCache localizedNames{};
     scan_vendor_catalog(pearson, kShopPearson, kCostCraftingPearson, 0,
                         inventoryId, ScanStage::PearsonCatalog, localizedNames);
     if (static_cast<ScanStage>(InterlockedCompareExchange(&g_scanStage, 0, 0)) == ScanStage::Failed) {
@@ -1305,7 +1266,8 @@ bool build_tracker_state() noexcept {
                                                       material.hash, kPearsonStorageSlot);
         material.stillNeeded = std::max(0, material.totalRequired - material.vendorStock);
         set_scan_progress(static_cast<int>(i + 1));
-        scan_yield();
+        g_api.wait(0);
+        scan_heartbeat();
     }
     set_scan_stage(ScanStage::TrapperStock, static_cast<int>(trapper.demand.count));
     for (std::size_t i = 0; i < trapper.demand.count; ++i) {
@@ -1314,7 +1276,8 @@ bool build_tracker_state() noexcept {
                                                       material.hash, kTrapperGiveStorageSlot);
         material.stillNeeded = std::max(0, material.totalRequired - material.vendorStock);
         set_scan_progress(static_cast<int>(i + 1));
-        scan_yield();
+        g_api.wait(0);
+        scan_heartbeat();
     }
 
     // Read the game's own challenge rank totals. These calls do not advance,
@@ -1332,7 +1295,7 @@ bool build_tracker_state() noexcept {
             challenges[i].available = true;
         }
         set_scan_progress(static_cast<int>(i + 1));
-        scan_yield();
+        g_api.wait(0);
     }
 
     AcquireSRWLockExclusive(&g_trackerLock);
@@ -1446,16 +1409,7 @@ constexpr auto kAnimalModels = std::array{
     AnimalModel{joaat("a_c_raven_01"), "Raven"}, AnimalModel{joaat("a_c_robin_01"), "Robin"},
     AnimalModel{joaat("a_c_rooster_01"), "Rooster"}, AnimalModel{joaat("a_c_seagull_01"), "Seagull"},
     AnimalModel{joaat("a_c_sheep_01"), "Sheep"}, AnimalModel{joaat("a_c_skunk_01"), "Skunk"},
-    AnimalModel{joaat("a_c_snakeblacktailrattle_01"), "Rattlesnake"},
-    // Every other snake in the Compendium (132-143): Timber, Western and Diamondback
-    // rattlesnakes, Fer-de-Lance, the boas, copperheads, cottonmouth and water
-    // snakes. They share the "Rattlesnake" entry (Bow with Small Game Arrows).
-    AnimalModel{joaat("a_c_snake_01"), "Rattlesnake"}, AnimalModel{joaat("a_c_snakeferdelance_01"), "Rattlesnake"},
-    AnimalModel{joaat("a_c_snakeredboa_01"), "Rattlesnake"}, AnimalModel{joaat("a_c_snakeredboa10ft_01"), "Rattlesnake"},
-    AnimalModel{joaat("a_c_snakewater_01"), "Rattlesnake"},
-    // Legendary animals with a model of their own (the others are variants of the
-    // regular models and already covered).
-    AnimalModel{joaat("a_c_boarlegendary_01"), "Boar"}, AnimalModel{joaat("a_c_buffalo_tatanka_01"), "Bison"}, AnimalModel{joaat("a_c_songbird_01"), "Songbird"},
+    AnimalModel{joaat("a_c_snakeblacktailrattle_01"), "Rattlesnake"}, AnimalModel{joaat("a_c_songbird_01"), "Songbird"},
     AnimalModel{joaat("a_c_sparrow_01"), "Sparrow"}, AnimalModel{joaat("a_c_squirrel_01"), "Squirrel"},
     AnimalModel{joaat("a_c_turkey_01"), "Turkey"}, AnimalModel{joaat("a_c_turkey_02"), "Turkey"},
     AnimalModel{joaat("a_c_turkeywild_01"), "Turkey"}, AnimalModel{joaat("a_c_vulture_01"), "Vulture"},
@@ -1664,25 +1618,6 @@ void refresh_current_haul_if_due() noexcept {
     InterlockedExchange(&g_haulDirty, 1);
 }
 
-// Frame counter advanced once per ScriptMain tick. Values that cannot change
-// within a frame (the screen resolution) are queried once per frame instead of
-// once per drawn label.
-unsigned g_frameIndex = 1;
-
-void screen_resolution(int* width, int* height) noexcept {
-    static unsigned cachedFrame = 0;
-    static int cachedWidth = 0;
-    static int cachedHeight = 0;
-    if (cachedFrame != g_frameIndex) {
-        cachedWidth = 0;
-        cachedHeight = 0;
-        invoke_native<void>(kGetScreenResolution, &cachedWidth, &cachedHeight);
-        cachedFrame = g_frameIndex;
-    }
-    *width = cachedWidth;
-    *height = cachedHeight;
-}
-
 bool blip_texture_dictionary_ready() noexcept {
     constexpr const char* kBlipTextureDictionary = "BLIPS";
     if (invoke_native<int>(kHasStreamedTextureDictLoaded, kBlipTextureDictionary) != 0) {
@@ -1704,7 +1639,7 @@ bool get_hud_icon_layout(HudIconLayout* layout) noexcept {
     if (layout == nullptr) return false;
     int screenWidth = 0;
     int screenHeight = 0;
-    screen_resolution(&screenWidth, &screenHeight);
+    invoke_native<void>(kGetScreenResolution, &screenWidth, &screenHeight);
     if (screenWidth <= 0 || screenHeight <= 0) return false;
 
     // Keep the sprite square in physical pixels at every aspect ratio. The
@@ -1799,78 +1734,29 @@ float codepoint_width(std::uint32_t c) noexcept {
 float screen_width_correction() noexcept {
     int width = 0;
     int height = 0;
-    screen_resolution(&width, &height);
+    invoke_native<void>(kGetScreenResolution, &width, &height);
     if (width <= 0 || height <= 0) return 1.0f;
     return (16.0f / 9.0f) / (static_cast<float>(width) / static_cast<float>(height));
 }
 
-// ---- Menu fonts -------------------------------------------------------------
-// Every companion language has its own list of the game's fonts, built from the
-// game's own fontmap.xml (font_catalog.hpp), and the choice is saved per
-// language. Each entry carries a rough width factor (relative to the catalogue
-// face the text-fitting estimates were tuned for).
-hunting_companion::fonts::FontMap g_fontMap;
-bool g_fontMapLoaded = false;
-int active_language_for_fonts() noexcept { return hunting_companion::active_ui_language(); }
-bool needs_native_library(int language) noexcept;
-
-// Used when fontmap.xml cannot be read: five fonts every Latin library has.
-using hunting_companion::fonts::MenuFont;
-using hunting_companion::fonts::MenuFontList;
-constexpr MenuFont kFallbackMenuFonts[] = {
-    {"$catalog1", "CATALOGUE", false, 1.00f, "CATALOGUE"},
-    {"$body", "BODY", false, 0.94f, "BODY"},
-    {"$body1", "BODY 1", false, 0.94f, "BODY 1"},
-    {"$title1", "TITLE", false, 0.74f, "TITLE"},
-    {"$ledger", "LEDGER", false, 0.92f, "LEDGER"},
+// 1.20 look: the menu font can be switched in Settings. Each face carries a
+// rough width factor (relative to the catalogue face the estimates were tuned
+// for) so the text-fitting keeps working.
+struct MenuFont { const char* face; const char* name; float widthFactor; };
+constexpr MenuFont kMenuFonts[] = {
+    {"$catalog1", "CATALOGUE", 1.00f},
+    {"$body", "BODY", 0.94f},
+    {"$body1", "BODY 1", 0.94f},
+    {"$title1", "TITLE", 0.74f},
+    {"$ledger", "LEDGER", 0.92f},
 };
-constexpr int kLanguageCount = 13;
-constexpr std::size_t kAliasCapacity = 40;
-char g_menuFontAlias[kLanguageCount][kAliasCapacity]{};   // chosen alias per companion language
+constexpr int kMenuFontCount = static_cast<int>(std::size(kMenuFonts));
+int g_menuFontIndex = 0;
 
-MenuFontList fallback_menu_fonts(int language) noexcept {
-    MenuFontList list;
-    for (const MenuFont& font : kFallbackMenuFonts) {
-        // The ledger face has no Cyrillic letters.
-        if (language == 7 && std::strcmp(font.alias, "$ledger") == 0) continue;
-        list.fonts[list.count++] = font;
-    }
-    return list;
-}
-
-const MenuFontList& menu_fonts() noexcept {
-    static MenuFontList cached;
-    static int cachedLanguage = -2;
-    static int cachedGame = -2;
-    static bool cachedMap = false;
-    const int language = active_language_for_fonts();
-    if (language != cachedLanguage || g_detectedGameLanguage != cachedGame || g_fontMapLoaded != cachedMap) {
-        cached = g_fontMapLoaded
-            ? hunting_companion::fonts::menu_fonts_for(g_fontMap, language, g_detectedGameLanguage)
-            : MenuFontList{};
-        if (cached.count == 0) cached = fallback_menu_fonts(language);
-        cachedLanguage = language;
-        cachedGame = g_detectedGameLanguage;
-        cachedMap = g_fontMapLoaded;
-    }
-    return cached;
-}
-
-int current_menu_font_index() noexcept {
-    const MenuFontList& list = menu_fonts();
-    const int language = active_language_for_fonts();
-    if (language >= 0 && language < kLanguageCount) {
-        for (int i = 0; i < list.count; ++i) {
-            if (std::strcmp(list.fonts[i].alias, g_menuFontAlias[language]) == 0) return i;
-        }
-    }
-    return 0;   // the first font (the catalogue face, or its counterpart)
-}
-
-const MenuFont& current_menu_font() noexcept {
-    static constexpr MenuFont kCatalogue{"$catalog1", "CATALOGUE", false, 1.0f, "CATALOGUE"};
-    const MenuFontList& list = menu_fonts();
-    return list.count > 0 ? list.fonts[current_menu_font_index()] : kCatalogue;
+// The LEDGER face has no Cyrillic letters, so Russian falls back to CATALOGUE.
+int effective_menu_font() noexcept {
+    if (g_menuFontIndex == 4 && hunting_companion::active_ui_language() == 7) return 0;
+    return g_menuFontIndex;
 }
 
 float text_width_estimate(const char* text, float size, float correction) noexcept {
@@ -1878,7 +1764,7 @@ float text_width_estimate(const char* text, float size, float correction) noexce
     for (const char* cursor = text; *cursor != '\0';) width += codepoint_width(next_codepoint(cursor));
     const float fontFactor =
         hunting_companion::uses_cjk_font(hunting_companion::active_ui_language())
-            ? 1.0f : current_menu_font().widthFactor * current_menu_font().sizeScale;
+            ? 1.0f : kMenuFonts[effective_menu_font()].widthFactor;
     return width * size * correction * fontFactor;
 }
 
@@ -1969,7 +1855,6 @@ bool wrap_to_width(const char* text, float size, float correction, float maxWidt
 }
 
 bool g_showWeaponIcons = true;       // toggled from Settings or the icons hotkey
-bool g_legendaryIcon = true;         // [General] LegendaryIcon: 0 = "Any weapon" text only
 
 void draw_text_impl(const char* text, float x, float y, float referencePixelHeight,
                     int red, int green, int blue, int alpha,
@@ -1993,11 +1878,10 @@ void draw_icon_with_shadow(const RecommendationIcon& icon, float centerX, float 
 }
 
 // Draws a centred label of up to two lines, always inside maxWidth.
-void draw_label_with_shadow(const char* text, float centerX, float y, float maxWidth,
-                            float startSize = 9.0f) noexcept {
+void draw_label_with_shadow(const char* text, float centerX, float y, float maxWidth) noexcept {
     const float correction = screen_width_correction();
     FittedLines fitted;
-    float size = startSize;
+    float size = 9.0f;
     while (!wrap_to_width(text, size, correction, maxWidth, 2, &fitted) && size > 7.5f) size -= 0.5f;
     for (int line = 0; line < fitted.count; ++line) {
         const float lineY = y + static_cast<float>(line) * size * 0.00155f;
@@ -2039,7 +1923,7 @@ void draw_hunting_recommendation_icons(
     constexpr float kRowHeight = kIconHeight + kLabelGap + kLabelBlockHeight + 0.006f;
     constexpr float kRightEdge = 0.972f;             // same right edge as the vendor icons
     constexpr float kGapAboveVendorIcons = 0.014f;
-    constexpr float kCellWidth = 0.062f;             // a weapon and its ammunition sit close together
+    constexpr float kCellWidth = 0.078f;
     constexpr float kLabelRightLimit = 0.988f;       // labels stay clear of the screen edge
     const float heightOverWidth = layout.width / layout.height;
     const float iconWidth = kIconHeight * heightOverWidth;
@@ -2067,69 +1951,6 @@ void draw_hunting_recommendation_icons(
     }
 }
 
-// Legendary animals: the game's own animal types (eAnimalType, the hash of the
-// type name). Their models are the regular ones with a special outfit, so only
-// the type tells them apart. A legendary pelt cannot be damaged, so any weapon
-// gives a perfect carcass and no weapon icons are shown for them.
-constexpr std::uint64_t kGetPedAnimalType = 0x964000D355219FC0ull;
-constexpr std::uint32_t kLegendaryAnimalTypes[] = {
-    joaat("AT_GATOR_BULL"), joaat("AT_BEAR_LEGENDARY"), joaat("AT_BEAVER_LEGENDARY"),
-    joaat("AT_BUFFALO_LEGENDARY"), joaat("AT_BUFFALO_TATANKA"), joaat("AT_BOAR_LEGENDARY"),
-    joaat("AT_BUCK_LEGENDARY"), joaat("AT_COUGAR_LEGENDARY"), joaat("AT_COYOTE_LEGENDARY"),
-    joaat("AT_FOX_LEGENDARY"), joaat("AT_ELK_LEGENDARY"), joaat("AT_MOOSE_LEGENDARY"),
-    joaat("AT_PANTHER_LEGENDARY"), joaat("AT_PRONGHORN_LEGENDARY"), joaat("AT_RAM_LEGENDARY"),
-    joaat("AT_WOLF_LEGENDARY"),
-};
-
-bool is_legendary_animal(int ped) noexcept {
-    const std::uint32_t type = invoke_native<std::uint32_t>(kGetPedAnimalType, ped);
-    for (std::uint32_t legendary : kLegendaryAnimalTypes) {
-        if (type == legendary) return true;
-    }
-    return false;
-}
-
-// The game's bounty-hunter map icon stands for "any weapon" on legendary animals.
-constexpr const char* kLegendaryIconDictionary = "BLIPS";
-constexpr const char* kLegendaryIconTexture = "blip_ambient_bounty_hunter";
-
-bool texture_dictionary_ready(const char* dictionary) noexcept {
-    if (invoke_native<int>(kHasStreamedTextureDictLoaded, dictionary) != 0) return true;
-    invoke_native<void>(kRequestStreamedTextureDict, dictionary, false);
-    return false;
-}
-
-// In place of the weapon icons: a game icon with "Any weapon" beneath it,
-// above the vendor icons, where the weapon icons would be.
-void draw_any_weapon_hint(const HudIconLayout& layout) noexcept {
-    constexpr float kRightEdge = 0.972f;
-    constexpr float kGapAboveVendorIcons = 0.014f;
-    constexpr float kIconHeight = 0.050f;
-    constexpr float kLabelGap = 0.004f;
-    constexpr float kLabelBlockHeight = 0.032f;
-    const float heightOverWidth = layout.width / layout.height;
-    const float iconWidth = kIconHeight * heightOverWidth;
-    const float vendorTop = layout.centerY - layout.height * 0.5f;
-    const float bottom = vendorTop - kGapAboveVendorIcons;
-    char label[96]{};
-    std::snprintf(label, sizeof(label), "%s", hunting_companion::ui_text("Any weapon"));
-    if (g_legendaryIcon) {
-        const float centerX = kRightEdge - iconWidth * 0.5f;
-        const float rowTop = bottom - kIconHeight - kLabelGap - kLabelBlockHeight;
-        if (texture_dictionary_ready(kLegendaryIconDictionary)) {
-            const RecommendationIcon icon{kLegendaryIconDictionary, kLegendaryIconTexture, ""};
-            draw_icon_with_shadow(icon, centerX, rowTop + kIconHeight * 0.5f, iconWidth, kIconHeight);
-        }
-        // Centred under the icon and narrowed near the screen edge, like the
-        // weapon labels.
-        const float labelWidth = std::min(0.09f, (0.988f - centerX) * 2.0f);
-        draw_label_with_shadow(label, centerX, rowTop + kIconHeight + kLabelGap, labelWidth);
-        return;
-    }
-    constexpr float kWidth = 0.12f;
-    draw_label_with_shadow(label, kRightEdge - kWidth * 0.5f, bottom - 0.030f, kWidth, 12.0f);
-}
-
 void update_hud() noexcept {
     if (!g_tracker.ready) return;
     const int player = invoke_native<int>(0x217E9DC48139933Dull);
@@ -2150,9 +1971,7 @@ void update_hud() noexcept {
     // Recommendations are useful for every recognized animal, not only species
     // currently needed by Pearson or the Trapper.
     const auto* recommendation = hunting_companion::hunting::find(species);
-    if (g_showWeaponIcons && is_legendary_animal(focusedEntity)) {
-        draw_any_weapon_hint(layout);
-    } else if (recommendation != nullptr && g_showWeaponIcons && inventory_texture_dictionary_ready()) {
+    if (recommendation != nullptr && g_showWeaponIcons && inventory_texture_dictionary_ready()) {
         draw_hunting_recommendation_icons(*recommendation, layout);
     }
 
@@ -2287,16 +2106,8 @@ void load_configuration() noexcept {
     const UINT iconsKey = GetPrivateProfileIntA("General", "WeaponIconsKey", kDefaultIconsKey, g_iniPath);
     g_iconsHotkey = (iconsKey > 0 && iconsKey < 256) ? iconsKey : kDefaultIconsKey;
     g_showWeaponIcons = GetPrivateProfileIntA("General", "ShowWeaponIcons", 1, g_iniPath) != 0;
-    g_legendaryIcon = GetPrivateProfileIntA("General", "LegendaryIcon", 1, g_iniPath) != 0;
-    // MenuFont (0-4, one of the fallback fonts) is the default for languages
-    // without their own MenuFont.<locale> choice.
     const UINT menuFont = GetPrivateProfileIntA("General", "MenuFont", 0, g_iniPath);
-    const char* defaultAlias = kFallbackMenuFonts[menuFont < std::size(kFallbackMenuFonts) ? menuFont : 0].alias;
-    for (int language = 0; language < kLanguageCount; ++language) {
-        char key[32];
-        std::snprintf(key, sizeof(key), "MenuFont.%s", game_language_locale(language));
-        GetPrivateProfileStringA("General", key, defaultAlias, g_menuFontAlias[language], kAliasCapacity, g_iniPath);
-    }
+    g_menuFontIndex = menuFont < static_cast<UINT>(kMenuFontCount) ? static_cast<int>(menuFont) : 0;
     const UINT configuredLanguage = GetPrivateProfileIntA(
         "General", "UILanguage", 0xFFFFFFFFu, g_iniPath);
     g_uiLanguageOverride = configuredLanguage == 0xFFFFFFFFu
@@ -2337,33 +2148,12 @@ void save_icons_settings() noexcept {
     WritePrivateProfileStringA("General", "ShowWeaponIcons", g_showWeaponIcons ? "1" : "0", g_iniPath);
 }
 
-// Steps through the current language's own font list and saves the choice for
-// that language only.
 void change_menu_font(int direction) noexcept {
-    const MenuFontList& list = menu_fonts();
-    const int language = active_language_for_fonts();
-    if (list.count == 0 || language < 0 || language >= kLanguageCount) return;
-    const int next = (current_menu_font_index() + direction + list.count) % list.count;
-    std::snprintf(g_menuFontAlias[language], kAliasCapacity, "%s", list.fonts[next].alias);
+    g_menuFontIndex = (g_menuFontIndex + direction + kMenuFontCount) % kMenuFontCount;
     if (g_iniPath[0] == '\0') return;
-    char key[32];
-    std::snprintf(key, sizeof(key), "MenuFont.%s", game_language_locale(language));
-    WritePrivateProfileStringA("General", key, g_menuFontAlias[language], g_iniPath);
-}
-
-// Reads the game's own font map (the update archive's copy first, as the game does).
-void load_font_map() noexcept {
-    for (const char* path : {"update:/common/data/ui/fontmap.xml", "common:/data/ui/fontmap.xml"}) {
-        std::size_t size = 0;
-        char* text = hunting_companion::native_fonts::read_game_file(path, &size);
-        if (text == nullptr) continue;
-        const std::size_t entries = g_fontMap.parse(text, size);
-        hunting_companion::native_fonts::free_game_file(text);
-        if (entries > 0) {
-            g_fontMapLoaded = true;
-            return;
-        }
-    }
+    char value[16]{};
+    std::snprintf(value, sizeof(value), "%d", g_menuFontIndex);
+    WritePrivateProfileStringA("General", "MenuFont", value, g_iniPath);
 }
 
 void save_ui_language() noexcept {
@@ -2373,58 +2163,42 @@ void save_ui_language() noexcept {
     WritePrivateProfileStringA("General", "UILanguage", value, g_iniPath);
 }
 
-// ---- Native CJK fonts --------------------------------------------------------
+// ---- CJK overlay integration ---------------------------------------------
 // The language the user asked for: an explicit pick, or the game's own.
 int requested_language() noexcept {
     return g_uiLanguageOverride >= 0 ? g_uiLanguageOverride : g_detectedGameLanguage;
 }
 
-// True when the companion language needs one of the game's other font libraries:
-// a CJK language the game is not running in, or a Latin/Cyrillic language on a
-// CJK game (the CJK libraries lack most accented letters).
-bool needs_native_library(int language) noexcept {
-    return hunting_companion::native_fonts::needs_library(language, g_detectedGameLanguage);
+// CJK text needs the overlay only when the game itself is NOT running in that
+// language; otherwise the game's own fonts already contain the glyphs.
+bool needs_overlay(int language) noexcept {
+    // Overlay only when the companion language is CJK and the game is not running
+    // in it. A Latin or Cyrillic companion language on a CJK game needs no overlay:
+    // the game keeps a plain face with those letters loaded (see selected_font_face).
+    if (language == g_detectedGameLanguage) return false;
+    return hunting_companion::uses_cjk_font(language);
 }
 
-// Fallback while the Latin/Cyrillic library is not available on a CJK game: the
-// game's plain "standard"/"utility" face has more Latin and Cyrillic letters than
-// its styled CJK faces, though not every accent.
+// True when a Latin/Cyrillic companion language is shown on a game running in a
+// CJK language. The game's styled CJK faces lack accented Latin letters and only
+// have wide Cyrillic, but its plain "standard"/"utility" face has both (checked
+// in-game for Polish and Russian on a Japanese game).
 bool plain_face_needed() noexcept {
     return hunting_companion::uses_cjk_font(g_detectedGameLanguage) &&
            !hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
 }
 
-// The language that can really be drawn right now. A CJK language whose font
-// library is still loading from the game files (or could not be loaded) shows
-// English instead of empty squares, and switches over as soon as it is ready.
-// A Latin/Cyrillic language keeps itself in the game's basic font meanwhile.
-// True once text in `language` can be drawn with a font from its own library.
-bool native_text_ready(int language) noexcept {
-    if (!hunting_companion::native_fonts::library_ready(language)) return false;
-    bool bold = false;
-    if (hunting_companion::native_fonts::override_face(language, &bold) != nullptr) return true;
-    if (g_fontMapLoaded &&
-        g_fontMap.find(hunting_companion::fonts::library_key(language), "$catalog1") != nullptr) return true;
-    if (hunting_companion::native_fonts::fallback_face(language, &bold) != nullptr) return true;
-    hunting_companion::native_fonts::mark_unusable(language, "no font name is known for it (set it in the ini)");
-    return false;
-}
-
+// The language that can really be drawn right now. If the user picked a CJK
+// language but the overlay is not available (not Vulkan, hook failed, still
+// starting), fall back to English instead of showing empty squares.
 int effective_language() noexcept {
     const int wanted = requested_language();
-    if (needs_native_library(wanted) && !native_text_ready(wanted) &&
-        hunting_companion::native_fonts::falls_back_to_english(wanted)) {
-        // While the library loads (a fraction of a second), keep the language
-        // already on screen instead of flashing English; English only if it fails.
-        if (hunting_companion::native_fonts::loading(wanted)) return hunting_companion::active_ui_language();
-        return 0;
-    }
+    if (needs_overlay(wanted) && !hunting_companion::overlay::ready()) return 0;
     return wanted;
 }
 
-bool native_font_fallback_active() noexcept {
-    const int wanted = requested_language();
-    return needs_native_library(wanted) && !native_text_ready(wanted);
+bool overlay_fallback_active() noexcept {
+    return effective_language() != requested_language();
 }
 
 void apply_effective_language() noexcept {
@@ -2432,26 +2206,27 @@ void apply_effective_language() noexcept {
     if (effective != hunting_companion::active_ui_language()) {
         hunting_companion::load_ui_localization(g_detectedGameLanguage, effective);
     }
+    hunting_companion::overlay::set_language(effective);
 }
 
-// Read once at attach time: the font hook must be in place before the game
-// sets up its fonts, which is long before ScriptMain runs.
-hunting_companion::native_fonts::Settings make_font_settings() noexcept {
+// Read once at attach time (the hooks must be installed before the game starts
+// Vulkan, which is earlier than ScriptMain runs).
+hunting_companion::overlay::Settings make_overlay_settings() noexcept {
     initialise_ini_path();
-    hunting_companion::native_fonts::Settings settings;
+    hunting_companion::overlay::Settings settings;
     if (g_iniPath[0] != '\0') {
-        settings.fileLog = GetPrivateProfileIntA("Fonts", "FontLog", 0, g_iniPath) != 0;
+        const int scale = static_cast<int>(GetPrivateProfileIntA("Overlay", "CjkTextScalePercent", 100, g_iniPath));
+        settings.textScale = (scale >= 40 && scale <= 300) ? static_cast<float>(scale) / 100.0f : 1.0f;
+        const int offset = static_cast<int>(GetPrivateProfileIntA("Overlay", "CjkTextYOffsetPermille", 0, g_iniPath));
+        settings.yOffset = (offset >= -100 && offset <= 100) ? static_cast<float>(offset) / 1000.0f : 0.0f;
+        const int paperWhite = static_cast<int>(GetPrivateProfileIntA("Overlay", "CjkHdrPaperWhiteNits", 230, g_iniPath));
+        settings.hdrPaperWhiteNits = (paperWhite >= 80 && paperWhite <= 1000) ? static_cast<float>(paperWhite) : 230.0f;
+        const int backend = static_cast<int>(GetPrivateProfileIntA("Overlay", "OverlayBackend", 0, g_iniPath));
+        settings.backend = (backend >= 0 && backend <= 2) ? backend : 0;
+        settings.fileLog = GetPrivateProfileIntA("Overlay", "OverlayLog", 0, g_iniPath) != 0;
         settings.logDirectory = g_moduleDirectory;
-        settings.iniPath = g_iniPath;
     }
     return settings;
-}
-
-void load_scan_settings() noexcept {
-    if (g_iniPath[0] == '\0') return;
-    const int slice = static_cast<int>(GetPrivateProfileIntA(
-        "General", "ScanSliceMicroseconds", kDefaultScanSliceMicroseconds, g_iniPath));
-    g_scanSliceMicroseconds = (slice >= 0 && slice <= 8000) ? slice : kDefaultScanSliceMicroseconds;
 }
 
 void change_ui_language(int direction) noexcept {
@@ -2517,29 +2292,9 @@ const char* key_name(DWORD key) noexcept {
         case VK_NUMPAD8: return "Num 8";
         case VK_NUMPAD9: return "Num 9";
         default:
-            break;
+            std::snprintf(name, sizeof(name), "VK %u", static_cast<unsigned>(key));
+            return name;
     }
-    // Anything else: the name Windows gives the key on the player's keyboard
-    // layout (UTF-8), so it reads like the key cap rather than a code.
-    static char windowsName[64]{};
-    UINT scanCode = MapVirtualKeyW(key, MAPVK_VK_TO_VSC);
-    if (scanCode != 0) {
-        LONG lParam = static_cast<LONG>(scanCode << 16);
-        switch (key) {  // keys on the extended part of the keyboard
-            case VK_RCONTROL: case VK_RMENU: case VK_LEFT: case VK_RIGHT: case VK_UP: case VK_DOWN:
-            case VK_DIVIDE: case VK_NUMLOCK: case VK_SNAPSHOT: case VK_APPS: case VK_LWIN: case VK_RWIN:
-                lParam |= 1 << 24;
-                break;
-            default:
-                break;
-        }
-        wchar_t wide[48]{};
-        if (GetKeyNameTextW(lParam, wide, static_cast<int>(std::size(wide))) > 0 &&
-            WideCharToMultiByte(CP_UTF8, 0, wide, -1, windowsName, sizeof(windowsName), nullptr, nullptr) > 0)
-            return windowsName;
-    }
-    std::snprintf(name, sizeof(name), "Key %u", static_cast<unsigned>(key));
-    return name;
 }
 
 void update_keyboard_edges() noexcept {
@@ -3363,26 +3118,6 @@ int current_page_count() noexcept {
     return 0;
 }
 
-// Keys that can be bound: not modifiers, mouse buttons or the keys the menu
-// itself uses (Enter, arrows, Backspace, Esc).
-bool bindable_key(unsigned key) noexcept {
-    switch (key) {
-        case VK_LBUTTON: case VK_RBUTTON: case VK_MBUTTON: case VK_XBUTTON1: case VK_XBUTTON2:
-        case VK_SHIFT: case VK_CONTROL: case VK_MENU: case VK_LSHIFT: case VK_RSHIFT:
-        case VK_LCONTROL: case VK_RCONTROL: case VK_LMENU: case VK_RMENU: case VK_LWIN: case VK_RWIN:
-        case VK_RETURN: case VK_BACK: case VK_ESCAPE: case VK_UP: case VK_DOWN: case VK_LEFT: case VK_RIGHT:
-            return false;
-        default:
-            return true;
-    }
-}
-
-// While a key is being captured: Backspace cancels (Esc opens the game's pause
-// menu, so the mod usually never sees it, but it cancels too when it does).
-bool capture_cancelled() noexcept {
-    return key_pressed(VK_BACK) || key_pressed(VK_ESCAPE);
-}
-
 void update_menu_input() noexcept {
     update_keyboard_edges();
     if (!g_menu.captureHotkey && !g_menu.captureFilterHotkey && !g_menu.captureIconsHotkey &&
@@ -3402,13 +3137,16 @@ void update_menu_input() noexcept {
     }
 
     if (g_menu.captureIconsHotkey) {
-        if (capture_cancelled()) {
+        if (key_pressed(VK_ESCAPE)) {
             g_menu.captureIconsHotkey = false;
             return;
         }
         for (unsigned key = 1; key < 256; ++key) {
             if (!key_pressed(key)) continue;
-            if (!bindable_key(key) || key == g_menuHotkey) continue;
+            if (key == VK_SHIFT || key == VK_CONTROL || key == VK_MENU ||
+                key == VK_LSHIFT || key == VK_RSHIFT || key == VK_LCONTROL ||
+                key == VK_RCONTROL || key == VK_LMENU || key == VK_RMENU ||
+                key == g_menuHotkey) continue;
             g_iconsHotkey = key;
             save_icons_settings();
             g_menu.captureIconsHotkey = false;
@@ -3418,13 +3156,16 @@ void update_menu_input() noexcept {
     }
 
     if (g_menu.captureFilterHotkey) {
-        if (capture_cancelled()) {
+        if (key_pressed(VK_ESCAPE)) {
             g_menu.captureFilterHotkey = false;
             return;
         }
         for (unsigned key = 1; key < 256; ++key) {
             if (!key_pressed(key)) continue;
-            if (!bindable_key(key) || key == g_menuHotkey) continue;
+            if (key == VK_SHIFT || key == VK_CONTROL || key == VK_MENU ||
+                key == VK_LSHIFT || key == VK_RSHIFT || key == VK_LCONTROL ||
+                key == VK_RCONTROL || key == VK_LMENU || key == VK_RMENU ||
+                key == g_menuHotkey) continue;
             g_filterHotkey = key;
             save_filter_hotkey();
             g_menu.captureFilterHotkey = false;
@@ -3434,13 +3175,15 @@ void update_menu_input() noexcept {
     }
 
     if (g_menu.captureHotkey) {
-        if (capture_cancelled()) {
+        if (key_pressed(VK_ESCAPE)) {
             g_menu.captureHotkey = false;
             return;
         }
         for (unsigned key = 1; key < 256; ++key) {
             if (!key_pressed(key)) continue;
-            if (!bindable_key(key)) continue;
+            if (key == VK_SHIFT || key == VK_CONTROL || key == VK_MENU ||
+                key == VK_LSHIFT || key == VK_RSHIFT || key == VK_LCONTROL ||
+                key == VK_RCONTROL || key == VK_LMENU || key == VK_RMENU) continue;
             g_menuHotkey = key;
             save_menu_hotkey();
             g_menu.captureHotkey = false;
@@ -3619,7 +3362,7 @@ float native_text_scale(float referencePixelHeight) noexcept {
                       0.14f, 0.465f);
 }
 
-// ---- Menu look ---------------------------------------------------------------
+// ---- 1.20 look -------------------------------------------------------------
 // The menu is dressed with the game's own menu artwork. Every textured element
 // has a plain-rectangle fallback, so the menu stays complete while the texture
 // sets are still streaming in (or if one is ever missing).
@@ -3656,6 +3399,19 @@ struct FontFaceScope {
     bool previousForced;
 };
 
+// Plain Latin text can always use the game's own fonts, even while the rest of
+// the interface is drawn by the CJK overlay.
+bool g_forceNativeText = false;
+struct NativeTextScope {
+    explicit NativeTextScope(bool enable) noexcept : previous(g_forceNativeText) {
+        g_forceNativeText = enable || previous;
+    }
+    ~NativeTextScope() { g_forceNativeText = previous; }
+    NativeTextScope(const NativeTextScope&) = delete;
+    NativeTextScope& operator=(const NativeTextScope&) = delete;
+    bool previous;
+};
+
 bool menu_textures_ready() noexcept {
     bool ready = true;
     for (const char* dictionary : {theme::kGeneric, theme::kMenu}) {
@@ -3681,45 +3437,23 @@ bool ascii_only(const char* text) noexcept {
     return true;
 }
 
-struct FontChoice { const char* face; bool bold; float sizeScale = 1.0f; };
-
-FontChoice selected_font() noexcept {
+const char* selected_font_face() noexcept {
+    // On a game running in an Asian language only the plain face has Latin
+    // accents and normal Cyrillic, so it replaces every styled face there.
     // Plain ASCII (the brand line) is safe in any face, so it may insist.
-    if (g_fontFaceOverride != nullptr && g_fontFaceForced) return {g_fontFaceOverride, false};
-    const int language = hunting_companion::active_ui_language();
-    // A language the game's own fonts cannot show: name a font from that
-    // language's library, which native_fonts loaded from the game files.
-    if (needs_native_library(language) && native_text_ready(language)) {
-        bool bold = false;
-        if (const char* face = hunting_companion::native_fonts::override_face(language, &bold)) return {face, bold};
-        if (g_fontMapLoaded) {
-            const char* library = hunting_companion::fonts::library_key(language);
-            const char* gameLibrary = hunting_companion::fonts::library_key(g_detectedGameLanguage);
-            // A styled face such as the page titles' maps to that library's own
-            // family, unless the game's library has a font of the same name
-            // (Scaleform would use the game's copy, which lacks the letters).
-            if (g_fontFaceOverride != nullptr) {
-                const auto* entry = g_fontMap.find(library, g_fontFaceOverride);
-                if (entry != nullptr && !hunting_companion::fonts::utility_family(entry->family) &&
-                    !g_fontMap.library_uses_family(gameLibrary, entry->family))
-                    return {entry->family, entry->bold};
-            }
-            const MenuFont& font = current_menu_font();
-            if (menu_fonts().byFamily) return {font.family, font.bold, font.sizeScale};
-        }
-        if (const char* face = hunting_companion::native_fonts::fallback_face(language, &bold)) return {face, bold};
-    }
-    // On a game running in an Asian language, while the Latin/Cyrillic library is
-    // not available, only the plain face has most accents and normal Cyrillic.
+    if (g_fontFaceOverride != nullptr && (g_fontFaceForced || !plain_face_needed()))
+        return g_fontFaceOverride;
+    if (effective_menu_font() != 0 && !plain_face_needed()) return kMenuFonts[effective_menu_font()].face;
+    // The game's own catalogue font. Text in a CJK language that the game is not
+    // itself running in cannot use native text (the game has not loaded those
+    // glyphs); draw_text_impl() sends it to the CJK overlay instead. When the
+    // companion language equals the game language the native font is correct.
     if (plain_face_needed()) {
         // Simplified Chinese maps the "standard" face to a Chinese font; its
         // "utility" face is the plain one there.
-        return {g_detectedGameLanguage == 12 ? "$util" : "$Font2", false};
+        return g_detectedGameLanguage == 12 ? "$util" : "$Font2";
     }
-    if (g_fontFaceOverride != nullptr) return {g_fontFaceOverride, false};
-    // The chosen menu font of this language, drawn through the game's own font
-    // map (which applies bold itself).
-    return {current_menu_font().alias, false, current_menu_font().sizeScale};
+    return "$catalog1";
 }
 
 void draw_text_impl(const char* text, float x, float y, float referencePixelHeight,
@@ -3728,9 +3462,9 @@ void draw_text_impl(const char* text, float x, float y, float referencePixelHeig
     if (text == nullptr || text[0] == '\0') return;
     if (localize) text = hunting_companion::ui_text(text);
 
-    // Text colours are drawn richer than specified. The game shows
+    // 1.20 look: text colours are drawn richer than specified. The game shows
     // tinted text rather flat, so the tint is pushed away from grey (white and
-    // grey text are unaffected).
+    // grey text are unaffected). Applies to native and overlay text alike.
     {
         constexpr float kVividness = 1.7f;
         const float luma = 0.299f * static_cast<float>(red) + 0.587f * static_cast<float>(green) +
@@ -3763,16 +3497,22 @@ void draw_text_impl(const char* text, float x, float y, float referencePixelHeig
         }
     }
 
-    // Escape HTML metacharacters so a translated label cannot inject Scaleform markup.
-    char fontMarkup[8192];  // always NUL-terminated below; no need to clear 8 KB per label
-    const FontChoice font = selected_font();
-    const char* fontFace = font.face;
+    // CJK companion language that differs from the game language: the game has no
+    // glyphs for it, so queue the text for the Vulkan/ImGui overlay (own embedded
+    // fonts). Position, size and colour are passed through unchanged.
+    if (!g_forceNativeText && needs_overlay(hunting_companion::active_ui_language())) {
+        hunting_companion::overlay::submit(text, x, y, referencePixelHeight,
+                                           red, green, blue, alpha, centered);
+        return;
+    }
+
+    // Native path. Escape HTML metacharacters so a translated label cannot inject
+    // Scaleform markup.
+    char fontMarkup[8192]{};
+    const char* fontFace = selected_font_face();
     char fontPrefix[96]{};
-    const bool boldFace = font.bold;
-    std::snprintf(fontPrefix, sizeof(fontPrefix), boldFace ? "<FONT FACE='%s'><B>" : "<FONT FACE='%s'>",
-                  fontFace);
-    const char* const fontSuffix = boldFace ? "</B></FONT>" : "</FONT>";
-    const std::size_t fontSuffixSize = std::strlen(fontSuffix) + 1;
+    std::snprintf(fontPrefix, sizeof(fontPrefix), "<FONT FACE='%s'>", fontFace);
+    constexpr char kFontSuffix[] = "</FONT>";
     std::size_t used = std::strlen(fontPrefix);
     std::memcpy(fontMarkup, fontPrefix, used);
     bool markupFits = true;
@@ -3782,7 +3522,7 @@ void draw_text_impl(const char* text, float x, float y, float referencePixelHeig
         else if (*cursor == '<') replacement = "&lt;";
         else if (*cursor == '>') replacement = "&gt;";
         const std::size_t amount = replacement != nullptr ? std::strlen(replacement) : 1;
-        if (used + amount + fontSuffixSize > sizeof(fontMarkup)) {
+        if (used + amount + sizeof(kFontSuffix) > sizeof(fontMarkup)) {
             markupFits = false;
             break;
         }
@@ -3794,7 +3534,7 @@ void draw_text_impl(const char* text, float x, float y, float referencePixelHeig
         }
     }
     if (markupFits) {
-        std::memcpy(fontMarkup + used, fontSuffix, fontSuffixSize);
+        std::memcpy(fontMarkup + used, kFontSuffix, sizeof(kFontSuffix));
     } else {
         // A very long body string is safer unwrapped than truncated.
         fontMarkup[0] = '\0';
@@ -3807,9 +3547,7 @@ void draw_text_impl(const char* text, float x, float y, float referencePixelHeig
                                                          "COLOR_STRING", 0, literal);
     if (gameString == nullptr) return;
 
-    // Some faces draw larger than others at the same size; the layout above
-    // already allowed for that (text_width_estimate).
-    const float scale = native_text_scale(referencePixelHeight * font.sizeScale);
+    const float scale = native_text_scale(referencePixelHeight);
     invoke_native<void>(kBgSetTextScale, scale, scale);
 
     // Draw each label once; the translucent panel provides contrast.
@@ -3841,13 +3579,8 @@ void draw_wrapped_text_impl(const char* text, float x, float y,
     if (text == nullptr || maxCharacters == 0 || maxLines <= 0) return;
     if (localize) text = hunting_companion::ui_text(text);
     const bool cjk = hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
-    // Line length in half-width units: in Japanese/Korean/Chinese a full-width
-    // character takes two, while Latin letters, digits and spaces take one.
-    const std::size_t lineUnits = cjk ? std::max<std::size_t>(16, maxCharacters) : maxCharacters;
-    const auto ascii_word_char = [](char c) noexcept {
-        return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-               c == '.' || c == ',' || c == '%' || c == '-' || c == '_';
-    };
+    const std::size_t lineCharacters = cjk ? std::max<std::size_t>(8, maxCharacters / 2)
+                                           : maxCharacters;
     const char* cursor = text;
     for (int lineIndex = 0; lineIndex < maxLines && *cursor != '\0'; ++lineIndex) {
         while (*cursor == ' ') ++cursor;
@@ -3857,34 +3590,28 @@ void draw_wrapped_text_impl(const char* text, float x, float y,
         // Count UTF-8 code points, not bytes, so Japanese/Korean/Chinese text
         // is never split in the middle of a multi-byte character.
         std::size_t count = 0;
-        std::size_t units = 0;
-        while (count < remaining) {
+        std::size_t characters = 0;
+        while (count < remaining && characters < lineCharacters) {
             const unsigned char lead = static_cast<unsigned char>(cursor[count]);
             std::size_t bytes = lead < 0x80 ? 1 :
                 (lead & 0xE0) == 0xC0 ? 2 :
                 (lead & 0xF0) == 0xE0 ? 3 :
                 (lead & 0xF8) == 0xF0 ? 4 : 1;
             if (count + bytes > remaining) bytes = 1;
-            const std::size_t width = (cjk && lead >= 0x80) ? 2 : 1;
-            if (units + width > lineUnits) break;
             count += bytes;
-            units += width;
+            ++characters;
         }
         if (count < remaining) {
             std::size_t breakAt = count;
             while (breakAt > 0 && cursor[breakAt] != ' ') {
                 --breakAt;
             }
-            if (breakAt > 0) {
-                count = breakAt;
-            } else if (cjk) {
-                // CJK scripts do not use spaces between words, so any character
-                // boundary will do, except inside a number or Latin word ("358").
-                std::size_t wordStart = count;
-                while (wordStart > 0 && ascii_word_char(cursor[wordStart - 1]) && ascii_word_char(cursor[wordStart]))
-                    --wordStart;
-                if (wordStart > 0) count = wordStart;
+            if (breakAt > 0) count = breakAt;
+            else if (!cjk) {
+                // For Latin scripts, keep long unbroken tokens intact.
             }
+            // CJK scripts do not use spaces between words; retaining the
+            // codepoint boundary above is the correct wrap point.
         }
 
         char line[320]{};
@@ -3934,7 +3661,7 @@ void draw_wrapped_centered_text(const char* text, float centerX, float y,
 }
 
 // Shared horizontal bounds for rank bars on category and reinforced-item
-// detail pages. Rows have no plates, so the bar ends where the
+// detail pages. In the 1.20 look rows have no plates, so the bar ends where the
 // divider lines end, well inside the panel's rough painted edge.
 constexpr float kMenuContentLeft = 0.071f;
 constexpr float kMenuRewardRowRight = 0.212f + 0.345f * 0.5f;
@@ -4067,6 +3794,7 @@ void draw_menu_header(const char* title, const char* subtitle,
         const char* brand = hunting_companion::ui_text("HUNTING COMPANION");
         const bool plain = ascii_only(brand);
         const FontFaceScope titleFace(plain ? theme::kTitleFace : nullptr, plain);
+        const NativeTextScope nativeText(plain);
         draw_text_impl(brand, 0.212f, 0.046f, 24.0f, 255, 255, 255, 255, false, true);
     }
     const char* titleText = localizeTitle ? hunting_companion::ui_text(title) : title;
@@ -4088,7 +3816,7 @@ void draw_menu_header(const char* title, const char* subtitle,
         constexpr float kTitleFaceWidth = 0.80f;
         float size = 22.0f;
         const float width = text_width_estimate(titleText, size, correction) * kTitleFaceWidth /
-                            (current_menu_font().widthFactor * current_menu_font().sizeScale);
+                            kMenuFonts[effective_menu_font()].widthFactor;
         if (width > titleRoom) size = std::max(size * titleRoom / width, 13.0f);
         draw_text_raw(titleText, 0.071f, 0.109f + (22.0f - size) * 0.0007f, size,
                       theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
@@ -4142,14 +3870,6 @@ void draw_list_page(const char* title, const char* subtitle,
     draw_menu_header(title, subtitle);
     const int start = g_menu.scroll;
     const int end = std::min(total, start + kVisibleMenuRows);
-    if (total == 0) {
-        // An empty list says so instead of leaving the panel blank (for example a
-        // category with the craftable-now filter on).
-        const bool filtered = g_menu.craftableNow &&
-            (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes);
-        draw_menu_row(filtered ? "Nothing can be crafted right now" : "Nothing to show here", "", 0, false,
-                      false, true, true);
-    }
     for (int i = start; i < end; ++i) {
         char label[128]{};
         char status[40]{};
@@ -4289,17 +4009,6 @@ const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcep
 
 void draw_settings_page() noexcept {
     draw_menu_header("SETTINGS", "Configuration is saved to HuntingCompanion.ini");
-    if (g_menu.captureHotkey || g_menu.captureFilterHotkey || g_menu.captureIconsHotkey) {
-        // The game draws all text above all rectangles, so a box cannot hide the
-        // rows behind it: while waiting for a key, the page shows only the prompt.
-        const char* prompt = g_menu.captureFilterHotkey ? "PRESS A KEY FOR THE CRAFTABLE FILTER" :
-                             (g_menu.captureIconsHotkey ? "PRESS A KEY FOR THE WEAPON/AMMO ICONS" :
-                              "PRESS A KEY TO ASSIGN THE MENU HOTKEY");
-        draw_wrapped_text(prompt, 0.071f, 0.260f, 38, 2, 0.034f, 15.0f, 230, 205, 150);
-        draw_text("BACKSPACE cancels", 0.071f, 0.350f, 13.0f, 210, 205, 195);
-        draw_menu_footer();
-        return;
-    }
     char hotkeyLine[128]{};
     std::snprintf(hotkeyLine, sizeof(hotkeyLine), hunting_companion::ui_text("Menu hotkey: %s"), key_name(g_menuHotkey));
     draw_menu_row(hotkeyLine, "CHANGE", 0, g_menu.selection == 0);
@@ -4326,18 +4035,7 @@ void draw_settings_page() noexcept {
     std::snprintf(iconsKeyLine, sizeof(iconsKeyLine),
                   hunting_companion::ui_text("Weapon/ammo icons key: %s"), key_name(g_iconsHotkey));
     draw_menu_row(iconsKeyLine, "CHANGE", 4, g_menu.selection == 4);
-    {
-        // Each language has its own fonts; show which one of how many.
-        const MenuFontList& fonts = menu_fonts();
-        char fontValue[112]{};
-        if (fonts.count > 1) {
-            std::snprintf(fontValue, sizeof(fontValue), "%s  %d/%d", current_menu_font().label,
-                          current_menu_font_index() + 1, fonts.count);
-        } else {
-            std::snprintf(fontValue, sizeof(fontValue), "%s", current_menu_font().label);
-        }
-        draw_menu_row("Menu font", fontValue, 5, g_menu.selection == 5);
-    }
+    draw_menu_row("Menu font", kMenuFonts[g_menuFontIndex].name, 5, g_menu.selection == 5);
     draw_menu_row("Back", "", 6, g_menu.selection == 6);
 
     // The seven rows end near y = 0.63, so the information block starts below them.
@@ -4352,10 +4050,11 @@ void draw_settings_page() noexcept {
                   game_language_name(selectedLanguage),
                   hunting_companion::ui_locale());
     draw_text(interfaceLine, 0.071f, 0.676f, 12.5f, 184, 178, 164);
-    if (native_font_fallback_active()) {
+    if (overlay_fallback_active()) {
         // Only shown while the UI is in English (the fallback), so it is not translated.
-        if (const char* status = hunting_companion::native_fonts::status_line(requested_language()))
-            draw_text_raw(status, 0.071f, 0.772f, 12.0f, 224, 160, 120);
+        static constexpr char kOverlayFallbackNotice[] =
+            "CJK overlay not ready (Vulkan only): showing English.";
+        draw_text_raw(kOverlayFallbackNotice, 0.071f, 0.772f, 12.0f, 224, 160, 120);
     }
     const std::size_t officialCount = hunting_companion::loaded_official_string_count();
     char officialStatus[160]{};
@@ -4369,6 +4068,14 @@ void draw_settings_page() noexcept {
                       hunting_companion::ui_text("Official item-name data unavailable for %s; English names used."),
                       hunting_companion::ui_text(hunting_companion::locale_name(selectedLanguage)));
         draw_wrapped_text(officialStatus, 0.071f, 0.710f, 44, 2, 0.026f, 12.0f, 220, 174, 128);
+    }
+    if (g_menu.captureHotkey || g_menu.captureFilterHotkey || g_menu.captureIconsHotkey) {
+        draw_rect(0.212f, 0.52f, 0.34f, 0.12f, 0, 0, 0, 245);
+        const char* prompt = g_menu.captureFilterHotkey ? "PRESS A KEY FOR THE CRAFTABLE FILTER" :
+                             (g_menu.captureIconsHotkey ? "PRESS A KEY FOR THE WEAPON/AMMO ICONS" :
+                              "PRESS A KEY TO ASSIGN THE MENU HOTKEY");
+        draw_wrapped_text(prompt, 0.060f, 0.485f, 38, 2, 0.032f, 14.0f, 230, 205, 150);
+        draw_text("ESC cancels", 0.15f, 0.565f, 13.0f, 210, 205, 195);
     }
     draw_menu_footer();
 }
@@ -4862,11 +4569,10 @@ void TrackerRefreshMain() {
 void ScriptMain() {
     load_configuration();
     g_detectedGameLanguage = invoke_native<int>(kGetCurrentLanguage);
-    hunting_companion::native_fonts::set_game_language(g_detectedGameLanguage);
     // First load is unconditional: the tables start empty even when the effective
     // language is already the default (English).
-    load_font_map();
     hunting_companion::load_ui_localization(g_detectedGameLanguage, effective_language());
+    hunting_companion::overlay::set_language(effective_language());
 
     // Fallback for ScriptHook builds without the additional-thread export:
     // vendor catalog data refreshes on compendium open; the haul scan remains a
@@ -4890,17 +4596,17 @@ void ScriptMain() {
         if (!g_refreshWorkerRegistered && InterlockedExchange(&g_refreshRequested, 0) != 0) {
             build_tracker_state();
         }
-        // A requested font library may finish loading (or fail) at any time; keep
-        // the companion language consistent with what can actually be drawn.
-        hunting_companion::native_fonts::update();
+        // The overlay may become ready (or unavailable) at any time; keep the
+        // companion language consistent with what can actually be drawn.
         apply_effective_language();
+        hunting_companion::overlay::begin_frame();
         {
             TrackerReadLock trackerReadLock;
             update_hud();
             draw_menu();
         }
+        hunting_companion::overlay::end_frame();
         g_api.wait(0);
-        ++g_frameIndex;
     }
 }
 } // namespace
@@ -4912,12 +4618,11 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
         // Without ScriptHook the mod cannot run; bail out before anything is hooked
         // so the DLL can unload cleanly.
         if (!resolve_script_hook()) return FALSE;
-        // The font hook must be in place before the game sets up Scaleform's font
-        // library during start-up. install() only starts a worker thread (no
-        // hooking under the loader lock) and loads nothing until a CJK companion
-        // language is chosen while the game runs in another language.
-        hunting_companion::native_fonts::install(make_font_settings());
-        load_scan_settings();  // uses the ini path set up by make_font_settings()
+        // Hook the renderer as early as possible: the overlay can only follow a
+        // swapchain created after the hooks are in place. install() only starts a
+        // worker thread (no hooking under the loader lock) and does nothing visible
+        // unless a CJK companion language is chosen while the game runs in another.
+        hunting_companion::overlay::install(module, make_overlay_settings());
         if (g_api.registerAdditionalThread != nullptr) {
             // Set the flag before registration so ScriptMain always takes the
             // asynchronous path, even if ScriptHook starts the worker eagerly.

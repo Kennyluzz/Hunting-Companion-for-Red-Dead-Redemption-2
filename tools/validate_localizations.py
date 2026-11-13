@@ -30,27 +30,21 @@ if "official_item_string(labelHash)" not in SOURCE:
     raise AssertionError("Cross-language labels must use official embedded table")
 if "official_item_string(itemHash)" not in SOURCE:
     raise AssertionError("Curated recipe/material IDs must resolve directly from embedded tables")
-if '{"$catalog1", "CATALOGUE"' not in SOURCE:
+if 'return "$catalog1"' not in SOURCE:
     raise AssertionError("Latin/RDR2 catalog font fallback is missing")
-# CJK for a language the game is not running in uses the game's own font library
-# for that language, loaded at run time; never a generated fontmap.xml or guessed
-# hard-coded font family names (names come from the library or the ini).
-NATIVE_FONTS = (ROOT / "src" / "native_fonts.cpp").read_text(encoding="utf-8")
-if "native_text_ready(" not in SOURCE or "needs_native_library(" not in SOURCE:
-    raise AssertionError("CJK text must use the game's native font libraries")
-# (The game's own fontmap.xml is read at run time; nothing may write one into
-# the game folder.)
-for forbidden in ("commonx", "YDMyungjo", "MotoyaExGothic", "MSung", "CreateDirectory"):
-    if forbidden in SOURCE or forbidden in NATIVE_FONTS:
-        raise AssertionError(f"Font-map provisioning or guessed font names are referenced: {forbidden}")
-for forbidden in ("CreateFile", "WriteFile(", "CreateDirectory"):
+# CJK for a language the game is not running in goes through the Vulkan/ImGui overlay,
+# never through guessed Scaleform font families or a generated fontmap.xml.
+if "hunting_companion::overlay::submit(" not in SOURCE or "needs_overlay(" not in SOURCE:
+    raise AssertionError("CJK text must be routed to the overlay")
+for forbidden in ("fontmap", "commonx", "YDMyungjo", "MotoyaExGothic", "MSung"):
     if forbidden in SOURCE:
-        raise AssertionError(f"main.cpp must not write files into the game folder ({forbidden})")
-if "falls_back_to_english(wanted)) {" not in SOURCE or "native_fonts::loading(wanted)" not in SOURCE:
-    raise AssertionError("A CJK language must keep the current language while loading and fall back to English if it fails")
-for library in ("font_lib_japanese", "font_lib_korean", "font_lib_chinese", "font_lib_simplified_chinese"):
-    if f'"{library}"' not in NATIVE_FONTS:
-        raise AssertionError(f"Native font library missing: {library}")
+        raise AssertionError(f"Removed font-map approach is still referenced: {forbidden}")
+if "overlay::ready()" not in SOURCE:
+    raise AssertionError("A CJK language must fall back to English while the overlay is not ready")
+FONTS = (ROOT / "src" / "embedded_cjk_fonts.hpp").read_text(encoding="utf-8")
+for symbol in ("kJaJP", "kKoKR", "kZhCN", "kZhTW"):
+    if f"{symbol}Size" not in FONTS:
+        raise AssertionError(f"Embedded CJK font missing: {symbol}")
 if "draw_wrapped_text_raw(label" not in SOURCE or "draw_text_raw(componentName" not in SOURCE:
     raise AssertionError("Official catalogue names must bypass companion phrase translation")
 if "official_item_string(entry.labelHash)" not in SOURCE:
