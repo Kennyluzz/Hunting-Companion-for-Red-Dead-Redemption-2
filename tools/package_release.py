@@ -38,6 +38,7 @@ def main() -> int:
         ROOT / "LICENSE",
         ROOT / "THIRD-PARTY-NOTICES.md",
         ROOT / "README-PLAYERS.md",
+        ROOT / "CHANGELOG.md",
         ROOT / "HuntingCompanion.ini",
         ROOT / "tools/verify_release_binary.py",
     ]
@@ -72,6 +73,7 @@ def main() -> int:
     ) as archive:
         archive.write(asi, f"{top}/HuntingCompanion.asi")
         archive.write(ROOT / "README-PLAYERS.md", f"{top}/README.md")
+        archive.write(ROOT / "CHANGELOG.md", f"{top}/CHANGELOG.md")
         archive.write(ROOT / "HuntingCompanion.ini", f"{top}/HuntingCompanion.ini")
         archive.write(ROOT / "LICENSE", f"{top}/LICENSE")
         archive.write(

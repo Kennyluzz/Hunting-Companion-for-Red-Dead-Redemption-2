@@ -1,61 +1,23 @@
 {
   "schemaVersion": 1,
-  "description": "Weapon and ammunition guidance for huntable species across the complete 162-entry standard Story Mode Animal Compendium. Entries without a meaningful hunting recommendation are explicitly listed separately.",
+  "description": "Weapon and ammunition guidance for every huntable species in the 162-entry standard Story Mode Animal Compendium, taken only from the game's own Compendium text.",
   "source": {
-    "title": "Bloxodes — All 162 Animals in Red Dead Redemption 2 Story Mode",
-    "updated": "2026-11-02",
-    "page1": "https://bloxodes.com/wiki/red-dead-redemption-2/animals",
-    "page2": "https://bloxodes.com/wiki/red-dead-redemption-2/animals/page/2",
-    "method": "Bloxodes animal-specific entries and group table are used where available. The missing Compendium species are supplemented with species-level clean-kill notes and animal-size guidance from the listed guides. Entries with no sensible clean-kill target are explicitly listed in noRecommendationEntries instead of receiving guessed weapon advice.",
-    "note": "For some runtime species, the guide groups multiple Compendium variants. Those unions are called out in modelNote rather than silently claiming the game can distinguish the variants.",
-    "additionalSources": [
-      {
-        "title": "PowerPyx — Red Dead Redemption 2 Full Compendium",
-        "url": "https://www.powerpyx.com/red-dead-redemption-2-full-compendium/",
-        "usedFor": "Authoritative Compendium numbering and names for standard animal entries 1–162."
-      },
-      {
-        "title": "PowerPyx — How to Get Perfect Pelts",
-        "url": "https://www.powerpyx.com/red-dead-redemption-2-how-to-get-perfect-pelts/",
-        "usedFor": "Animal-size weapon classes for birds, tiny mammals, reptiles, amphibians and turtles."
-      },
-      {
-        "title": "Fullclear — RDR2 Perfect Pelt Guide",
-        "url": "https://fullclear.gg/rdr2/articles/perfect-pelt-guide",
-        "usedFor": "Cross-check of Varmint Rifle bird classes and small-game-arrow groups."
-      },
-      {
-        "title": "PowerPyx — All Animal Locations",
-        "url": "https://www.powerpyx.com/red-dead-redemption-2-all-animal-locations-zoologist-skin-deep/",
-        "usedFor": "Species-level notes for cormorants, cranes and other missing Compendium entries."
-      },
-      {
-        "title": "Red Dead Wiki — Crustaceans",
-        "url": "https://reddead.fandom.com/wiki/Crustaceans",
-        "usedFor": "Cuban Land Crab and Red Swamp Crayfish collection / weapon guidance."
-      },
-      {
-        "title": "GTABase — Alligator Snapping Turtle",
-        "url": "https://www.gtabase.com/red-dead-redemption-2/animals/turtle",
-        "usedFor": "Alligator Snapping Turtle clean-kill recommendation."
-      }
-    ]
+    "title": "Red Dead Redemption 2 in-game Animal Compendium (Rockstar's text)",
+    "url": "https://wafflecomposite.github.io/rdr_compendium/animals.html",
+    "method": "Each species uses the Compendium's own 'Use a ... for a clean kill.' line, quoted in sourceRule; compendiumEntries lists the Compendium animals it covers, which all give the same advice. 'a rifle' is shown as Rifle and 'a long scope rifle' as Sniper rifle. Domestic and working animals, which the Compendium gives no clean-kill line, are listed in noRecommendationEntries. Legendary animals share models with the regular ones, so the regular animal's advice is shown for them.",
+    "numbering": "compendiumNumbers follow the standard Story Mode Animal Compendium order (1-162)."
   },
   "weaponTextures": {
     "Bow": "weapon_bow",
     "Varmint Rifle": "weapon_rifle_varmint",
     "Repeater": "weapon_repeater_lancaster",
-    "Springfield Rifle": "weapon_rifle_springfield",
-    "Sniper rifle": "weapon_sniperrifle_carcano",
-    "Carcano Rifle": "weapon_sniperrifle_carcano"
+    "Rifle": "weapon_rifle_springfield",
+    "Sniper rifle": "weapon_sniperrifle_carcano"
   },
   "ammoTextures": {
     "Small Game Arrows": "ammo_arrow_small_game",
     "Improved Arrows": "ammo_arrow_improved",
-    "Poisoned Arrows": "ammo_arrow_poison",
-    "Rifle Cartridges - Regular": "ammo_bullet_normal",
-    "Rifle Cartridges - High Velocity": "ammo_bullet_high_velocity",
-    "Rifle Cartridges - Express": "ammo_bullet_express"
+    "Poisoned Arrows": "ammo_arrow_poison"
   },
   "recommendations": [
     {
@@ -64,7 +26,7 @@
         1,
         2
       ],
-      "sourceRule": "Named exception: American Alligator",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with Improved Arrows or long scope rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -74,10 +36,12 @@
         },
         {
           "weapon": "Sniper rifle",
-          "ammo": [
-            "Rifle Cartridges - Regular"
-          ]
+          "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "American Alligator",
+        "American Alligator (small)"
       ]
     },
     {
@@ -85,12 +49,15 @@
       "compendiumNumbers": [
         3
       ],
-      "sourceRule": "Varmint Rifle group",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Nine-Banded Armadillo"
       ]
     },
     {
@@ -98,12 +65,15 @@
       "compendiumNumbers": [
         4
       ],
-      "sourceRule": "Varmint Rifle group",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "American Badger"
       ]
     },
     {
@@ -111,7 +81,7 @@
       "compendiumNumbers": [
         5
       ],
-      "sourceRule": "Tiny mammal: bat",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -119,6 +89,9 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Little Brown Bat"
       ]
     },
     {
@@ -126,12 +99,15 @@
       "compendiumNumbers": [
         8
       ],
-      "sourceRule": "Varmint Rifle group",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "North American Beaver"
       ]
     },
     {
@@ -139,18 +115,15 @@
       "compendiumNumbers": [
         13
       ],
-      "sourceRule": "Named exception: Bison",
+      "sourceRule": "In-game Animal Compendium: Use a rifle for a clean kill.",
       "choices": [
         {
-          "weapon": "Carcano Rifle",
+          "weapon": "Rifle",
           "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Improved Arrows"
-          ]
         }
+      ],
+      "compendiumEntries": [
+        "American Bison"
       ]
     },
     {
@@ -158,12 +131,19 @@
       "compendiumNumbers": [
         6
       ],
-      "sourceRule": "Bear group: Long-scope rifle",
+      "sourceRule": "In-game Animal Compendium: Use a rifle or Bow with arrows for a clean kill.",
       "choices": [
         {
-          "weapon": "Sniper rifle",
+          "weapon": "Rifle",
+          "ammo": []
+        },
+        {
+          "weapon": "Bow",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "American Black Bear"
       ]
     },
     {
@@ -171,7 +151,7 @@
       "compendiumNumbers": [
         9
       ],
-      "sourceRule": "Small birds: jays",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -179,6 +159,9 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Blue Jay"
       ]
     },
     {
@@ -186,18 +169,15 @@
       "compendiumNumbers": [
         10
       ],
-      "sourceRule": "Deer and boar group",
+      "sourceRule": "In-game Animal Compendium: Use a rifle for a clean kill.",
       "choices": [
         {
-          "weapon": "Springfield Rifle",
+          "weapon": "Rifle",
           "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Poisoned Arrows"
-          ]
         }
+      ],
+      "compendiumEntries": [
+        "Wild Boar"
       ]
     },
     {
@@ -205,7 +185,7 @@
       "compendiumNumbers": [
         124
       ],
-      "sourceRule": "Tiny bird: Red-footed Booby",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -213,6 +193,9 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Red-footed Booby"
       ]
     },
     {
@@ -220,18 +203,15 @@
       "compendiumNumbers": [
         11
       ],
-      "sourceRule": "Deer and boar group",
+      "sourceRule": "In-game Animal Compendium: Use a long scope rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Sniper rifle",
           "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Poisoned Arrows"
-          ]
         }
+      ],
+      "compendiumEntries": [
+        "Whitetail Buck"
       ]
     },
     {
@@ -241,18 +221,17 @@
         15,
         16
       ],
-      "sourceRule": "Elk, moose, bulls and oxen group",
+      "sourceRule": "In-game Animal Compendium: Use a long scope rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Sniper rifle",
           "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Improved Arrows"
-          ]
         }
+      ],
+      "compendiumEntries": [
+        "Angus Bull",
+        "Devon Bull",
+        "Hereford Bull"
       ]
     },
     {
@@ -260,7 +239,7 @@
       "compendiumNumbers": [
         17
       ],
-      "sourceRule": "Tiny amphibian: bullfrog",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -268,6 +247,9 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "American Bullfrog"
       ]
     },
     {
@@ -275,12 +257,17 @@
       "compendiumNumbers": [
         29
       ],
-      "sourceRule": "Varmint Rifle bird group",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
-          "weapon": "Varmint Rifle",
-          "ammo": []
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
         }
+      ],
+      "compendiumEntries": [
+        "Californian Condor"
       ]
     },
     {
@@ -288,12 +275,15 @@
       "compendiumNumbers": [
         67
       ],
-      "sourceRule": "Varmint Rifle bird group",
+      "sourceRule": "In-game Animal Compendium: Use a repeater for a clean kill.",
       "choices": [
         {
-          "weapon": "Varmint Rifle",
+          "weapon": "Repeater",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Canada Goose"
       ]
     },
     {
@@ -301,7 +291,7 @@
       "compendiumNumbers": [
         18
       ],
-      "sourceRule": "Small birds: songbirds and jays",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -309,6 +299,9 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Northern Cardinal"
       ]
     },
     {
@@ -316,7 +309,7 @@
       "compendiumNumbers": [
         20
       ],
-      "sourceRule": "Small birds: songbirds and jays",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -324,6 +317,9 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Cedar Waxwing"
       ]
     },
     {
@@ -333,12 +329,19 @@
         23,
         25
       ],
-      "sourceRule": "Small bird / poultry entry",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
-          "weapon": "Varmint Rifle",
-          "ammo": []
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
         }
+      ],
+      "compendiumEntries": [
+        "Dominique Chicken",
+        "Java Chicken",
+        "Leghorn Chicken"
       ]
     },
     {
@@ -347,68 +350,7 @@
         31,
         32
       ],
-      "sourceRule": "Small bird: cormorant",
-      "choices": [
-        {
-          "weapon": "Varmint Rifle",
-          "ammo": []
-        }
-      ],
-      "modelNote": "The two cormorant Compendium entries share one runtime cormorant model."
-    },
-    {
-      "species": "Cougar",
-      "compendiumNumbers": [
-        30
-      ],
-      "sourceRule": "Large animal guidance: Rifle or Bow",
-      "choices": [
-        {
-          "weapon": "Springfield Rifle",
-          "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Poisoned Arrows"
-          ]
-        }
-      ]
-    },
-    {
-      "species": "Cow",
-      "compendiumNumbers": [
-        33
-      ],
-      "sourceRule": "Named entry: Florida Cracker Cow",
-      "choices": [
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Improved Arrows"
-          ]
-        }
-      ]
-    },
-    {
-      "species": "Coyote",
-      "compendiumNumbers": [
-        34
-      ],
-      "sourceRule": "Repeater group",
-      "choices": [
-        {
-          "weapon": "Repeater",
-          "ammo": []
-        }
-      ]
-    },
-    {
-      "species": "Crab",
-      "compendiumNumbers": [
-        35
-      ],
-      "sourceRule": "Crustacean: Cuban Land Crab",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -416,6 +358,78 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Double-crested Cormorant",
+        "Neotropic Cormorant"
+      ]
+    },
+    {
+      "species": "Cougar",
+      "compendiumNumbers": [
+        30
+      ],
+      "sourceRule": "In-game Animal Compendium: Use a rifle for a clean kill.",
+      "choices": [
+        {
+          "weapon": "Rifle",
+          "ammo": []
+        }
+      ],
+      "compendiumEntries": [
+        "Cougar"
+      ]
+    },
+    {
+      "species": "Cow",
+      "compendiumNumbers": [
+        33
+      ],
+      "sourceRule": "In-game Animal Compendium: Use a Bow with an Improved Arrow for a clean kill.",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Improved Arrows"
+          ]
+        }
+      ],
+      "compendiumEntries": [
+        "Florida Cracker Cow"
+      ]
+    },
+    {
+      "species": "Coyote",
+      "compendiumNumbers": [
+        34
+      ],
+      "sourceRule": "In-game Animal Compendium: Use a repeater for a clean kill.",
+      "choices": [
+        {
+          "weapon": "Repeater",
+          "ammo": []
+        }
+      ],
+      "compendiumEntries": [
+        "California Valley Coyote"
+      ]
+    },
+    {
+      "species": "Crab",
+      "compendiumNumbers": [
+        35
+      ],
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ],
+      "compendiumEntries": [
+        "Cuban Land Crab"
       ]
     },
     {
@@ -424,21 +438,24 @@
         37,
         38
       ],
-      "sourceRule": "Small bird: cranes",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
       ],
-      "modelNote": "Whooping and Sandhill Crane Compendium entries share one runtime crane model."
+      "compendiumEntries": [
+        "Whooping Crane",
+        "Sandhill Crane"
+      ]
     },
     {
       "species": "Crayfish",
       "compendiumNumbers": [
         36
       ],
-      "sourceRule": "Crustacean: Red Swamp Crayfish; Compendium guidance",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -447,14 +464,16 @@
           ]
         }
       ],
-      "modelNote": "Usually collected from crayfish holes rather than hunted as a roaming animal; the Compendium guidance associates Bow and arrows with the entry."
+      "compendiumEntries": [
+        "Red Swamp Crayfish"
+      ]
     },
     {
       "species": "Crow",
       "compendiumNumbers": [
         39
       ],
-      "sourceRule": "Small birds: crows",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -462,6 +481,9 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "American Crow"
       ]
     },
     {
@@ -469,18 +491,15 @@
       "compendiumNumbers": [
         12
       ],
-      "sourceRule": "Deer and boar group",
+      "sourceRule": "In-game Animal Compendium: Use a rifle for a clean kill.",
       "choices": [
         {
-          "weapon": "Springfield Rifle",
+          "weapon": "Rifle",
           "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Poisoned Arrows"
-          ]
         }
+      ],
+      "compendiumEntries": [
+        "Whitetail Deer"
       ]
     },
     {
@@ -489,12 +508,16 @@
         53,
         54
       ],
-      "sourceRule": "Varmint Rifle bird group",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Mallard Duck",
+        "Pekin Duck"
       ]
     },
     {
@@ -503,12 +526,16 @@
         55,
         56
       ],
-      "sourceRule": "Eagles, hawks, owls, herons, turkeys and vultures",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Bald Eagle",
+        "Golden Eagle"
       ]
     },
     {
@@ -518,14 +545,18 @@
         58,
         59
       ],
-      "sourceRule": "Small bird: egrets",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
       ],
-      "modelNote": "Reddish, Little and Snowy Egret Compendium entries share one runtime egret model."
+      "compendiumEntries": [
+        "Reddish Egret",
+        "Little Egret",
+        "Snowy Egret"
+      ]
     },
     {
       "species": "Elk",
@@ -533,18 +564,16 @@
         60,
         61
       ],
-      "sourceRule": "Elk, moose, bulls and oxen group",
+      "sourceRule": "In-game Animal Compendium: Use a long scope rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Sniper rifle",
           "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Improved Arrows"
-          ]
         }
+      ],
+      "compendiumEntries": [
+        "Rocky Mountain Bull Elk",
+        "Rocky Mountain Cow Elk"
       ]
     },
     {
@@ -554,18 +583,17 @@
         63,
         64
       ],
-      "sourceRule": "Named entry: Fox",
+      "sourceRule": "In-game Animal Compendium: Use a repeater for a clean kill.",
       "choices": [
         {
           "weapon": "Repeater",
           "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Improved Arrows"
-          ]
         }
+      ],
+      "compendiumEntries": [
+        "American Red Fox",
+        "American Gray Fox",
+        "Silver Fox"
       ]
     },
     {
@@ -573,12 +601,15 @@
       "compendiumNumbers": [
         65
       ],
-      "sourceRule": "Varmint Rifle small-reptile guidance",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Banded Gila Monster"
       ]
     },
     {
@@ -586,12 +617,15 @@
       "compendiumNumbers": [
         66
       ],
-      "sourceRule": "Repeater group",
+      "sourceRule": "In-game Animal Compendium: Use a repeater for a clean kill.",
       "choices": [
         {
           "weapon": "Repeater",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Alpine Goat"
       ]
     },
     {
@@ -599,15 +633,21 @@
       "compendiumNumbers": [
         7
       ],
-      "sourceRule": "Named exception: Grizzly Bear",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with Improved Arrows or long scope rifle for a clean kill.",
       "choices": [
         {
-          "weapon": "Sniper rifle",
+          "weapon": "Bow",
           "ammo": [
-            "Rifle Cartridges - High Velocity",
-            "Rifle Cartridges - Express"
+            "Improved Arrows"
           ]
+        },
+        {
+          "weapon": "Sniper rifle",
+          "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Grizzly Bear"
       ]
     },
     {
@@ -617,12 +657,17 @@
         69,
         70
       ],
-      "sourceRule": "Eagles, hawks, owls, herons, turkeys and vultures",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Ferruginous Hawk",
+        "Red-tailed Hawk",
+        "Rough-legged Hawk"
       ]
     },
     {
@@ -631,14 +676,17 @@
         71,
         72
       ],
-      "sourceRule": "Small bird: herons",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
       ],
-      "modelNote": "The two heron Compendium entries share one runtime heron model."
+      "compendiumEntries": [
+        "Great Blue Heron",
+        "Tricolored Heron"
+      ]
     },
     {
       "species": "Iguana",
@@ -646,12 +694,16 @@
         73,
         74
       ],
-      "sourceRule": "Varmint Rifle small-reptile guidance",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Desert Iguana",
+        "Green Iguana"
       ]
     },
     {
@@ -659,12 +711,15 @@
       "compendiumNumbers": [
         75
       ],
-      "sourceRule": "Named entry: Collared Peccary",
+      "sourceRule": "In-game Animal Compendium: Use a repeater for a clean kill.",
       "choices": [
         {
           "weapon": "Repeater",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Collared Peccary"
       ]
     },
     {
@@ -674,12 +729,17 @@
         77,
         78
       ],
-      "sourceRule": "Varmint Rifle bird guidance",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Common Loon",
+        "Pacific Loon",
+        "Yellow-billed Loon"
       ]
     },
     {
@@ -689,16 +749,18 @@
         94,
         95
       ],
-      "sourceRule": "Tiny bird: Guarma macaws",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
-          "weapon": "Bow",
-          "ammo": [
-            "Small Game Arrows"
-          ]
+          "weapon": "Varmint Rifle",
+          "ammo": []
         }
       ],
-      "modelNote": "The three Guarma macaw entries share the generic parrot runtime model."
+      "compendiumEntries": [
+        "Blue and Yellow Macaw",
+        "Great Green Macaw",
+        "Scarlet Macaw"
+      ]
     },
     {
       "species": "Moose",
@@ -706,18 +768,16 @@
         79,
         80
       ],
-      "sourceRule": "Elk, moose, bulls and oxen group",
+      "sourceRule": "In-game Animal Compendium: Use a long scope rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Sniper rifle",
           "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Improved Arrows"
-          ]
         }
+      ],
+      "compendiumEntries": [
+        "Western Bull Moose",
+        "Western Moose"
       ]
     },
     {
@@ -725,12 +785,15 @@
       "compendiumNumbers": [
         82
       ],
-      "sourceRule": "Raccoons, skunks, opossums and muskrats group",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "American Muskrat"
       ]
     },
     {
@@ -738,12 +801,15 @@
       "compendiumNumbers": [
         105
       ],
-      "sourceRule": "Raccoons, skunks, opossums and muskrats group",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Virginia Opossum"
       ]
     },
     {
@@ -752,7 +818,7 @@
         83,
         84
       ],
-      "sourceRule": "Small birds: songbirds",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -760,6 +826,10 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Baltimore Oriole",
+        "Hooded Oriole"
       ]
     },
     {
@@ -769,12 +839,17 @@
         86,
         87
       ],
-      "sourceRule": "Eagles, hawks, owls, herons, turkeys and vultures",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Californian Horned Owl",
+        "Coastal Horned Owl",
+        "Great Horned Owl"
       ]
     },
     {
@@ -783,18 +858,16 @@
         88,
         89
       ],
-      "sourceRule": "Elk, moose, bulls and oxen group",
+      "sourceRule": "In-game Animal Compendium: Use a long scope rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Sniper rifle",
           "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Improved Arrows"
-          ]
         }
+      ],
+      "compendiumEntries": [
+        "Angus Ox",
+        "Devon Ox"
       ]
     },
     {
@@ -803,28 +876,24 @@
         90,
         91
       ],
-      "sourceRule": "Named exception: Panther and Florida Panther",
+      "sourceRule": "In-game Animal Compendium: Use a rifle for a clean kill.",
       "choices": [
         {
-          "weapon": "Springfield Rifle",
+          "weapon": "Rifle",
           "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Improved Arrows",
-            "Poisoned Arrows"
-          ]
         }
       ],
-      "modelNote": "The runtime species lookup groups Panther and Florida Panther; Bloxodes specifies Improved Arrow for Panther and Poison Arrow for Florida Panther."
+      "compendiumEntries": [
+        "Panther",
+        "Florida Panther"
+      ]
     },
     {
       "species": "Parakeet",
       "compendiumNumbers": [
         92
       ],
-      "sourceRule": "Tiny bird: Carolina Parakeet",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -832,6 +901,9 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Carolina Parakeet"
       ]
     },
     {
@@ -840,14 +912,17 @@
         96,
         97
       ],
-      "sourceRule": "Small bird: pelicans",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
       ],
-      "modelNote": "American White and Brown Pelican Compendium entries share one runtime pelican model."
+      "compendiumEntries": [
+        "American White Pelican",
+        "Brown Pelican"
+      ]
     },
     {
       "species": "Pheasant",
@@ -855,12 +930,16 @@
         98,
         99
       ],
-      "sourceRule": "Varmint Rifle bird guidance",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Ring-necked Pheasant",
+        "Chinese Ring-necked Pheasant"
       ]
     },
     {
@@ -870,12 +949,17 @@
         101,
         102
       ],
-      "sourceRule": "Repeater group",
+      "sourceRule": "In-game Animal Compendium: Use a repeater for a clean kill.",
       "choices": [
         {
           "weapon": "Repeater",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Berkshire Pig",
+        "Big China Pig",
+        "Old Spot Pig"
       ]
     },
     {
@@ -884,20 +968,7 @@
         103,
         104
       ],
-      "sourceRule": "Varmint Rifle bird guidance",
-      "choices": [
-        {
-          "weapon": "Varmint Rifle",
-          "ammo": []
-        }
-      ]
-    },
-    {
-      "species": "Prairie Chicken",
-      "compendiumNumbers": [
-        27
-      ],
-      "sourceRule": "Tiny bird: Greater Prairie Chicken",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -905,6 +976,28 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Band-tailed Pigeon",
+        "Rock Pigeon"
+      ]
+    },
+    {
+      "species": "Prairie Chicken",
+      "compendiumNumbers": [
+        27
+      ],
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ],
+      "compendiumEntries": [
+        "Greater Prairie Chicken"
       ]
     },
     {
@@ -917,27 +1010,28 @@
         110,
         111
       ],
-      "sourceRule": "Named regional entries: American, Sonoran and Baja California Pronghorn",
+      "sourceRule": "In-game Animal Compendium: Use a rifle for a clean kill.",
       "choices": [
         {
-          "weapon": "Springfield Rifle",
+          "weapon": "Rifle",
           "ammo": []
-        },
-        {
-          "weapon": "Bow",
-          "ammo": [
-            "Poisoned Arrows"
-          ]
         }
       ],
-      "modelNote": "The runtime lookup groups all pronghorn variants. The Bow/Poison Arrow choice is for American Pronghorn; Sonoran and Baja California entries list Rifle only."
+      "compendiumEntries": [
+        "American Pronghorn Buck",
+        "American Pronghorn Doe",
+        "Sonoran Pronghorn Buck",
+        "Sonoran Pronghorn Doe",
+        "Baja California Pronghorn Buck",
+        "Baja California Pronghorn Doe"
+      ]
     },
     {
       "species": "Quail",
       "compendiumNumbers": [
         112
       ],
-      "sourceRule": "Small birds: quail",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -945,6 +1039,9 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "California Quail"
       ]
     },
     {
@@ -952,12 +1049,15 @@
       "compendiumNumbers": [
         119
       ],
-      "sourceRule": "Varmint Rifle group",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Black-tailed Jackrabbit"
       ]
     },
     {
@@ -965,12 +1065,15 @@
       "compendiumNumbers": [
         120
       ],
-      "sourceRule": "Raccoons, skunks, opossums and muskrats group",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "North American Raccoon"
       ]
     },
     {
@@ -983,12 +1086,20 @@
         117,
         118
       ],
-      "sourceRule": "Bighorn rams and sheep group",
+      "sourceRule": "In-game Animal Compendium: Use a rifle for a clean kill.",
       "choices": [
         {
-          "weapon": "Springfield Rifle",
+          "weapon": "Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Sierra Nevada Bighorn Ram",
+        "Sierra Nevada Bighorn Sheep",
+        "Desert Bighorn Ram",
+        "Desert Bighorn Sheep",
+        "Rocky Mountain Bighorn Ram",
+        "Rocky Mountain Bighorn Sheep"
       ]
     },
     {
@@ -997,7 +1108,7 @@
         121,
         122
       ],
-      "sourceRule": "Small animals: rats",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -1005,6 +1116,10 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Black Rat",
+        "Brown Rat"
       ]
     },
     {
@@ -1023,7 +1138,7 @@
         142,
         143
       ],
-      "sourceRule": "Small animals: snakes",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -1031,6 +1146,20 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Red Boa Snake",
+        "Rainbow Boa Snake",
+        "Sunglow Boa Snake",
+        "Diamondback Rattlesnake",
+        "Fer-de-Lance Snake",
+        "Black-tailed Rattlesnake",
+        "Timber Rattlesnake",
+        "Northern Copperhead Snake",
+        "Southern Copperhead Snake",
+        "Midland Water Snake",
+        "Cottonmouth Snake",
+        "Northern Water Snake"
       ]
     },
     {
@@ -1038,20 +1167,7 @@
       "compendiumNumbers": [
         123
       ],
-      "sourceRule": "Bird guidance: medium bird",
-      "choices": [
-        {
-          "weapon": "Varmint Rifle",
-          "ammo": []
-        }
-      ]
-    },
-    {
-      "species": "Robin",
-      "compendiumNumbers": [
-        125
-      ],
-      "sourceRule": "Small birds: songbirds",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -1059,6 +1175,27 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Western Raven"
+      ]
+    },
+    {
+      "species": "Robin",
+      "compendiumNumbers": [
+        125
+      ],
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
+      "choices": [
+        {
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
+        }
+      ],
+      "compendiumEntries": [
+        "American Robin"
       ]
     },
     {
@@ -1068,12 +1205,19 @@
         24,
         26
       ],
-      "sourceRule": "Small bird / poultry entry",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
-          "weapon": "Varmint Rifle",
-          "ammo": []
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
         }
+      ],
+      "compendiumEntries": [
+        "Dominique Rooster",
+        "Java Rooster",
+        "Leghorn Rooster"
       ]
     },
     {
@@ -1083,12 +1227,19 @@
         128,
         129
       ],
-      "sourceRule": "Varmint Rifle bird guidance",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
-          "weapon": "Varmint Rifle",
-          "ammo": []
+          "weapon": "Bow",
+          "ammo": [
+            "Small Game Arrows"
+          ]
         }
+      ],
+      "compendiumEntries": [
+        "Herring Gull",
+        "Laughing Gull",
+        "Ring-billed Gull"
       ]
     },
     {
@@ -1096,12 +1247,15 @@
       "compendiumNumbers": [
         130
       ],
-      "sourceRule": "Repeater group: Merino sheep",
+      "sourceRule": "In-game Animal Compendium: Use a repeater for a clean kill.",
       "choices": [
         {
           "weapon": "Repeater",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Merino Sheep"
       ]
     },
     {
@@ -1109,12 +1263,15 @@
       "compendiumNumbers": [
         131
       ],
-      "sourceRule": "Raccoons, skunks, opossums and muskrats group",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Striped Skunk"
       ]
     },
     {
@@ -1123,7 +1280,7 @@
         144,
         145
       ],
-      "sourceRule": "Small birds: songbirds",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -1131,6 +1288,10 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Scarlet Tanager Songbird",
+        "Western Tanager Songbird"
       ]
     },
     {
@@ -1140,7 +1301,7 @@
         147,
         148
       ],
-      "sourceRule": "Small birds: songbirds",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -1148,6 +1309,11 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Eurasian Tree Sparrow",
+        "American Tree Sparrow",
+        "Golden Crowned Sparrow"
       ]
     },
     {
@@ -1155,12 +1321,15 @@
       "compendiumNumbers": [
         126
       ],
-      "sourceRule": "Small bird: Roseate Spoonbill",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Roseate Spoonbill"
       ]
     },
     {
@@ -1171,7 +1340,7 @@
         150,
         151
       ],
-      "sourceRule": "Small animals: squirrels",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -1179,6 +1348,12 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Western Chipmunk",
+        "American Red Squirrel",
+        "Western Gray Squirrel",
+        "Black Squirrel"
       ]
     },
     {
@@ -1187,7 +1362,7 @@
         152,
         153
       ],
-      "sourceRule": "Tiny amphibian: toads",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -1195,6 +1370,10 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Western Toad",
+        "Sonoran Desert Toad"
       ]
     },
     {
@@ -1203,12 +1382,16 @@
         154,
         155
       ],
-      "sourceRule": "Eagles, hawks, owls, herons, turkeys and vultures",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Eastern Wild Turkey",
+        "Rio Grande Wild Turkey"
       ]
     },
     {
@@ -1216,7 +1399,7 @@
       "compendiumNumbers": [
         156
       ],
-      "sourceRule": "Alligator Snapping Turtle: clean-kill guide",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -1225,7 +1408,9 @@
           ]
         }
       ],
-      "modelNote": "Small Game Arrow is the common guide recommendation, but some players report inconsistent carcass results; compare with the animal's in-game Show Info."
+      "compendiumEntries": [
+        "Alligator Snapping Turtle"
+      ]
     },
     {
       "species": "Vulture",
@@ -1233,12 +1418,16 @@
         157,
         158
       ],
-      "sourceRule": "Eagles, hawks, owls, herons, turkeys and vultures",
+      "sourceRule": "In-game Animal Compendium: Use a Varmint Rifle for a clean kill.",
       "choices": [
         {
           "weapon": "Varmint Rifle",
           "ammo": []
         }
+      ],
+      "compendiumEntries": [
+        "Eastern Turkey Vulture",
+        "Western Turkey Vulture"
       ]
     },
     {
@@ -1247,7 +1436,7 @@
         159,
         160
       ],
-      "sourceRule": "Wolf group",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Poison Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -1255,6 +1444,10 @@
             "Poisoned Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Gray Wolf",
+        "Timber Wolf"
       ]
     },
     {
@@ -1263,7 +1456,7 @@
         161,
         162
       ],
-      "sourceRule": "Small birds: woodpeckers",
+      "sourceRule": "In-game Animal Compendium: Use a Bow with a Small Game Arrow for a clean kill.",
       "choices": [
         {
           "weapon": "Bow",
@@ -1271,6 +1464,10 @@
             "Small Game Arrows"
           ]
         }
+      ],
+      "compendiumEntries": [
+        "Red-bellied Woodpecker",
+        "Pileated Woodpecker"
       ]
     }
   ],

@@ -27,7 +27,7 @@ Back=Zurück
 RDR2 language: %s (%s)=RDR2-Sprache: %s (%s)
 Change the game language in your RDR2 launcher.=Ändere die Spielsprache im RDR2-Launcher.
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=TASTE FÜR MENÜ-KURZBEFEHL DRÜCKEN
-ESC cancels=ESC bricht ab
+BACKSPACE cancels=BACKSPACE bricht ab
 CHALLENGE RANK DATA UNAVAILABLE=HERAUSFORDERUNGSRÄNGE NICHT VERFÜGBAR
 Check Story Mode state and ScriptHook compatibility.=Prüfe den Story-Modus und die ScriptHook-Kompatibilität.
 ALL TEN RANKS COMPLETE=ALLE ZEHN RÄNGE ABGESCHLOSSEN
@@ -283,6 +283,10 @@ Rifle Cartridges - Regular=Gewehrmunition – Normal
 Rifle Cartridges - High Velocity=Gewehrmunition – HG
 Rifle Cartridges - Express=Gewehrmunition – Express
 Menu font=Menüschrift
+Nothing can be crafted right now=Derzeit ist nichts herstellbar
+Nothing to show here=Hier gibt es nichts anzuzeigen
+Rifle=Gewehr
+Any weapon=Beliebige Waffe
 )HCL0";
 inline constexpr char kLocale_en_US[] = R"HCL1(# Hunting Companion localization — en-US
 # Companion-owned interface phrases follow this locale.
@@ -309,7 +313,7 @@ Back=Back
 RDR2 language: %s (%s)=RDR2 language: %s (%s)
 Change the game language in your RDR2 launcher.=Change the game language in your RDR2 launcher.
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=PRESS A KEY TO ASSIGN THE MENU HOTKEY
-ESC cancels=ESC cancels
+BACKSPACE cancels=BACKSPACE cancels
 CHALLENGE RANK DATA UNAVAILABLE=CHALLENGE RANK DATA UNAVAILABLE
 Check Story Mode state and ScriptHook compatibility.=Check Story Mode state and ScriptHook compatibility.
 ALL TEN RANKS COMPLETE=ALL TEN RANKS COMPLETE
@@ -437,6 +441,10 @@ Rifle Cartridges - Regular=Rifle Cartridges - Regular
 Rifle Cartridges - High Velocity=Rifle Cartridges - High Velocity
 Rifle Cartridges - Express=Rifle Cartridges - Express
 Menu font=Menu font
+Nothing can be crafted right now=Nothing can be crafted right now
+Nothing to show here=Nothing to show here
+Rifle=Rifle
+Any weapon=Any weapon
 )HCL1";
 inline constexpr char kLocale_es_ES[] = R"HCL2(# Hunting Companion localization — es-ES
 # Companion-owned interface phrases follow this locale.
@@ -463,7 +471,7 @@ Back=Volver
 RDR2 language: %s (%s)=Idioma de RDR2: %s (%s)
 Change the game language in your RDR2 launcher.=Cambia el idioma del juego en el lanzador de RDR2.
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=PULSA UNA TECLA PARA ASIGNAR EL ATAJO
-ESC cancels=ESC cancela
+BACKSPACE cancels=RETROCESO cancela
 CHALLENGE RANK DATA UNAVAILABLE=DATOS DE RANGO NO DISPONIBLES
 Check Story Mode state and ScriptHook compatibility.=Comprueba el modo Historia y la compatibilidad de ScriptHook.
 ALL TEN RANKS COMPLETE=LOS DIEZ RANGOS COMPLETADOS
@@ -719,6 +727,10 @@ Rifle Cartridges - Regular=Cartuchos de fusil: normales
 Rifle Cartridges - High Velocity=Cartuchos de fusil: alta velocidad
 Rifle Cartridges - Express=Cartuchos de fusil: rápidos
 Menu font=Fuente del menú
+Nothing can be crafted right now=Ahora mismo no hay recetas disponibles
+Nothing to show here=No hay nada que mostrar
+Rifle=Fusil
+Any weapon=Cualquier arma
 )HCL2";
 inline constexpr char kLocale_es_MX[] = R"HCL3(# Hunting Companion localization — es-MX
 # Companion-owned interface phrases follow this locale.
@@ -745,7 +757,7 @@ Back=Volver
 RDR2 language: %s (%s)=Idioma de RDR2: %s (%s)
 Change the game language in your RDR2 launcher.=Cambia el idioma del juego en el lanzador de RDR2.
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=PULSA UNA TECLA PARA ASIGNAR EL ATAJO
-ESC cancels=ESC cancela
+BACKSPACE cancels=RETROCESO cancela
 CHALLENGE RANK DATA UNAVAILABLE=DATOS DE RANGO NO DISPONIBLES
 Check Story Mode state and ScriptHook compatibility.=Comprueba el modo Historia y la compatibilidad de ScriptHook.
 ALL TEN RANKS COMPLETE=LOS DIEZ RANGOS COMPLETADOS
@@ -1001,6 +1013,10 @@ Rifle Cartridges - Regular=Munición (rifle)
 Rifle Cartridges - High Velocity=Munición alta velocidad (rifle)
 Rifle Cartridges - Express=Munición exprés (rifle)
 Menu font=Fuente del menú
+Nothing can be crafted right now=Por ahora no hay recetas elaborables
+Nothing to show here=No hay nada que mostrar
+Rifle=Rifle
+Any weapon=Cualquier arma
 )HCL3";
 inline constexpr char kLocale_fr_FR[] = R"HCL4(# Hunting Companion localization — fr-FR
 # Companion-owned interface phrases follow this locale.
@@ -1027,7 +1043,7 @@ Back=Retour
 RDR2 language: %s (%s)=Langue de RDR2 : %s (%s)
 Change the game language in your RDR2 launcher.=Modifiez la langue du jeu dans le lanceur RDR2.
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=APPUYEZ SUR UNE TOUCHE POUR LE RACCOURCI
-ESC cancels=ÉCHAP annule
+BACKSPACE cancels=RETOUR annule
 CHALLENGE RANK DATA UNAVAILABLE=DONNÉES DE RANG INDISPONIBLES
 Check Story Mode state and ScriptHook compatibility.=Vérifiez le mode Histoire et la compatibilité de ScriptHook.
 ALL TEN RANKS COMPLETE=LES DIX RANGS SONT TERMINÉS
@@ -1283,6 +1299,10 @@ Rifle Cartridges - Regular=Balles pour fusil - standard
 Rifle Cartridges - High Velocity=Balles pour fusil - haute vélocité
 Rifle Cartridges - Express=Balles pour fusil - express
 Menu font=Police du menu
+Nothing can be crafted right now=Rien n’est réalisable pour le moment
+Nothing to show here=Rien à afficher ici
+Rifle=Fusil
+Any weapon=N’importe quelle arme
 )HCL4";
 inline constexpr char kLocale_it_IT[] = R"HCL5(# Hunting Companion localization — it-IT
 # Companion-owned interface phrases follow this locale.
@@ -1309,7 +1329,7 @@ Back=Indietro
 RDR2 language: %s (%s)=Lingua di RDR2: %s (%s)
 Change the game language in your RDR2 launcher.=Modifica la lingua del gioco nel launcher di RDR2.
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=PREMI UN TASTO PER ASSEGNARE IL MENU
-ESC cancels=ESC annulla
+BACKSPACE cancels=BACKSPACE annulla
 CHALLENGE RANK DATA UNAVAILABLE=DATI GRADO SFIDA NON DISPONIBILI
 Check Story Mode state and ScriptHook compatibility.=Controlla la modalità Storia e la compatibilità di ScriptHook.
 ALL TEN RANKS COMPLETE=TUTTI E DIECI I GRADI COMPLETATI
@@ -1565,6 +1585,10 @@ Rifle Cartridges - Regular=Cartucce canna rigata - Normali
 Rifle Cartridges - High Velocity=Cartucce canna rigata - Veloci
 Rifle Cartridges - Express=Cartucce canna rigata - Express
 Menu font=Carattere del menu
+Nothing can be crafted right now=Al momento non puoi creare nulla
+Nothing to show here=Niente da mostrare qui
+Rifle=Fucile a canna rigata
+Any weapon=Qualsiasi arma
 )HCL5";
 inline constexpr char kLocale_ja_JP[] = R"HCL6(# Hunting Companion localization — ja-JP
 # Companion-owned interface phrases follow this locale.
@@ -1591,7 +1615,7 @@ Back=戻る
 RDR2 language: %s (%s)=RDR2 の言語：%s (%s)
 Change the game language in your RDR2 launcher.=RDR2 ランチャーでゲームの言語を変更してください。
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=メニューキーに割り当てるキーを押してください
-ESC cancels=ESC：キャンセル
+BACKSPACE cancels=BACKSPACE：キャンセル
 CHALLENGE RANK DATA UNAVAILABLE=チャレンジランク情報を取得できません
 Check Story Mode state and ScriptHook compatibility.=ストーリーモードの状態と ScriptHook の互換性を確認してください。
 ALL TEN RANKS COMPLETE=全10ランク達成
@@ -1847,6 +1871,10 @@ Rifle Cartridges - Regular=ライフル用弾薬(標準弾)
 Rifle Cartridges - High Velocity=ライフル用弾薬(高速弾)
 Rifle Cartridges - Express=ライフル用弾薬(エクスプレス弾)
 Menu font=メニューのフォント
+Nothing can be crafted right now=今すぐ製作できるものはありません
+Nothing to show here=表示する項目はありません
+Rifle=ライフル
+Any weapon=どの武器でも可
 )HCL6";
 inline constexpr char kLocale_ko_KR[] = R"HCL7(# Hunting Companion localization — ko-KR
 # Companion-owned interface phrases follow this locale.
@@ -1873,7 +1901,7 @@ Back=뒤로
 RDR2 language: %s (%s)=RDR2 언어: %s (%s)
 Change the game language in your RDR2 launcher.=RDR2 런처에서 게임 언어를 변경하세요.
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=메뉴 단축키로 지정할 키를 누르세요
-ESC cancels=ESC 취소
+BACKSPACE cancels=BACKSPACE 취소
 CHALLENGE RANK DATA UNAVAILABLE=도전 과제 등급 데이터를 사용할 수 없음
 Check Story Mode state and ScriptHook compatibility.=스토리 모드 상태와 ScriptHook 호환성을 확인하세요.
 ALL TEN RANKS COMPLETE=10개 등급 모두 완료
@@ -2128,6 +2156,10 @@ Rifle Cartridges - Regular=라이플 탄약 - 일반
 Rifle Cartridges - High Velocity=라이플 탄약 - 고속
 Rifle Cartridges - Express=라이플 탄약 - 익스프레스
 Menu font=메뉴 글꼴
+Nothing can be crafted right now=지금 제작 가능한 항목이 없습니다
+Nothing to show here=표시할 항목이 없습니다
+Rifle=라이플
+Any weapon=아무 무기
 )HCL7";
 inline constexpr char kLocale_pl_PL[] = R"HCL8(# Hunting Companion localization — pl-PL
 # Companion-owned interface phrases follow this locale.
@@ -2154,7 +2186,7 @@ Back=Wstecz
 RDR2 language: %s (%s)=Język RDR2: %s (%s)
 Change the game language in your RDR2 launcher.=Zmień język gry w launcherze RDR2.
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=NACIŚNIJ KLAWISZ, ABY USTAWIĆ SKRÓT MENU
-ESC cancels=ESC anuluje
+BACKSPACE cancels=BACKSPACE anuluje
 CHALLENGE RANK DATA UNAVAILABLE=DANE RANG WYZWAŃ NIEDOSTĘPNE
 Check Story Mode state and ScriptHook compatibility.=Sprawdź stan trybu fabularnego i zgodność ScriptHook.
 ALL TEN RANKS COMPLETE=WSZYSTKIE DZIESIĘĆ RANG UKOŃCZONE
@@ -2409,6 +2441,10 @@ Rifle Cartridges - Regular=Karabin - amunicja zwykła
 Rifle Cartridges - High Velocity=Karabin - szybka amunicja
 Rifle Cartridges - Express=Karabin - amunicja express
 Menu font=Czcionka menu
+Nothing can be crafted right now=Obecnie nie możesz niczego wytworzyć
+Nothing to show here=Brak pozycji do wyświetlenia
+Rifle=Karabin
+Any weapon=Dowolna broń
 )HCL8";
 inline constexpr char kLocale_pt_BR[] = R"HCL9(# Hunting Companion localization — pt-BR
 # Companion-owned interface phrases follow this locale.
@@ -2435,7 +2471,7 @@ Back=Voltar
 RDR2 language: %s (%s)=Idioma do RDR2: %s (%s)
 Change the game language in your RDR2 launcher.=Altere o idioma do jogo no inicializador do RDR2.
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=PRESSIONE UMA TECLA PARA DEFINIR O ATALHO
-ESC cancels=ESC cancela
+BACKSPACE cancels=BACKSPACE cancela
 CHALLENGE RANK DATA UNAVAILABLE=DADOS DE NÍVEL INDISPONÍVEIS
 Check Story Mode state and ScriptHook compatibility.=Verifique o modo História e a compatibilidade com o ScriptHook.
 ALL TEN RANKS COMPLETE=TODOS OS DEZ NÍVEIS CONCLUÍDOS
@@ -2691,6 +2727,10 @@ Rifle Cartridges - Regular=Rifle - Munição Regular
 Rifle Cartridges - High Velocity=Rifle - Munição Ligeira
 Rifle Cartridges - Express=Rifle - Munição Express
 Menu font=Fonte do menu
+Nothing can be crafted right now=No momento não há receitas disponíveis
+Nothing to show here=Nada para mostrar aqui
+Rifle=Rifle
+Any weapon=Qualquer arma
 )HCL9";
 inline constexpr char kLocale_ru_RU[] = R"HCL10(# Hunting Companion localization — ru-RU
 # Companion-owned interface phrases follow this locale.
@@ -2717,7 +2757,7 @@ Back=Назад
 RDR2 language: %s (%s)=Язык RDR2: %s (%s)
 Change the game language in your RDR2 launcher.=Измените язык игры в лаунчере RDR2.
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=НАЖМИТЕ КЛАВИШУ ДЛЯ НАЗНАЧЕНИЯ КНОПКИ МЕНЮ
-ESC cancels=ESC отмена
+BACKSPACE cancels=BACKSPACE отмена
 CHALLENGE RANK DATA UNAVAILABLE=ДАННЫЕ О РАНГАХ ИСПЫТАНИЙ НЕДОСТУПНЫ
 Check Story Mode state and ScriptHook compatibility.=Проверьте сюжетный режим и совместимость с ScriptHook.
 ALL TEN RANKS COMPLETE=ВСЕ ДЕСЯТЬ РАНГОВ ПРОЙДЕНЫ
@@ -2973,6 +3013,10 @@ Rifle Cartridges - Regular=Патроны (винтовка)
 Rifle Cartridges - High Velocity=Скоростные патроны (винтовка)
 Rifle Cartridges - Express=Экспресс-патроны (винтовка)
 Menu font=Шрифт меню
+Nothing can be crafted right now=Сейчас нечего изготовить
+Nothing to show here=Здесь пока пусто
+Rifle=Винтовка
+Any weapon=Любое оружие
 )HCL10";
 inline constexpr char kLocale_zh_CN[] = R"HCL11(# Hunting Companion localization — zh-CN
 # Companion-owned interface phrases follow this locale.
@@ -2999,7 +3043,7 @@ Back=返回
 RDR2 language: %s (%s)=RDR2 语言：%s (%s)
 Change the game language in your RDR2 launcher.=请在 RDR2 启动器中更改游戏语言。
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=按下要设置为菜单快捷键的按键
-ESC cancels=ESC 取消
+BACKSPACE cancels=BACKSPACE 取消
 CHALLENGE RANK DATA UNAVAILABLE=无法获取挑战等级数据
 Check Story Mode state and ScriptHook compatibility.=请检查故事模式状态和 ScriptHook 兼容性。
 ALL TEN RANKS COMPLETE=十个等级全部完成
@@ -3255,6 +3299,10 @@ Rifle Cartridges - Regular=步枪子弹（普通）
 Rifle Cartridges - High Velocity=步枪子弹（高速）
 Rifle Cartridges - Express=步枪子弹（中空）
 Menu font=菜单字体
+Nothing can be crafted right now=现在没有可制作的物品
+Nothing to show here=没有可显示的项目
+Rifle=步枪
+Any weapon=任意武器
 )HCL11";
 inline constexpr char kLocale_zh_TW[] = R"HCL12(# Hunting Companion localization — zh-TW
 # Companion-owned interface phrases follow this locale.
@@ -3281,7 +3329,7 @@ Back=返回
 RDR2 language: %s (%s)=RDR2 語言：%s (%s)
 Change the game language in your RDR2 launcher.=請在 RDR2 啟動器中變更遊戲語言。
 PRESS A KEY TO ASSIGN THE MENU HOTKEY=按下要指定為選單快速鍵的按鍵
-ESC cancels=ESC 取消
+BACKSPACE cancels=BACKSPACE 取消
 CHALLENGE RANK DATA UNAVAILABLE=無法取得挑戰階級資料
 Check Story Mode state and ScriptHook compatibility.=請檢查故事模式狀態與 ScriptHook 相容性。
 ALL TEN RANKS COMPLETE=十個階級皆已完成
@@ -3537,6 +3585,10 @@ Rifle Cartridges - Regular=步槍子彈（一般）
 Rifle Cartridges - High Velocity=步槍子彈（高速彈）
 Rifle Cartridges - Express=步槍子彈（空尖彈）
 Menu font=選單字型
+Nothing can be crafted right now=目前沒有可製作的物品
+Nothing to show here=沒有可顯示的項目
+Rifle=步槍
+Any weapon=任意武器
 )HCL12";
 inline constexpr LocaleBlob kLocales[] = {
     {"de-DE", kLocale_de_DE},

@@ -12,7 +12,9 @@ ammunition give the cleanest kill, and what you can craft with what you are carr
 - **Animal indicators:** see whether the animal you are looking at can supply a
   material that an unowned Pearson or Trapper recipe still needs.
 - **Weapon and ammo suggestions:** icons and names of the weapon and ammunition
-  for a clean kill. Toggle them in Settings or with a hotkey.
+  for a clean kill, exactly as the game's own Animal Compendium advises. Legendary
+  animals, whose pelts cannot be damaged, show "Any weapon". Toggle the icons in
+  Settings or with a hotkey.
 - **Pearson and Trapper:** recipes, required materials, what you own, donation
   stock, and a "craftable now" filter.
 - **Crafting Uses:** the uncrafted recipes that can use the pelts and parts you are
@@ -25,7 +27,8 @@ ammunition give the cleanest kill, and what you can craft with what you are carr
   (Spain and Mexico), Brazilian Portuguese, Polish, Russian, Japanese, Korean,
   Simplified Chinese and Traditional Chinese. Item and challenge names are the
   game's own.
-- **Menu fonts:** five game fonts to choose from in Settings.
+- **Menu fonts:** the game's own fonts to choose from in Settings, a different set
+  for each language (whatever the game itself has for it), remembered per language.
 
 The mod only reads game data. It never changes your progress, inventory or saves.
 **Do not use it in Red Dead Online.**
@@ -49,21 +52,24 @@ Everything else is built into the `.asi`. To uninstall, delete the files.
 | Navigate | Up / Down, Enter, Backspace |
 
 All keys, the language and the menu font can be changed on the in-game Settings
-page. Settings are saved to `HuntingCompanion.ini`.
+page (Backspace cancels a key change). Settings are saved to `HuntingCompanion.ini`.
 
 ## Japanese, Korean and Chinese
 
 If the game itself is set to one of these languages, the mod uses the game's own
-fonts. If you pick one of them in the mod while the game runs in another language,
-the mod draws the text itself, which works on both renderers:
+fonts. If you pick one of them in the mod while the game runs in another language
+(including another Asian language), the mod loads the game's own font for it from
+the game files, so no extra files or mods are needed. The menu switches as soon as
+the font is ready (a fraction of a second); if it cannot be loaded, the menu shows
+English.
 
-- **Vulkan** (including Linux/Proton): tested and reliable.
-- **DirectX 12:** **experimental.** If it cannot start, the mod shows English instead.
-  If you hit a problem, set `OverlayBackend=1` in `HuntingCompanion.ini` to
-  switch it off, or set `OverlayLog=1`, reproduce the problem, and report it with the
-  generated `HuntingCompanion.overlay.log`.
+The same works the other way round: on a Japanese, Korean or Chinese game, a
+European language (Polish, Spanish, Russian, ...) uses the game's own Latin or
+Cyrillic font, with all its accents.
 
-On HDR displays the text brightness can be tuned with `CjkHdrPaperWhiteNits`.
+If text shows as squares or stays in English, set `FontLog=1` in
+`HuntingCompanion.ini`, reproduce the problem, and report it with the generated
+`HuntingCompanion.fonts.log`.
 
 ## Configuration
 
@@ -71,10 +77,13 @@ On HDR displays the text brightness can be tuned with `CjkHdrPaperWhiteNits`.
 
 ## Credits
 
-- Texture names were checked against the community catalogue
+- Weapon advice is Rockstar's own Animal Compendium text, as collected by
+  wafflecomposite's compendium viewer
+  <https://wafflecomposite.github.io/rdr_compendium/animals.html>.
+- Texture, model and animal-type names were checked against the community catalogue
   <https://github.com/femga/rdr3_discoveries>.
-- Built with [Dear ImGui](https://github.com/ocornut/imgui),
-  [MinHook](https://github.com/TsudaKageyu/minhook) and Noto Sans CJK; see
+- Built with [MinHook](https://github.com/TsudaKageyu/minhook). The way the game's
+  own font libraries are loaded follows the open-source RedM project; see
   `THIRD-PARTY-NOTICES.md`.
 
 ## Licence

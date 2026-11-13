@@ -11,12 +11,14 @@ the readme shipped in the release zip.
 > The mod is AI-coded. The ideas, direction and in-game testing are human; the
 > code was written by AI assistants.
 
-This page is for people who want to build or change the mod.
+This page is for people who want to build or change the mod. Release notes are in
+[`CHANGELOG.md`](CHANGELOG.md).
 
 ## Building
 
-Target is Windows x64. You need MinGW-w64, CMake and Ninja; it cross-compiles
-from Linux. All third-party sources are vendored in `third_party/`.
+Target is Windows x64. You need MinGW-w64 (v11 or newer), CMake and Ninja; it
+cross-compiles from Linux. All third-party sources are vendored in `third_party/`.
+On Ubuntu: `sudo apt-get install mingw-w64 cmake ninja-build`.
 
 ```bash
 cmake -S . -B build -G Ninja \
@@ -28,7 +30,8 @@ cmake --build build --clean-first
 The result is `build/HuntingCompanion.asi`. Use a fresh build directory each time
 so an old CMake cache cannot produce a stale binary.
 
-To make a release zip (the `.asi`, the player readme, the default ini and the licences):
+To make a release zip (the `.asi`, the player readme, the changelog, the default ini
+and the licences):
 
 ```bash
 python tools/package_release.py build/HuntingCompanion.asi
@@ -41,15 +44,14 @@ python tools/package_release.py build/HuntingCompanion.asi
 | `src/main.cpp` | The mod: game natives, recipe and challenge tracking, HUD icons, the menu |
 | `src/localization.*` | Loads the embedded language tables |
 | `src/official_strings.*` | The game's own item and challenge names, per language |
-| `src/cjk_overlay.cpp` | Draws Japanese/Korean/Chinese text on Vulkan |
-| `src/cjk_overlay_dx12.cpp` | The same on DirectX 12 (experimental) |
-| `src/overlay_queue.hpp` | Text queue shared by the script thread and the overlay, plus HDR colour conversion |
+| `src/native_fonts.cpp` | Loads the game's own font libraries (Japanese, Korean, Chinese, Latin, Cyrillic) on demand |
+| `src/font_catalog.hpp` | Reads the game's `fontmap.xml` and builds each language's font list |
 | `src/embedded_*.hpp` | Generated files; do not edit by hand (see below) |
 | `HuntingCompanion-Languages/` | One `.lang` file per language |
 | `data/` | Source data for the generators |
 | `tools/` | Generators, the localisation validator and the release packager |
 | `tests/` | Checks that run without the game |
-| `third_party/` | Dear ImGui, MinHook and the Vulkan headers |
+| `third_party/` | MinHook |
 
 ## Generated files
 
@@ -59,11 +61,6 @@ Rerun the generator after changing its input:
 |---|---|---|
 | `HuntingCompanion-Languages/*.lang` | `python tools/embed_languages.py` | `src/embedded_languages.hpp` |
 | `data/hunting_recommendations.json` | `python tools/embed_hunting_recommendations.py` | `src/embedded_hunting_recommendations.hpp` |
-| `.lang` files and official strings | `python tools/build_cjk_fonts.py --ttc NotoSansCJK-Bold.ttc` | `src/embedded_cjk_fonts.hpp` |
-
-After editing a `.lang` file, run both the language and the font generator.
-Otherwise new characters can show up as `?` in Japanese, Korean or Chinese.
-The font generator needs Python's `fontTools` and a copy of `NotoSansCJK-Bold.ttc`.
 
 ## Tests
 
@@ -74,9 +71,8 @@ python tools/validate_localizations.py
 python tests/test_catalog_contract.py
 python tests/test_hunting_recommendations.py
 python tests/test_crafting_uses.py
-python tests/test_cjk_font_coverage.py
-python tests/test_overlay_integration.py
-g++ -std=c++17 -pthread -I src tests/test_overlay_queue.cpp -o test_overlay_queue && ./test_overlay_queue
+python tests/test_native_fonts_integration.py
+python tests/test_localization.py
 g++ -std=c++17 -I src src/official_strings.cpp tests/test_official_strings.cpp -o test_official_strings && ./test_official_strings
 ```
 
@@ -86,24 +82,32 @@ They check data and wiring only. Anything visible has to be tested in the game.
 
 - **Read-only.** The mod only reads game data through script natives. It never
   changes progress, inventory or saves.
-- **Text.** Menu text is drawn with the game's own fonts. The game only loads
-  Japanese, Korean or Chinese glyphs when it runs in that language, so for those
-  languages on any other game language the text is drawn by an overlay instead:
-  Dear ImGui renders it into the game's swapchain just before each present, using
-  embedded subsets of Noto Sans CJK.
-- **Overlay hooks.** They are installed from a worker thread at load, on Vulkan and
-  DirectX 12. The DirectX 12 renderer creates nothing until there is text to draw
-  and switches itself off for the session after any failure.
-- **Diagnostics.** `OverlayLog=1` in `HuntingCompanion.ini` writes
-  `HuntingCompanion.overlay.log` to the game folder.
+- **Text.** All text is drawn by the game with its own fonts. The game only loads
+  the font library of its own language (`font_lib_efigs`, `font_lib_japanese`,
+  `font_lib_korean`, `font_lib_chinese`, `font_lib_simplified_chinese`, ... in
+  `scaleform_frontend.rpf`). When the companion language needs another one,
+  `native_fonts.cpp` asks the game's streaming system to load it and adds it to
+  Scaleform's font library with the game's own function, the way RedM's
+  `REGISTER_FONT_FILE` does. The font names and each language's menu fonts come
+  from the game's own `fontmap.xml`, read through the game's file system. While
+  it loads the menu keeps its current language; if it cannot be loaded, a CJK
+  language falls back to English and a Latin/Cyrillic one to the game's basic font.
+- **Hooks.** One game function is hooked from a worker thread at load (found by
+  byte pattern; skipped if the pattern is not unique) so the mod learns where the
+  game keeps its font library. Nothing else in the game is changed.
+- **Diagnostics.** `FontLog=1` under `[Fonts]` in `HuntingCompanion.ini` writes
+  `HuntingCompanion.fonts.log` to the game folder.
 
 ## Credits
 
-- Texture names were checked against the community catalogue
+- Weapon advice is Rockstar's own Animal Compendium text, as collected by
+  wafflecomposite's compendium viewer
+  <https://wafflecomposite.github.io/rdr_compendium/animals.html>.
+- Texture, model and animal-type names were checked against the community catalogue
   <https://github.com/femga/rdr3_discoveries>.
-- Built with [Dear ImGui](https://github.com/ocornut/imgui),
-  [MinHook](https://github.com/TsudaKageyu/minhook) and Noto Sans CJK; see
-  `THIRD-PARTY-NOTICES.md`.
+- Built with [MinHook](https://github.com/TsudaKageyu/minhook).
+- Loading the game's own font libraries follows the approach of the open-source
+  [RedM/FiveM](https://github.com/citizenfx/fivem) project; see `THIRD-PARTY-NOTICES.md`.
 
 ## Licence
 
