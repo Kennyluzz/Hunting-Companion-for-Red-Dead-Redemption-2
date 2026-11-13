@@ -932,6 +932,16 @@ void install(const Settings& settings) noexcept {
     if (thread != nullptr) CloseHandle(thread);
 }
 
+void diagnostic(const char* format, ...) noexcept {
+    if (!g_settings.fileLog) return;
+    char line[400];
+    va_list args;
+    va_start(args, format);
+    std::vsnprintf(line, sizeof(line), format, args);
+    va_end(args);
+    log("%s", line);
+}
+
 void set_game_language(int language) noexcept { g_gameLanguage.store(language); }
 
 bool needs_library(int language, int gameLanguage) noexcept {

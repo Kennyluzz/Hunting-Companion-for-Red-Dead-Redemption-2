@@ -2072,6 +2072,21 @@ void draw_hunting_recommendation_icons(
 // the type tells them apart. A legendary pelt cannot be damaged, so any weapon
 // gives a perfect carcass and no weapon icons are shown for them.
 constexpr std::uint64_t kGetPedAnimalType = 0x964000D355219FC0ull;
+constexpr std::uint64_t kCompendiumShortDescriptionFromPed = 0x6C5E5D48E48B4C65ull;
+
+// Logged once per label (with [Fonts] FontLog=1): a Compendium label the advice
+// table does not know, for example after a game update changed the text. No
+// weapon icons are shown for it.
+void note_unknown_compendium_label(std::uint32_t label, const char* species) noexcept {
+    static std::uint32_t reported[64]{};
+    static int count = 0;
+    for (int i = 0; i < count; ++i) {
+        if (reported[i] == label) return;
+    }
+    if (count < 64) reported[count++] = label;
+    hunting_companion::native_fonts::diagnostic("Compendium label %08X (%s) is not in the advice table", label,
+                                                species);
+}
 constexpr std::uint32_t kLegendaryAnimalTypes[] = {
     joaat("AT_GATOR_BULL"), joaat("AT_BEAR_LEGENDARY"), joaat("AT_BEAVER_LEGENDARY"),
     joaat("AT_BUFFALO_LEGENDARY"), joaat("AT_BUFFALO_TATANKA"), joaat("AT_BOAR_LEGENDARY"),
@@ -2138,19 +2153,27 @@ void update_hud() noexcept {
                                          player, &focusedEntity, true, false);
     if (!found || focusedEntity == 0) return;
     const std::uint32_t model = invoke_native<std::uint32_t>(kGetEntityModel, focusedEntity);
+    // The species (from the model) drives the Pearson/Trapper icons.
     const char* species = find_animal_species(model);
-    if (species == nullptr) return;
 
-    const bool needsPearson = species_needed(g_tracker.pearson.demand, species);
-    const bool needsTrapper = species_needed(g_tracker.trapper.demand, species);
+    // Weapon advice is the game's own: the clean-kill line of this exact animal's
+    // Animal Compendium short description, looked up by its label. It works for
+    // any animal the Compendium covers, whether or not its model is in the
+    // species list; people and horses have no clean-kill line and show nothing.
+    const std::uint32_t compendiumLabel = invoke_native<std::uint32_t>(kCompendiumShortDescriptionFromPed,
+                                                                       focusedEntity);
+    const auto* recommendation = hunting_companion::hunting::find_by_label(compendiumLabel);
+    if (recommendation == nullptr && species != nullptr) note_unknown_compendium_label(compendiumLabel, species);
+    const bool legendary = is_legendary_animal(focusedEntity);
+    if (species == nullptr && recommendation == nullptr && !legendary) return;
+
+    const bool needsPearson = species != nullptr && species_needed(g_tracker.pearson.demand, species);
+    const bool needsTrapper = species != nullptr && species_needed(g_tracker.trapper.demand, species);
 
     HudIconLayout layout{};
     if (!get_hud_icon_layout(&layout)) return;
 
-    // Recommendations are useful for every recognized animal, not only species
-    // currently needed by Pearson or the Trapper.
-    const auto* recommendation = hunting_companion::hunting::find(species);
-    if (g_showWeaponIcons && is_legendary_animal(focusedEntity)) {
+    if (g_showWeaponIcons && legendary) {
         draw_any_weapon_hint(layout);
     } else if (recommendation != nullptr && g_showWeaponIcons && inventory_texture_dictionary_ready()) {
         draw_hunting_recommendation_icons(*recommendation, layout);

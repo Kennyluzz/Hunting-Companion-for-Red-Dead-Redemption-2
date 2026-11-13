@@ -7,65 +7,31 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = json.loads((ROOT / "data/hunting_recommendations.json").read_text(encoding="utf-8"))
+DATA = json.loads((ROOT / "data/weapon_icons.json").read_text(encoding="utf-8"))
+ADVICE = json.loads((ROOT / "data/compendium_advice.json").read_text(encoding="utf-8"))["labels"]
 SOURCE = (ROOT / "src/main.cpp").read_text(encoding="utf-8")
 HEADER = (ROOT / "src/embedded_hunting_recommendations.hpp").read_text(encoding="utf-8")
 CMAKE = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
 
-rows = DATA["recommendations"]
-species = [row["species"] for row in rows]
-if len(species) != len(set(species)):
-    raise AssertionError("Duplicate runtime species")
-
-material_block = SOURCE.split("constexpr std::array<MaterialSource, 83> kMaterialSources", 1)[1].split("}};", 1)[0]
-tracked_species = set(re.findall(r'"([^"]+)"', material_block))
-if not tracked_species.issubset(set(species)):
-    raise AssertionError(
-        f"Pearson/Trapper material species missing recommendations: {sorted(tracked_species-set(species))}"
-    )
-
-# Every standard Animal Compendium number must be represented: either by a
-# weapon recommendation or by an explicit no-recommendation classification.
-numbered = [n for row in rows for n in row["compendiumNumbers"]]
-no_recommendation = DATA.get("noRecommendationEntries", [])
-numbered.extend(n for row in no_recommendation for n in row["compendiumNumbers"])
-if len(numbered) != len(set(numbered)):
-    raise AssertionError("Duplicate Compendium number in recommendation / no-recommendation data")
-if set(numbered) != set(range(1, 163)):
-    raise AssertionError(
-        f"Standard Animal Compendium coverage mismatch; missing={sorted(set(range(1,163))-set(numbered))}, "
-        f"extra={sorted(set(numbered)-set(range(1,163)))}"
-    )
-if len(no_recommendation) != 15:
-    raise AssertionError("Expected 15 domestic / working animal entries without a hunting recommendation")
-
-model_block = SOURCE.split("constexpr auto kAnimalModels = std::array{", 1)[1].split("};", 1)[0]
-model_species = set(re.findall(r'AnimalModel\{joaat\("[^"]+"\), "([^"]+)"\}', model_block))
-if set(species) != model_species:
-    raise AssertionError(
-        f"Animal-model recommendation coverage mismatch; missing={sorted(model_species-set(species))}, "
-        f"unreachable={sorted(set(species)-model_species)}"
-    )
-
-# The only source is the game's own Animal Compendium: every recommendation quotes
-# its clean-kill line and lists the Compendium animals it covers.
-if "rdr_compendium/animals.html" not in DATA["source"]["url"]:
-    raise AssertionError("Recommendations must come only from the in-game Animal Compendium")
-for row in rows:
-    if not row["sourceRule"].startswith("In-game Animal Compendium: Use a ") or not row.get("compendiumEntries"):
-        raise AssertionError(f"{row['species']}: not sourced from the in-game Compendium")
-
-for row in rows:
-    if not row["compendiumNumbers"] or any(not 1 <= n <= 162 for n in row["compendiumNumbers"]):
-        raise AssertionError(f"{row['species']}: invalid Compendium references")
-    if not row["sourceRule"] or not row["choices"]:
-        raise AssertionError(f"{row['species']}: missing source rule or recommendation")
+# Weapon advice is only the game's own: the clean-kill line of each Animal
+# Compendium short description, by label (tools/build_compendium_advice.py).
+ids = [row["id"] for row in ADVICE]
+if not ids or len(ids) != len(set(ids)):
+    raise AssertionError("The Compendium advice table is empty or has duplicate labels")
+for row in ADVICE:
+    if not row["advice"].startswith("Use ") or not row["advice"].endswith("for a clean kill.") or not row["choices"]:
+        raise AssertionError(f"{row['id']}: not a Compendium clean-kill line")
     for item in row["choices"]:
-        if item["weapon"] not in DATA["weaponTextures"]:
-            raise AssertionError(f"{row['species']}: unknown weapon {item['weapon']}")
-        for ammo in item.get("ammo", []):
-            if ammo not in DATA["ammoTextures"]:
-                raise AssertionError(f"{row['species']}: unknown ammo {ammo}")
+        if item["weapon"] not in DATA["weaponTextures"] or any(a not in DATA["ammoTextures"] for a in item["ammo"]):
+            raise AssertionError(f"{row['id']}: weapon or ammunition without an icon")
+    if f"0x{int(row['id'], 16):08X}u" not in HEADER:
+        raise AssertionError(f"{row['id']}: missing from the generated header")
+for token in ("find_by_label(compendiumLabel)", "kCompendiumShortDescriptionFromPed",
+              "note_unknown_compendium_label("):
+    if token not in SOURCE:
+        raise AssertionError(f"The HUD must use the game's own Compendium label: {token}")
+if "hunting::find(species)" in SOURCE:
+    raise AssertionError("Weapon advice must not come from a per-species table")
 
 for texture in list(DATA["weaponTextures"].values()) + list(DATA["ammoTextures"].values()):
     if texture not in HEADER:
@@ -73,7 +39,6 @@ for texture in list(DATA["weaponTextures"].values()) + list(DATA["ammoTextures"]
 
 required_source = (
     '#include "embedded_hunting_recommendations.hpp"',
-    'hunting_companion::hunting::find(species)',
     'inventory_texture_dictionary_ready()',
     'recipe_craftable_now(vendor, recipe)',
     'recipe_craftable_now(vendor, vendor.recipes[i])',
@@ -150,4 +115,4 @@ for token in ("struct IconRow { RecommendationIcon icons[2]; int count; };",
     if token not in SOURCE:
         raise AssertionError(f"Missing icon layout / text fitting integration: {token}")
 
-print(f"PASS: {len(rows)} huntable runtime species; all 162 standard Animal Compendium entries classified; recommendation, icon, filter and 13-locale contracts.")
+print(f"PASS: {len(ADVICE)} Compendium clean-kill labels; icon, filter and 13-locale contracts.")

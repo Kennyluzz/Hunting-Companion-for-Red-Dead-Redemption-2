@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(HuntingCompanion VERSION 1.30.0 LANGUAGES C CXX)
+project(HuntingCompanion VERSION 1.30.1 LANGUAGES C CXX)
 
 if(NOT WIN32)
     message(FATAL_ERROR "Configure with cmake/mingw-w64-toolchain.cmake to target Windows x64.")
