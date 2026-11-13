@@ -15,3 +15,7 @@ build.ninja
 
 # Development-only source language archives (never needed at runtime).
 .dev-language-inputs/
+
+# Python bytecode
+__pycache__/
+dist/

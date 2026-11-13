@@ -47,12 +47,13 @@ if set(species) != model_species:
         f"unreachable={sorted(set(species)-model_species)}"
     )
 
-if DATA["source"]["updated"] != "2026-11-02":
-    raise AssertionError("Bloxodes source revision date changed")
-if DATA["source"]["page1"] != "https://bloxodes.com/wiki/red-dead-redemption-2/animals":
-    raise AssertionError("Bloxodes page 1 reference mismatch")
-if DATA["source"]["page2"] != "https://bloxodes.com/wiki/red-dead-redemption-2/animals/page/2":
-    raise AssertionError("Bloxodes page 2 reference mismatch")
+# The only source is the game's own Animal Compendium: every recommendation quotes
+# its clean-kill line and lists the Compendium animals it covers.
+if "rdr_compendium/animals.html" not in DATA["source"]["url"]:
+    raise AssertionError("Recommendations must come only from the in-game Animal Compendium")
+for row in rows:
+    if not row["sourceRule"].startswith("In-game Animal Compendium: Use a ") or not row.get("compendiumEntries"):
+        raise AssertionError(f"{row['species']}: not sourced from the in-game Compendium")
 
 for row in rows:
     if not row["compendiumNumbers"] or any(not 1 <= n <= 162 for n in row["compendiumNumbers"]):
