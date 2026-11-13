@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.30.1
+
+- **Weapon and ammunition advice is read from the game itself.** For the animal in
+  focus, the mod reads the clean-kill line of that animal's own Animal Compendium
+  entry ("Use a ... for a clean kill.") and shows exactly that weapon and
+  ammunition, so the icons always match the game's Show Info panel, for every breed
+  and variant (for example the Pekin Duck now shows a Bow with Small Game Arrows).
+  It works for every animal in the Compendium, whatever its model.
+- An animal whose Compendium line the mod does not know shows no weapon icons rather
+  than a guess; with `FontLog=1` it is written to `HuntingCompanion.fonts.log`.
+- For developers: `tools/build_compendium_advice.py` builds the advice table
+  (`data/compendium_advice.json`) from the game's English string table;
+  `data/weapon_icons.json` holds the HUD icon for each weapon and ammunition.
+
 ## 1.30.0
 
 Changes since 1.20.0 / 1.20.1.

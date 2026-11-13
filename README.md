@@ -60,7 +60,8 @@ Rerun the generator after changing its input:
 | Input | Command | Output |
 |---|---|---|
 | `HuntingCompanion-Languages/*.lang` | `python tools/embed_languages.py` | `src/embedded_languages.hpp` |
-| `data/hunting_recommendations.json` | `python tools/embed_hunting_recommendations.py` | `src/embedded_hunting_recommendations.hpp` |
+| The game's English string table (`.xml`, or a `.zip` holding it) | `python tools/build_compendium_advice.py <file>` | `data/compendium_advice.json` |
+| `data/compendium_advice.json`, `data/weapon_icons.json` | `python tools/embed_hunting_recommendations.py` | `src/embedded_hunting_recommendations.hpp` |
 
 ## Tests
 
@@ -82,6 +83,11 @@ They check data and wiring only. Anything visible has to be tested in the game.
 
 - **Read-only.** The mod only reads game data through script natives. It never
   changes progress, inventory or saves.
+- **Weapon advice.** For the animal in focus the game returns its Animal Compendium
+  short-description label (`COMPENDIUM_GET_SHORT_DESCRIPTION_FROM_PED`); the HUD
+  shows the weapon and ammunition from that label's clean-kill line
+  (`data/compendium_advice.json`, built from the game's English string table).
+  Legendary animals are recognised by their animal type and show "Any weapon".
 - **Text.** All text is drawn by the game with its own fonts. The game only loads
   the font library of its own language (`font_lib_efigs`, `font_lib_japanese`,
   `font_lib_korean`, `font_lib_chinese`, `font_lib_simplified_chinese`, ... in
@@ -100,9 +106,8 @@ They check data and wiring only. Anything visible has to be tested in the game.
 
 ## Credits
 
-- Weapon advice is Rockstar's own Animal Compendium text, as collected by
-  wafflecomposite's compendium viewer
-  <https://wafflecomposite.github.io/rdr_compendium/animals.html>.
+- Weapon advice is the game's own Animal Compendium text, read from the game for
+  the animal in focus.
 - Texture, model and animal-type names were checked against the community catalogue
   <https://github.com/femga/rdr3_discoveries>.
 - Built with [MinHook](https://github.com/TsudaKageyu/minhook).

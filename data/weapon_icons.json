@@ -1,0 +1,15 @@
+{
+  "description": "HUD icons for the weapons and ammunition named in the game's own Animal Compendium clean-kill lines (data/compendium_advice.json). 'a rifle' is shown as Rifle and 'a long scope rifle' as Sniper rifle.",
+  "weaponTextures": {
+    "Bow": "weapon_bow",
+    "Varmint Rifle": "weapon_rifle_varmint",
+    "Repeater": "weapon_repeater_lancaster",
+    "Rifle": "weapon_rifle_springfield",
+    "Sniper rifle": "weapon_sniperrifle_carcano"
+  },
+  "ammoTextures": {
+    "Small Game Arrows": "ammo_arrow_small_game",
+    "Improved Arrows": "ammo_arrow_improved",
+    "Poisoned Arrows": "ammo_arrow_poison"
+  }
+}

@@ -77,9 +77,8 @@ If text shows as squares or stays in English, set `FontLog=1` in
 
 ## Credits
 
-- Weapon advice is Rockstar's own Animal Compendium text, as collected by
-  wafflecomposite's compendium viewer
-  <https://wafflecomposite.github.io/rdr_compendium/animals.html>.
+- Weapon advice is the game's own Animal Compendium text, read from the game for
+  the animal in focus.
 - Texture, model and animal-type names were checked against the community catalogue
   <https://github.com/femga/rdr3_discoveries>.
 - Built with [MinHook](https://github.com/TsudaKageyu/minhook). The way the game's

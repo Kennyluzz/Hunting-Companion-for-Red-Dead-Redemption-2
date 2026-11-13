@@ -16,11 +16,10 @@ byte patterns that locate the game functions. The implementation here is written
 independently; no RedM/FiveM source code is included.
 
 ## Animal Compendium text and game data names
-The clean-kill weapon advice in `data/hunting_recommendations.json` quotes the
-game's own Animal Compendium (Rockstar's text), as collected by wafflecomposite's
-compendium viewer (https://wafflecomposite.github.io/rdr_compendium/). Texture,
-model and animal-type names come from the community catalogue femga/rdr3_discoveries
-(https://github.com/femga/rdr3_discoveries). Rockstar's text is covered by the
+The clean-kill weapon advice in `data/compendium_advice.json` quotes the game's own
+Animal Compendium text (Rockstar's text), taken from the game's English string table.
+Texture, model and animal-type names come from the community catalogue
+femga/rdr3_discoveries (https://github.com/femga/rdr3_discoveries). Rockstar's text is covered by the
 "Rockstar-authored localization content" notice below.
 
 ## Rockstar fonts — not included

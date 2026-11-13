@@ -61,6 +61,10 @@ void mark_unusable(int language, const char* reason) noexcept;
 char* read_game_file(const char* path, std::size_t* size) noexcept;
 void free_game_file(char* data) noexcept;
 
+// Writes one line to the diagnostics log (HuntingCompanion.fonts.log) when
+// [Fonts] FontLog=1; does nothing otherwise.
+void diagnostic(const char* format, ...) noexcept;
+
 // Short English status line for the Settings page (not translated: it is only
 // relevant while the interface has fallen back to English).
 const char* status_line(int language) noexcept;
