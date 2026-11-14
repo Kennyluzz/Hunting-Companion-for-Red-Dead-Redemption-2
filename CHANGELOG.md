@@ -9,6 +9,16 @@
   katakana); Japanese, Korean and Chinese can be typed with the Windows IME. Enter
   opens the recipe, Backspace deletes (and goes back once the box is empty), and
   the game ignores its controls while you type.
+- **HUD layout.** Settings > HUD layout moves and resizes the HUD icons: all of them
+  together, or the weapon and ammo icons and the Pearson and Trapper icons on their
+  own. Sample icons show while the page is open; pick a group, then arrows move it
+  (Shift for bigger steps), Page Up/Down or +/- size it, Enter saves and Backspace
+  puts it back. "Reset layout" restores the defaults. Saved under `[HUD]` in the ini.
+- **Colours.** Settings has a Text colour, a Heading colour and a HUD label colour,
+  each with Default, White, Cream, Gold, Red, Orange, Green, Blue, Purple and Grey.
+  Coloured status text (what you have or still need) keeps its own colours.
+- **Settings wraps around.** Down on the last row goes back to the first, and Up on
+  the first goes to the last. Settings shows seven rows at a time and scrolls.
 - **Pelts on the horse count again in Crafting Uses.** Pelts stacked on the saddle
   horse are now read by inventory item, and a pelt you carried keeps its identity
   after the game removes the animal it came from, so it no longer drops out of

@@ -34,6 +34,10 @@ ammunition give the cleanest kill, and what you can craft with what you are carr
   game's own.
 - **Menu fonts:** the game's own fonts to choose from in Settings, a different set
   for each language (whatever the game itself has for it), remembered per language.
+- **Colours:** choose the colour of the menu text, the menu headings and the names
+  under the weapon and ammo icons.
+- **HUD layout:** move and resize the HUD icons, all together or the weapon/ammo and
+  Pearson/Trapper groups on their own, with a live preview (Settings > HUD layout).
 
 The mod only reads game data. It never changes your progress, inventory or saves.
 **Do not use it in Red Dead Online.**
