@@ -287,6 +287,32 @@ Nothing can be crafted right now=Derzeit ist nichts herstellbar
 Nothing to show here=Hier gibt es nichts anzuzeigen
 Rifle=Gewehr
 Any weapon=Beliebige Waffe
+
+# Colours and HUD layout
+Text colour=Textfarbe
+Heading colour=Überschriftenfarbe
+HUD label colour=HUD-Beschriftungsfarbe
+HUD layout=HUD-Anordnung
+Default=Standard
+White=Weiß
+Cream=Creme
+Gold=Gold
+Red=Rot
+Orange=Orange
+Green=Grün
+Blue=Blau
+Purple=Lila
+Grey=Grau
+HUD LAYOUT=HUD-ANORDNUNG
+Move and resize the HUD icons=HUD-Symbole verschieben und skalieren
+All icons=Alle Symbole
+Weapon and ammo icons=Waffen- und Munitionssymbole
+Pearson and Trapper icons=Pearson- und Fallensteller-Symbole
+Reset layout=Anordnung zurücksetzen
+SIZE %d%%=GRÖSSE %d%%
+The icons on the right are a preview. Select a group to move it.=Die Symbole rechts sind eine Vorschau. Wähle eine Gruppe, um sie zu verschieben.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=PFEILE - Verschieben   UMSCHALT - Schneller   BILD AUF/AB - Größe
+ENTER Save   BACKSPACE Cancel=ENTER - Speichern   BACKSPACE - Abbrechen
 )HCL0";
 inline constexpr char kLocale_en_US[] = R"HCL1(# Hunting Companion localization — en-US
 # Companion-owned interface phrases follow this locale.
@@ -445,6 +471,32 @@ Nothing can be crafted right now=Nothing can be crafted right now
 Nothing to show here=Nothing to show here
 Rifle=Rifle
 Any weapon=Any weapon
+
+# Colours and HUD layout
+Text colour=Text colour
+Heading colour=Heading colour
+HUD label colour=HUD label colour
+HUD layout=HUD layout
+Default=Default
+White=White
+Cream=Cream
+Gold=Gold
+Red=Red
+Orange=Orange
+Green=Green
+Blue=Blue
+Purple=Purple
+Grey=Grey
+HUD LAYOUT=HUD LAYOUT
+Move and resize the HUD icons=Move and resize the HUD icons
+All icons=All icons
+Weapon and ammo icons=Weapon and ammo icons
+Pearson and Trapper icons=Pearson and Trapper icons
+Reset layout=Reset layout
+SIZE %d%%=SIZE %d%%
+The icons on the right are a preview. Select a group to move it.=The icons on the right are a preview. Select a group to move it.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=ARROWS - Move   SHIFT - Faster   PAGE UP/DOWN - Size
+ENTER Save   BACKSPACE Cancel=ENTER - Save   BACKSPACE - Cancel
 )HCL1";
 inline constexpr char kLocale_es_ES[] = R"HCL2(# Hunting Companion localization — es-ES
 # Companion-owned interface phrases follow this locale.
@@ -731,6 +783,32 @@ Nothing can be crafted right now=Ahora mismo no hay recetas disponibles
 Nothing to show here=No hay nada que mostrar
 Rifle=Fusil
 Any weapon=Cualquier arma
+
+# Colours and HUD layout
+Text colour=Color del texto
+Heading colour=Color de los títulos
+HUD label colour=Color de las etiquetas del HUD
+HUD layout=Disposición del HUD
+Default=Predeterminado
+White=Blanco
+Cream=Crema
+Gold=Dorado
+Red=Rojo
+Orange=Naranja
+Green=Verde
+Blue=Azul
+Purple=Morado
+Grey=Gris
+HUD LAYOUT=DISPOSICIÓN DEL HUD
+Move and resize the HUD icons=Mover y cambiar el tamaño de los iconos del HUD
+All icons=Todos los iconos
+Weapon and ammo icons=Iconos de armas y munición
+Pearson and Trapper icons=Iconos de Pearson y el trampero
+Reset layout=Restablecer disposición
+SIZE %d%%=TAMAÑO %d%%
+The icons on the right are a preview. Select a group to move it.=Los iconos de la derecha son una vista previa. Elige un grupo para moverlo.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=FLECHAS - Mover   MAYÚS - Más rápido   RE PÁG/AV PÁG - Tamaño
+ENTER Save   BACKSPACE Cancel=ENTER - Guardar   RETROCESO - Cancelar
 )HCL2";
 inline constexpr char kLocale_es_MX[] = R"HCL3(# Hunting Companion localization — es-MX
 # Companion-owned interface phrases follow this locale.
@@ -1017,6 +1095,32 @@ Nothing can be crafted right now=Por ahora no hay recetas elaborables
 Nothing to show here=No hay nada que mostrar
 Rifle=Rifle
 Any weapon=Cualquier arma
+
+# Colours and HUD layout
+Text colour=Color del texto
+Heading colour=Color de los títulos
+HUD label colour=Color de las etiquetas del HUD
+HUD layout=Disposición del HUD
+Default=Predeterminado
+White=Blanco
+Cream=Crema
+Gold=Dorado
+Red=Rojo
+Orange=Naranja
+Green=Verde
+Blue=Azul
+Purple=Morado
+Grey=Gris
+HUD LAYOUT=DISPOSICIÓN DEL HUD
+Move and resize the HUD icons=Mover y cambiar el tamaño de los íconos del HUD
+All icons=Todos los íconos
+Weapon and ammo icons=Íconos de armas y munición
+Pearson and Trapper icons=Íconos de Pearson y el trampero
+Reset layout=Restablecer disposición
+SIZE %d%%=TAMAÑO %d%%
+The icons on the right are a preview. Select a group to move it.=Los íconos de la derecha son una vista previa. Elige un grupo para moverlo.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=FLECHAS - Mover   MAYÚS - Más rápido   RE PÁG/AV PÁG - Tamaño
+ENTER Save   BACKSPACE Cancel=ENTER - Guardar   RETROCESO - Cancelar
 )HCL3";
 inline constexpr char kLocale_fr_FR[] = R"HCL4(# Hunting Companion localization — fr-FR
 # Companion-owned interface phrases follow this locale.
@@ -1303,6 +1407,32 @@ Nothing can be crafted right now=Rien n’est réalisable pour le moment
 Nothing to show here=Rien à afficher ici
 Rifle=Fusil
 Any weapon=N’importe quelle arme
+
+# Colours and HUD layout
+Text colour=Couleur du texte
+Heading colour=Couleur des titres
+HUD label colour=Couleur des libellés du HUD
+HUD layout=Disposition du HUD
+Default=Par défaut
+White=Blanc
+Cream=Crème
+Gold=Or
+Red=Rouge
+Orange=Orange
+Green=Vert
+Blue=Bleu
+Purple=Violet
+Grey=Gris
+HUD LAYOUT=DISPOSITION DU HUD
+Move and resize the HUD icons=Déplacer et redimensionner les icônes du HUD
+All icons=Toutes les icônes
+Weapon and ammo icons=Icônes d'armes et de munitions
+Pearson and Trapper icons=Icônes de Pearson et du trappeur
+Reset layout=Réinitialiser la disposition
+SIZE %d%%=TAILLE %d%%
+The icons on the right are a preview. Select a group to move it.=Les icônes à droite sont un aperçu. Choisissez un groupe pour le déplacer.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=FLÈCHES - Déplacer   MAJ - Plus vite   PAGE HAUT/BAS - Taille
+ENTER Save   BACKSPACE Cancel=ENTRÉE - Enregistrer   RETOUR - Annuler
 )HCL4";
 inline constexpr char kLocale_it_IT[] = R"HCL5(# Hunting Companion localization — it-IT
 # Companion-owned interface phrases follow this locale.
@@ -1589,6 +1719,32 @@ Nothing can be crafted right now=Al momento non puoi creare nulla
 Nothing to show here=Niente da mostrare qui
 Rifle=Fucile a canna rigata
 Any weapon=Qualsiasi arma
+
+# Colours and HUD layout
+Text colour=Colore del testo
+Heading colour=Colore dei titoli
+HUD label colour=Colore etichette HUD
+HUD layout=Disposizione HUD
+Default=Predefinito
+White=Bianco
+Cream=Crema
+Gold=Oro
+Red=Rosso
+Orange=Arancione
+Green=Verde
+Blue=Blu
+Purple=Viola
+Grey=Grigio
+HUD LAYOUT=DISPOSIZIONE HUD
+Move and resize the HUD icons=Sposta e ridimensiona le icone dell'HUD
+All icons=Tutte le icone
+Weapon and ammo icons=Icone di armi e munizioni
+Pearson and Trapper icons=Icone di Pearson e del cacciatore di pelli
+Reset layout=Ripristina disposizione
+SIZE %d%%=DIMENSIONE %d%%
+The icons on the right are a preview. Select a group to move it.=Le icone a destra sono un'anteprima. Seleziona un gruppo per spostarlo.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=FRECCE - Sposta   MAIUSC - Più veloce   PAG SU/GIÙ - Dimensione
+ENTER Save   BACKSPACE Cancel=INVIO - Salva   BACKSPACE - Annulla
 )HCL5";
 inline constexpr char kLocale_ja_JP[] = R"HCL6(# Hunting Companion localization — ja-JP
 # Companion-owned interface phrases follow this locale.
@@ -1875,6 +2031,32 @@ Nothing can be crafted right now=今すぐ製作できるものはありませ�
 Nothing to show here=表示する項目はありません
 Rifle=ライフル
 Any weapon=どの武器でも可
+
+# Colours and HUD layout
+Text colour=文字の色
+Heading colour=見出しの色
+HUD label colour=HUDラベルの色
+HUD layout=HUDの配置
+Default=デフォルト
+White=白
+Cream=クリーム
+Gold=金
+Red=赤
+Orange=オレンジ
+Green=緑
+Blue=青
+Purple=紫
+Grey=灰色
+HUD LAYOUT=HUDの配置
+Move and resize the HUD icons=HUDアイコンの移動とサイズ変更
+All icons=すべてのアイコン
+Weapon and ammo icons=武器・弾薬アイコン
+Pearson and Trapper icons=ピアソン・罠猟師アイコン
+Reset layout=配置をリセット
+SIZE %d%%=サイズ %d%%
+The icons on the right are a preview. Select a group to move it.=右側のアイコンはプレビューです。移動するグループを選択してください。
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=矢印：移動   SHIFT：速く   PAGE UP/DOWN：サイズ
+ENTER Save   BACKSPACE Cancel=ENTER：保存   BACKSPACE：キャンセル
 )HCL6";
 inline constexpr char kLocale_ko_KR[] = R"HCL7(# Hunting Companion localization — ko-KR
 # Companion-owned interface phrases follow this locale.
@@ -2160,6 +2342,32 @@ Nothing can be crafted right now=지금 제작 가능한 항목이 없습니다
 Nothing to show here=표시할 항목이 없습니다
 Rifle=라이플
 Any weapon=아무 무기
+
+# Colours and HUD layout
+Text colour=텍스트 색상
+Heading colour=제목 색상
+HUD label colour=HUD 라벨 색상
+HUD layout=HUD 배치
+Default=기본값
+White=흰색
+Cream=크림색
+Gold=금색
+Red=빨간색
+Orange=주황색
+Green=초록색
+Blue=파란색
+Purple=보라색
+Grey=회색
+HUD LAYOUT=HUD 배치
+Move and resize the HUD icons=HUD 아이콘 이동 및 크기 조절
+All icons=모든 아이콘
+Weapon and ammo icons=무기 및 탄약 아이콘
+Pearson and Trapper icons=피어슨 및 덫사냥꾼 아이콘
+Reset layout=배치 초기화
+SIZE %d%%=크기 %d%%
+The icons on the right are a preview. Select a group to move it.=오른쪽 아이콘은 미리보기입니다. 이동할 그룹을 선택하세요.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=화살표 - 이동   SHIFT - 빠르게   PAGE UP/DOWN - 크기
+ENTER Save   BACKSPACE Cancel=ENTER - 저장   BACKSPACE - 취소
 )HCL7";
 inline constexpr char kLocale_pl_PL[] = R"HCL8(# Hunting Companion localization — pl-PL
 # Companion-owned interface phrases follow this locale.
@@ -2445,6 +2653,32 @@ Nothing can be crafted right now=Obecnie nie możesz niczego wytworzyć
 Nothing to show here=Brak pozycji do wyświetlenia
 Rifle=Karabin
 Any weapon=Dowolna broń
+
+# Colours and HUD layout
+Text colour=Kolor tekstu
+Heading colour=Kolor nagłówków
+HUD label colour=Kolor podpisów HUD
+HUD layout=Układ HUD
+Default=Domyślny
+White=Biały
+Cream=Kremowy
+Gold=Złoty
+Red=Czerwony
+Orange=Pomarańczowy
+Green=Zielony
+Blue=Niebieski
+Purple=Fioletowy
+Grey=Szary
+HUD LAYOUT=UKŁAD HUD
+Move and resize the HUD icons=Przesuwaj i zmieniaj rozmiar ikon HUD
+All icons=Wszystkie ikony
+Weapon and ammo icons=Ikony broni i amunicji
+Pearson and Trapper icons=Ikony Pearsona i trapera
+Reset layout=Przywróć układ
+SIZE %d%%=ROZMIAR %d%%
+The icons on the right are a preview. Select a group to move it.=Ikony po prawej to podgląd. Wybierz grupę, aby ją przesunąć.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=STRZAŁKI - Przesuń   SHIFT - Szybciej   PAGE UP/DOWN - Rozmiar
+ENTER Save   BACKSPACE Cancel=ENTER - Zapisz   BACKSPACE - Anuluj
 )HCL8";
 inline constexpr char kLocale_pt_BR[] = R"HCL9(# Hunting Companion localization — pt-BR
 # Companion-owned interface phrases follow this locale.
@@ -2731,6 +2965,32 @@ Nothing can be crafted right now=No momento não há receitas disponíveis
 Nothing to show here=Nada para mostrar aqui
 Rifle=Rifle
 Any weapon=Qualquer arma
+
+# Colours and HUD layout
+Text colour=Cor do texto
+Heading colour=Cor dos títulos
+HUD label colour=Cor dos rótulos do HUD
+HUD layout=Layout do HUD
+Default=Padrão
+White=Branco
+Cream=Creme
+Gold=Dourado
+Red=Vermelho
+Orange=Laranja
+Green=Verde
+Blue=Azul
+Purple=Roxo
+Grey=Cinza
+HUD LAYOUT=LAYOUT DO HUD
+Move and resize the HUD icons=Mover e redimensionar os ícones do HUD
+All icons=Todos os ícones
+Weapon and ammo icons=Ícones de armas e munição
+Pearson and Trapper icons=Ícones de Pearson e do caçador
+Reset layout=Redefinir layout
+SIZE %d%%=TAMANHO %d%%
+The icons on the right are a preview. Select a group to move it.=Os ícones à direita são uma prévia. Escolha um grupo para movê-lo.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=SETAS - Mover   SHIFT - Mais rápido   PAGE UP/DOWN - Tamanho
+ENTER Save   BACKSPACE Cancel=ENTER - Salvar   BACKSPACE - Cancelar
 )HCL9";
 inline constexpr char kLocale_ru_RU[] = R"HCL10(# Hunting Companion localization — ru-RU
 # Companion-owned interface phrases follow this locale.
@@ -3017,6 +3277,32 @@ Nothing can be crafted right now=Сейчас нечего изготовить
 Nothing to show here=Здесь пока пусто
 Rifle=Винтовка
 Any weapon=Любое оружие
+
+# Colours and HUD layout
+Text colour=Цвет текста
+Heading colour=Цвет заголовков
+HUD label colour=Цвет подписей HUD
+HUD layout=Расположение HUD
+Default=По умолчанию
+White=Белый
+Cream=Кремовый
+Gold=Золотой
+Red=Красный
+Orange=Оранжевый
+Green=Зелёный
+Blue=Синий
+Purple=Фиолетовый
+Grey=Серый
+HUD LAYOUT=РАСПОЛОЖЕНИЕ HUD
+Move and resize the HUD icons=Перемещение и размер значков HUD
+All icons=Все значки
+Weapon and ammo icons=Значки оружия и боеприпасов
+Pearson and Trapper icons=Значки Пирсона и траппера
+Reset layout=Сбросить расположение
+SIZE %d%%=РАЗМЕР %d%%
+The icons on the right are a preview. Select a group to move it.=Значки справа — предпросмотр. Выберите группу, чтобы её переместить.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=СТРЕЛКИ - Двигать   SHIFT - Быстрее   PAGE UP/DOWN - Размер
+ENTER Save   BACKSPACE Cancel=ENTER - Сохранить   BACKSPACE - Отмена
 )HCL10";
 inline constexpr char kLocale_zh_CN[] = R"HCL11(# Hunting Companion localization — zh-CN
 # Companion-owned interface phrases follow this locale.
@@ -3303,6 +3589,32 @@ Nothing can be crafted right now=现在没有可制作的物品
 Nothing to show here=没有可显示的项目
 Rifle=步枪
 Any weapon=任意武器
+
+# Colours and HUD layout
+Text colour=文字颜色
+Heading colour=标题颜色
+HUD label colour=HUD 标签颜色
+HUD layout=HUD 布局
+Default=默认
+White=白色
+Cream=奶油色
+Gold=金色
+Red=红色
+Orange=橙色
+Green=绿色
+Blue=蓝色
+Purple=紫色
+Grey=灰色
+HUD LAYOUT=HUD 布局
+Move and resize the HUD icons=移动和调整 HUD 图标大小
+All icons=所有图标
+Weapon and ammo icons=武器和弹药图标
+Pearson and Trapper icons=皮尔森和猎人图标
+Reset layout=重置布局
+SIZE %d%%=大小 %d%%
+The icons on the right are a preview. Select a group to move it.=右侧图标为预览。选择一组以移动。
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=方向键 - 移动   SHIFT - 加快   PAGE UP/DOWN - 大小
+ENTER Save   BACKSPACE Cancel=ENTER - 保存   BACKSPACE - 取消
 )HCL11";
 inline constexpr char kLocale_zh_TW[] = R"HCL12(# Hunting Companion localization — zh-TW
 # Companion-owned interface phrases follow this locale.
@@ -3589,6 +3901,32 @@ Nothing can be crafted right now=目前沒有可製作的物品
 Nothing to show here=沒有可顯示的項目
 Rifle=步槍
 Any weapon=任意武器
+
+# Colours and HUD layout
+Text colour=文字顏色
+Heading colour=標題顏色
+HUD label colour=HUD 標籤顏色
+HUD layout=HUD 配置
+Default=預設
+White=白色
+Cream=奶油色
+Gold=金色
+Red=紅色
+Orange=橙色
+Green=綠色
+Blue=藍色
+Purple=紫色
+Grey=灰色
+HUD LAYOUT=HUD 配置
+Move and resize the HUD icons=移動和調整 HUD 圖示大小
+All icons=所有圖示
+Weapon and ammo icons=武器和彈藥圖示
+Pearson and Trapper icons=皮爾森和陷阱獵人圖示
+Reset layout=重設配置
+SIZE %d%%=大小 %d%%
+The icons on the right are a preview. Select a group to move it.=右側圖示為預覽。選擇一組以移動。
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=方向鍵 - 移動   SHIFT - 加快   PAGE UP/DOWN - 大小
+ENTER Save   BACKSPACE Cancel=ENTER - 儲存   BACKSPACE - 取消
 )HCL12";
 inline constexpr LocaleBlob kLocales[] = {
     {"de-DE", kLocale_de_DE},

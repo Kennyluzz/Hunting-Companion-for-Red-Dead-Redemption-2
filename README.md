@@ -74,6 +74,7 @@ python tests/test_hunting_recommendations.py
 python tests/test_crafting_uses.py
 python tests/test_native_fonts_integration.py
 python tests/test_localization.py
+python tests/test_hud_layout.py
 g++ -std=c++17 -I src src/official_strings.cpp tests/test_official_strings.cpp -o test_official_strings && ./test_official_strings
 ```
 
