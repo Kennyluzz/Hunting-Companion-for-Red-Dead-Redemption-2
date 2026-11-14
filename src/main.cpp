@@ -11,8 +11,11 @@
 #include "font_catalog.hpp"
 #include "embedded_challenge_objective_hashes.hpp"
 #include "embedded_hunting_recommendations.hpp"
+#include "search_text.hpp"
+#include "text_input.hpp"
 
 #include <algorithm>
+#include <cstdarg>
 #include <array>
 #include <cstdint>
 #include <cstring>
@@ -98,6 +101,10 @@ constexpr std::uint64_t kPlayerPedId = 0x096275889B8E0EE0ull;
 constexpr std::uint64_t kPlayerId = 0x217E9DC48139933Dull;
 constexpr std::uint64_t kGetSaddleHorseForPlayer = 0xB48050D326E9A2F3ull;
 constexpr std::uint64_t kGetPeltFromHorse = 0x0CEEB6F4780B1F2Full;
+// _GET_CARRIED_PELT_SKINS: the pelts stacked on a horse, by inventory item.
+constexpr std::uint64_t kGetCarriedPeltSkins = 0x6F43C351A5D51E2Full;
+// While the search box takes typing, the game must not act on the same keys.
+constexpr std::uint64_t kDisableAllControlActions = 0x5F4B6931816E599Bull;
 constexpr std::uint64_t kGetCarriedAttachedInfoForSlot = 0x608BC6A6AACD5036ull;
 constexpr std::uint64_t kFindAllAttachedCarriableEntities = 0xB5ACE8B23A438EC0ull;
 constexpr std::uint64_t kCreateItemset = 0xA1AF16083320065Aull;
@@ -1405,13 +1412,19 @@ const char* source_species(std::uint32_t materialHash) noexcept {
     return nullptr;
 }
 
-bool species_needed(const VendorDemand& vendor, const char* species) noexcept {
+// True when the vendor still needs a material this animal can give: a
+// legendary animal gives only its legendary pelt, any other animal only the
+// ordinary materials of its species.
+bool species_needed(const VendorDemand& vendor, const char* species, bool legendary) noexcept {
     if (!vendor.ready || species == nullptr) return false;
     for (std::size_t i = 0; i < vendor.count; ++i) {
         const auto& material = vendor.materials[i];
         if (material.stillNeeded <= 0) continue;
         const char* source = source_species(material.hash);
-        if (source != nullptr && std::strcmp(source, species) == 0) return true;
+        if (source == nullptr || std::strcmp(source, species) != 0) continue;
+        const char* name = find_material_name(material.hash);
+        const bool legendaryMaterial = name != nullptr && std::strstr(name, "Legendary") != nullptr;
+        if (legendaryMaterial == legendary) return true;
     }
     return false;
 }
@@ -1487,6 +1500,7 @@ struct CurrentHaulMaterial {
     int carriedCount{};
     int horseCount{};
     int stowedPeltCount{};  // scratch: pelts in the horse's stowed-pelt list
+    int peltSkinCount{};    // scratch: pelts stacked on the horse, by inventory item
 };
 struct CurrentHaulState {
     std::array<CurrentHaulMaterial, kMaxMaterials> materials{};
@@ -1523,7 +1537,8 @@ void add_current_haul_count(std::uint32_t hash, int amount, int source) noexcept
     CurrentHaulMaterial& material = g_currentHaul.materials[static_cast<std::size_t>(index)];
     int* destination = source == 0 ? &material.inventoryCount :
                        source == 1 ? &material.carriedCount :
-                       source == 2 ? &material.horseCount : &material.stowedPeltCount;
+                       source == 2 ? &material.horseCount :
+                       source == 3 ? &material.stowedPeltCount : &material.peltSkinCount;
     *destination = std::min(1000000, *destination + amount);
 }
 
@@ -1550,22 +1565,70 @@ struct CarriedAttachedInfo {
 };
 static_assert(sizeof(CarriedAttachedInfo) == 32);
 
-void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcept {
-    if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) return;
-    const bool isPelt = knownPelt ||
-        invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
+// What a carried or stowed pelt was identified as, by entity. A pelt is told
+// apart through the animal it came from, and the game removes that animal some
+// time after skinning; the pelt keeps its identity here once it has been seen.
+struct PeltIdentity {
+    int entity{};
+    std::array<std::uint32_t, 4> materials{};
+    std::size_t count{};
+};
+std::array<PeltIdentity, 32> g_peltIdentities{};
+std::size_t g_nextPeltIdentity{};
+
+const PeltIdentity* find_pelt_identity(int entity) noexcept {
+    for (const PeltIdentity& identity : g_peltIdentities) {
+        if (identity.entity == entity && identity.count > 0) return &identity;
+    }
+    return nullptr;
+}
+
+void remember_pelt_identity(int entity, const std::uint32_t* materials, std::size_t count) noexcept {
+    PeltIdentity* slot = nullptr;
+    for (PeltIdentity& identity : g_peltIdentities) {
+        if (identity.entity == entity) { slot = &identity; break; }
+    }
+    if (slot == nullptr) {
+        slot = &g_peltIdentities[g_nextPeltIdentity];
+        g_nextPeltIdentity = (g_nextPeltIdentity + 1) % g_peltIdentities.size();
+    }
+    slot->entity = entity;
+    slot->count = std::min(count, slot->materials.size());
+    for (std::size_t i = 0; i < slot->count; ++i) slot->materials[i] = materials[i];
+}
+
+// Diagnostics (FontLog=1): what the haul scan saw, written when it changes.
+char g_haulTrace[512]{};
+std::size_t g_haulTraceLength{};
+void haul_trace(const char* format, ...) noexcept {
+    if (g_haulTraceLength >= sizeof(g_haulTrace) - 1) return;
+    va_list args;
+    va_start(args, format);
+    const int written = std::vsnprintf(g_haulTrace + g_haulTraceLength,
+                                       sizeof(g_haulTrace) - g_haulTraceLength, format, args);
+    va_end(args);
+    if (written > 0) g_haulTraceLength = std::min(sizeof(g_haulTrace) - 1, g_haulTraceLength + static_cast<std::size_t>(written));
+}
+
+// The materials an animal or pelt entity stands for. Returns false when the
+// animal it came from is gone (a pelt's identity is then looked up instead).
+bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t, 4>& found,
+                               std::size_t& foundCount) noexcept {
+    foundCount = 0;
     int carcass = entity;
     if (isPelt) carcass = invoke_native<int>(kGetCarcassFromPelt, entity);
     const bool carcassFound = carcass != 0 && invoke_native<int>(kDoesEntityExist, carcass) != 0 &&
                               invoke_native<int>(kIsEntityAPed, carcass) != 0;
-    const std::uint32_t model = carcassFound ? invoke_native<std::uint32_t>(kGetEntityModel, carcass) : 0;
-    const char* species = carcassFound ? find_animal_species(model) : nullptr;
+    if (!carcassFound) return false;
+    const std::uint32_t model = invoke_native<std::uint32_t>(kGetEntityModel, carcass);
+    const char* species = find_animal_species(model);
     // _GET_PED_QUALITY reports the ordinary skinning grade (0=poor, 1=good, 2=perfect).
-    const int quality = carcassFound ? invoke_native<int>(kGetPedQuality, carcass) : -1;
-    if (!carcassFound || species == nullptr) return;
+    const int quality = invoke_native<int>(kGetPedQuality, carcass);
+    haul_trace(" [%c %s q%d]", isPelt ? 'P' : 'A', species != nullptr ? species : "?", quality);
+    if (species == nullptr) return true;
     // Chipmunks share a HUD recommendation group with squirrels, but do not
     // yield squirrel pelts. Do not let that display grouping invent loot.
-    if (model == joaat("a_c_chipmunk_01")) return;
+    if (model == joaat("a_c_chipmunk_01")) return true;
 
     // The quality value does not identify a legendary animal, so it is never used to infer one.
     const bool qualityKnown = quality >= 0 && quality <= 2;
@@ -1585,12 +1648,53 @@ void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcep
         // yields only a catalogued carcass material until it has been skinned;
         // do not promise pelt, feather or antler recipes prematurely.
         if (isPelt ? (carcassMaterial || !perfectOnly) : !carcassMaterial) continue;
-        add_current_haul_count(sourceEntry.hash, 1, source);
+        if (foundCount < found.size()) found[foundCount++] = sourceEntry.hash;
+    }
+    if (isPelt) remember_pelt_identity(entity, found.data(), foundCount);
+    return true;
+}
+
+void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcept {
+    if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) return;
+    const bool isPelt = knownPelt ||
+        invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
+    std::array<std::uint32_t, 4> found{};
+    std::size_t foundCount = 0;
+    if (!identify_entity_materials(entity, isPelt, found, foundCount)) {
+        // The animal is gone: use what this pelt was identified as earlier.
+        const PeltIdentity* identity = isPelt ? find_pelt_identity(entity) : nullptr;
+        haul_trace(" [%c gone%s]", isPelt ? 'P' : 'A', identity != nullptr ? ", remembered" : "");
+        if (identity == nullptr) return;
+        for (std::size_t i = 0; i < identity->count; ++i) found[i] = identity->materials[i];
+        foundCount = identity->count;
+    }
+    for (std::size_t i = 0; i < foundCount; ++i) add_current_haul_count(found[i], 1, source);
+}
+
+// While the menu is closed, a pelt the player carries is identified once, so
+// it is still known after it is put on the horse and its animal is removed.
+void remember_carried_pelts() noexcept {
+    const int playerPed = invoke_native<int>(kPlayerPedId);
+    if (playerPed == 0) return;
+    for (int slot = 0; slot <= 4; ++slot) {
+        CarriedAttachedInfo info{};
+        if (invoke_native<bool>(kGetCarriedAttachedInfoForSlot, &info, playerPed, slot, 0) == 0) continue;
+        const int entity = static_cast<int>(info.entity);
+        if (entity == 0 || find_pelt_identity(entity) != nullptr ||
+            invoke_native<int>(kDoesEntityExist, entity) == 0 ||
+            invoke_native<int>(kGetIsCarriablePelt, entity) == 0) continue;
+        std::array<std::uint32_t, 4> found{};
+        std::size_t foundCount = 0;
+        identify_entity_materials(entity, true, found, foundCount);
     }
 }
 
+char g_lastHaulTrace[sizeof(g_haulTrace)]{};
+
 void update_current_haul() noexcept {
     g_currentHaul = {};
+    g_haulTrace[0] = '\0';
+    g_haulTraceLength = 0;
     const int playerPed = invoke_native<int>(kPlayerPedId);
     if (playerPed == 0) return;
     const int inventoryId = invoke_native<int>(kInventoryGetInventoryIdFromPed, playerPed);
@@ -1615,6 +1719,7 @@ void update_current_haul() noexcept {
         if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) continue;
         const bool isPelt = invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
         const bool isPed = invoke_native<int>(kIsEntityAPed, entity) != 0;
+        haul_trace(" carry%d:%08X", slot, invoke_native<std::uint32_t>(kGetEntityModel, entity));
         if (isPelt || isPed) add_entity_animal_materials(entity, 1, isPelt);
     }
 
@@ -1633,25 +1738,48 @@ void update_current_haul() noexcept {
                 if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) continue;
                 const bool isPelt = invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
                 const bool isPed = invoke_native<int>(kIsEntityAPed, entity) != 0;
+                haul_trace(" horse:%08X", invoke_native<std::uint32_t>(kGetEntityModel, entity));
                 if (isPelt || isPed) add_entity_animal_materials(entity, 2, isPelt);
             }
             invoke_native<void>(kDestroyItemset, itemSet);
         }
 
-        // Small and medium pelts are not attached entities: the horse keeps them
-        // in its own stowed-pelt list (the satchel's Horse Cargo tab), whose
-        // entries are the pelts' inventory item hashes. A large pelt may show up
-        // both here and as an attached entity, so take the larger of the two
-        // counts instead of adding them.
+        // Pelts stacked on the horse are not entities: the horse keeps them by
+        // inventory item (the satchel's Horse Cargo tab). _GET_CARRIED_PELT_SKINS
+        // fills a script array (count, then five 8-byte fields per pelt, the
+        // first being the item). _GET_PELT_FROM_HORSE is read as well; on the
+        // builds where it returns a pelt id rather than an item, it matches no
+        // material and adds nothing.
+        constexpr int kMaxPeltSkins = 8;
+        std::array<std::uint64_t, 1 + kMaxPeltSkins * 5 + 64> skins{};  // room to spare
+        skins[0] = kMaxPeltSkins;
+        invoke_native<int>(kGetCarriedPeltSkins, horse, skins.data());
+        haul_trace(" skins:");
+        for (int index = 0; index < kMaxPeltSkins; ++index) {
+            const auto item = static_cast<std::uint32_t>(skins[1 + static_cast<std::size_t>(index) * 5] & 0xFFFFFFFFu);
+            if (item == 0) continue;
+            haul_trace(" %08X%s", item, is_animal_part_material(item) ? "*" : "");
+            add_current_haul_count(item, 1, 4);
+        }
+        haul_trace(" stowed:");
         for (int index = 0; index < 32; ++index) {
             const std::uint32_t pelt = invoke_native<std::uint32_t>(kGetPeltFromHorse, horse, index);
-            if (pelt != 0) add_current_haul_count(pelt, 1, 3);
+            if (pelt == 0) continue;
+            haul_trace(" %08X%s", pelt, is_animal_part_material(pelt) ? "*" : "");
+            add_current_haul_count(pelt, 1, 3);
         }
+        // A pelt can show up as an attached entity and in either list at once,
+        // so take the largest of the counts instead of adding them.
         for (std::size_t i = 0; i < g_currentHaul.count; ++i) {
             CurrentHaulMaterial& material = g_currentHaul.materials[i];
-            material.horseCount = std::max(material.horseCount, material.stowedPeltCount);
+            material.horseCount = std::max({material.horseCount, material.stowedPeltCount, material.peltSkinCount});
             material.stowedPeltCount = 0;
+            material.peltSkinCount = 0;
         }
+    }
+    if (std::strcmp(g_haulTrace, g_lastHaulTrace) != 0) {
+        std::memcpy(g_lastHaulTrace, g_haulTrace, sizeof(g_haulTrace));
+        hunting_companion::native_fonts::diagnostic("Haul:%s", g_haulTrace);
     }
 }
 
@@ -2167,8 +2295,8 @@ void update_hud() noexcept {
     const bool legendary = is_legendary_animal(focusedEntity);
     if (species == nullptr && recommendation == nullptr && !legendary) return;
 
-    const bool needsPearson = species != nullptr && species_needed(g_tracker.pearson.demand, species);
-    const bool needsTrapper = species != nullptr && species_needed(g_tracker.trapper.demand, species);
+    const bool needsPearson = species != nullptr && species_needed(g_tracker.pearson.demand, species, legendary);
+    const bool needsTrapper = species != nullptr && species_needed(g_tracker.trapper.demand, species, legendary);
 
     HudIconLayout layout{};
     if (!get_hud_icon_layout(&layout)) return;
@@ -2197,8 +2325,17 @@ void update_hud() noexcept {
 
 enum class MenuPage {
     Closed, Root, Categories, Recipes, Detail, CraftingUses,
-    CraftingUseDetail, Challenges, ChallengeDetail, Settings
+    CraftingUseDetail, Challenges, ChallengeDetail, Settings, Search
 };
+// Rows of the main menu.
+constexpr int kRootPearson = 0;
+constexpr int kRootTrapper = 1;
+constexpr int kRootSearch = 2;
+constexpr int kRootCraftingUses = 3;
+constexpr int kRootChallenges = 4;
+constexpr int kRootSettings = 5;
+constexpr int kRootClose = 6;
+constexpr int kRootCount = 7;
 struct MenuCategory { std::uint32_t hash{}; const char* label{}; int recipeCount{}; };
 struct MenuState {
     MenuPage page{MenuPage::Closed};
@@ -3206,6 +3343,127 @@ const char* crafting_use_readiness_label(CraftingUseReadiness readiness) noexcep
     return "USES YOUR HAUL";
 }
 
+// -----------------------------------------------------------------------------
+// Search: every Pearson and Trapper recipe whose name, or the name of one of
+// its materials (or that material's animal), contains every typed word. Names
+// are matched in the menu language and in English, ignoring case and accents.
+// -----------------------------------------------------------------------------
+
+constexpr std::size_t kMaxSearchCodepoints = 32;
+char g_searchQuery[kMaxSearchCodepoints * 4 + 1]{};
+std::size_t g_searchQueryCodepoints{};
+std::array<CraftingUseEntry, kMaxRecipesPerShop * 2> g_searchResults{};
+std::size_t g_searchResultCount{};
+bool g_searchDirty = true;
+int g_searchLanguage = -1;
+
+class FoldedText {
+public:
+    void add(const char* text) noexcept {
+        if (text == nullptr || length_ + 1 >= kCapacity) return;
+        length_ += hunting_companion::search_text::fold_utf8(text, buffer_ + length_, kCapacity - 1 - length_);
+        buffer_[length_++] = U'|';  // keeps words of different names apart
+    }
+    const char32_t* data() const noexcept { return buffer_; }
+    std::size_t size() const noexcept { return length_; }
+private:
+    static constexpr std::size_t kCapacity = 2048;
+    char32_t buffer_[kCapacity]{};
+    std::size_t length_{};
+};
+
+bool recipe_matches_search(const RecipeEntry& recipe, const char32_t* query, std::size_t queryLength) noexcept {
+    FoldedText text;
+    text.add(recipe_display_name(recipe));
+    text.add(recipe.name);
+    for (std::size_t i = 0; i < recipe.costCount; ++i) {
+        const std::uint32_t hash = recipe.costs[i].hash;
+        if (!is_animal_part_material(hash)) continue;
+        text.add(display_material_name(hash));
+        text.add(find_material_name(hash));
+        text.add(source_species(hash));
+    }
+    return hunting_companion::search_text::matches_all_words(text.data(), text.size(), query, queryLength);
+}
+
+void build_search_results() noexcept {
+    g_searchDirty = false;
+    g_searchLanguage = hunting_companion::active_ui_language();
+    g_searchResultCount = 0;
+    char32_t query[kMaxSearchCodepoints + 1]{};
+    const std::size_t queryLength =
+        hunting_companion::search_text::fold_utf8(g_searchQuery, query, kMaxSearchCodepoints);
+    if (queryLength > 0 && g_tracker.ready) {
+        for (int vendorIndex = 0; vendorIndex < 2; ++vendorIndex) {
+            const bool trapper = vendorIndex == 1;
+            const VendorState& vendor = trapper ? g_tracker.trapper : g_tracker.pearson;
+            for (std::size_t i = 0; i < vendor.recipeCount; ++i) {
+                if (g_searchResultCount >= g_searchResults.size()) break;
+                if (!recipe_matches_search(vendor.recipes[i], query, queryLength)) continue;
+                g_searchResults[g_searchResultCount++] = CraftingUseEntry{trapper, static_cast<int>(i), nullptr, 0};
+            }
+        }
+    }
+    // Recipes still to make first, then alphabetically.
+    char valueLabel[160]{};
+    char otherLabel[160]{};
+    for (std::size_t i = 1; i < g_searchResultCount; ++i) {
+        const CraftingUseEntry value = g_searchResults[i];
+        const RecipeEntry* valueRecipe = crafting_use_recipe(value);
+        const bool valueOwned = valueRecipe != nullptr && valueRecipe->owned;
+        crafting_use_label(value, valueLabel, sizeof(valueLabel));
+        std::size_t j = i;
+        while (j > 0) {
+            const RecipeEntry* other = crafting_use_recipe(g_searchResults[j - 1]);
+            const bool otherOwned = other != nullptr && other->owned;
+            if (otherOwned == valueOwned) {
+                crafting_use_label(g_searchResults[j - 1], otherLabel, sizeof(otherLabel));
+                if (std::strcmp(otherLabel, valueLabel) <= 0) break;
+            } else if (!otherOwned) {
+                break;
+            }
+            g_searchResults[j] = g_searchResults[j - 1];
+            --j;
+        }
+        g_searchResults[j] = value;
+    }
+    g_menu.selection = 0;
+    g_menu.scroll = 0;
+}
+
+// Characters the game's text renderer treats as markup are not typed.
+bool search_character_allowed(const char* character) noexcept {
+    return character[1] != '\0' ||
+           (character[0] != '~' && character[0] != '<' && character[0] != '>' && character[0] != '\\');
+}
+
+void search_type(const char* character) noexcept {
+    if (g_searchQueryCodepoints >= kMaxSearchCodepoints || !search_character_allowed(character)) return;
+    const std::size_t used = std::strlen(g_searchQuery);
+    const std::size_t add = std::strlen(character);
+    if (used + add >= sizeof(g_searchQuery)) return;
+    std::memcpy(g_searchQuery + used, character, add + 1);
+    ++g_searchQueryCodepoints;
+    g_searchDirty = true;
+}
+
+void search_delete_last() noexcept {
+    std::size_t length = std::strlen(g_searchQuery);
+    if (length == 0) return;
+    do { --length; } while (length > 0 && (static_cast<unsigned char>(g_searchQuery[length]) & 0xC0) == 0x80);
+    g_searchQuery[length] = '\0';
+    if (g_searchQueryCodepoints > 0) --g_searchQueryCodepoints;
+    g_searchDirty = true;
+}
+
+// Keys that type a character: on the search page they never act as hotkeys.
+bool key_types_text(unsigned key) noexcept {
+    return key == VK_SPACE || (key >= '0' && key <= '9') || (key >= 'A' && key <= 'Z') ||
+           (key >= VK_NUMPAD0 && key <= VK_DIVIDE && key != VK_SEPARATOR) ||
+           (key >= VK_OEM_1 && key <= VK_OEM_3) || (key >= VK_OEM_4 && key <= VK_OEM_8) ||
+           key == VK_OEM_102;
+}
+
 void toggle_craftable_filter() noexcept {
     const MenuPage previousPage = g_menu.page;
     const int previousSelection = g_menu.selection;
@@ -3290,7 +3548,6 @@ void move_selection(int delta, int count) noexcept {
     }
 }
 void move_root_selection(int delta) noexcept {
-    constexpr int kRootCount = 6;
     int candidate = g_menu.selection;
     for (int attempt = 0; attempt < kRootCount; ++attempt) {
         candidate = std::clamp(candidate + delta, 0, kRootCount - 1);
@@ -3331,7 +3588,12 @@ void go_back() noexcept {
             break;
         case MenuPage::CraftingUses:
             g_menu.page = MenuPage::Root;
-            g_menu.selection = 2;
+            g_menu.selection = kRootCraftingUses;
+            g_menu.scroll = 0;
+            break;
+        case MenuPage::Search:
+            g_menu.page = MenuPage::Root;
+            g_menu.selection = kRootSearch;
             g_menu.scroll = 0;
             break;
         case MenuPage::CraftingUseDetail:
@@ -3341,7 +3603,7 @@ void go_back() noexcept {
             break;
         case MenuPage::Challenges:
             g_menu.page = MenuPage::Root;
-            g_menu.selection = 3;
+            g_menu.selection = kRootChallenges;
             g_menu.scroll = 0;
             break;
         case MenuPage::ChallengeDetail:
@@ -3351,7 +3613,7 @@ void go_back() noexcept {
             break;
         case MenuPage::Settings:
             g_menu.page = MenuPage::Root;
-            g_menu.selection = 4;
+            g_menu.selection = kRootSettings;
             g_menu.scroll = 0;
             break;
         case MenuPage::Closed:
@@ -3361,7 +3623,8 @@ void go_back() noexcept {
 
 int current_page_count() noexcept {
     switch (g_menu.page) {
-        case MenuPage::Root: return 6;
+        case MenuPage::Root: return kRootCount;
+        case MenuPage::Search: return static_cast<int>(g_searchResultCount);
         case MenuPage::Categories: return static_cast<int>(g_menuCategoryCount);
         case MenuPage::Recipes: return static_cast<int>(g_menuRecipeCount);
         case MenuPage::Detail: {
@@ -3408,7 +3671,9 @@ bool capture_cancelled() noexcept {
 
 void update_menu_input() noexcept {
     update_keyboard_edges();
+    const bool typing = g_menu.page == MenuPage::Search && g_tracker.ready;
     if (!g_menu.captureHotkey && !g_menu.captureFilterHotkey && !g_menu.captureIconsHotkey &&
+        !(typing && key_types_text(g_iconsHotkey)) &&
         key_pressed(g_iconsHotkey) && g_iconsHotkey != g_menuHotkey) {
         g_showWeaponIcons = !g_showWeaponIcons;
         save_icons_settings();
@@ -3476,10 +3741,48 @@ void update_menu_input() noexcept {
         if (key_pressed(g_menuHotkey)) open_menu();
         return;
     }
-    if (g_menu.page == MenuPage::Root && root_item_disabled(2) && g_menu.selection == 2)
-        g_menu.selection = 3;
-    if (key_pressed(g_menuHotkey)) {
+    if (g_menu.page == MenuPage::Root && root_item_disabled(kRootCraftingUses) &&
+        g_menu.selection == kRootCraftingUses)
+        g_menu.selection = kRootChallenges;
+    if (key_pressed(g_menuHotkey) && !(typing && key_types_text(g_menuHotkey))) {
         g_menu.page = MenuPage::Closed;
+        return;
+    }
+    if (typing) {
+        // Typed characters arrive as text (any layout, IME included); Backspace
+        // deletes, and goes back only once the box is empty.
+        char character[5]{};
+        while (hunting_companion::text_input::next_character(character)) search_type(character);
+        static DWORD nextDeleteAt = 0;
+        bool erase = false;
+        if (key_pressed(VK_BACK)) {
+            if (g_searchQuery[0] == '\0') { go_back(); return; }
+            erase = true;
+            nextDeleteAt = GetTickCount() + 400;
+        } else if (g_keyDown[VK_BACK] && g_searchQuery[0] != '\0' &&
+                   static_cast<LONG>(GetTickCount() - nextDeleteAt) >= 0) {
+            erase = true;
+            nextDeleteAt = GetTickCount() + 45;
+        }
+        if (erase) search_delete_last();
+        if (key_pressed(VK_ESCAPE)) { go_back(); return; }
+        if (g_searchDirty || g_searchLanguage != hunting_companion::active_ui_language())
+            build_search_results();
+        const int count = static_cast<int>(g_searchResultCount);
+        if (upRepeated) move_selection(-1, count);
+        if (downRepeated) move_selection(1, count);
+        if (key_pressed(VK_PRIOR)) move_selection(-kVisibleMenuRows, count);
+        if (key_pressed(VK_NEXT)) move_selection(kVisibleMenuRows, count);
+        if (key_pressed(VK_RETURN) && g_menu.selection >= 0 && g_menu.selection < count) {
+            const CraftingUseEntry& entry = g_searchResults[static_cast<std::size_t>(g_menu.selection)];
+            g_menu.recipeReturnSelection = g_menu.selection;
+            g_menu.recipeReturnScroll = g_menu.scroll;
+            g_menu.detailReturnPage = MenuPage::Search;
+            g_menu.trapper = entry.trapper;
+            g_menu.recipeIndex = entry.recipeIndex;
+            g_menu.page = MenuPage::Detail;
+            g_menu.selection = g_menu.scroll = 0;
+        }
         return;
     }
     if (key_pressed(VK_ESCAPE) || key_pressed(VK_BACK)) {
@@ -3534,20 +3837,24 @@ void update_menu_input() noexcept {
     if (!key_pressed(VK_RETURN)) return;
     switch (g_menu.page) {
         case MenuPage::Root:
-            if (g_menu.selection == 0 || g_menu.selection == 1) {
-                g_menu.trapper = (g_menu.selection == 1);
+            if (g_menu.selection == kRootPearson || g_menu.selection == kRootTrapper) {
+                g_menu.trapper = (g_menu.selection == kRootTrapper);
                 g_menu.rootReturnSelection = g_menu.selection;
                 build_menu_categories();
                 g_menu.page = MenuPage::Categories;
                 g_menu.selection = g_menu.scroll = 0;
-            } else if (g_menu.selection == 2 && !root_item_disabled(2)) {
+            } else if (g_menu.selection == kRootSearch) {
+                g_menu.page = MenuPage::Search;
+                // The last search is kept: its results show again straight away.
+                build_search_results();
+            } else if (g_menu.selection == kRootCraftingUses && !root_item_disabled(kRootCraftingUses)) {
                 build_crafting_uses_list();
                 g_menu.page = MenuPage::CraftingUses;
                 g_menu.selection = g_menu.scroll = 0;
-            } else if (g_menu.selection == 3) {
+            } else if (g_menu.selection == kRootChallenges) {
                 g_menu.page = MenuPage::Challenges;
                 g_menu.selection = g_menu.scroll = 0;
-            } else if (g_menu.selection == 4) {
+            } else if (g_menu.selection == kRootSettings) {
                 g_menu.page = MenuPage::Settings;
                 g_menu.selection = g_menu.scroll = 0;
             } else {
@@ -3610,6 +3917,7 @@ void update_menu_input() noexcept {
             }
             break;
         }
+        case MenuPage::Search: break;
         case MenuPage::Settings:
             if (g_menu.selection == 0) {
                 g_menu.captureHotkey = true;
@@ -3619,7 +3927,7 @@ void update_menu_input() noexcept {
                 g_menu.captureIconsHotkey = true;
             } else if (g_menu.selection == 6) {
                 g_menu.page = MenuPage::Root;
-                g_menu.selection = 4;
+                g_menu.selection = kRootSettings;
                 g_menu.scroll = 0;
             }
             break;
@@ -4142,8 +4450,9 @@ void draw_menu_footer() noexcept {
         draw_rect(0.212f, 0.895f, 0.34f, 0.0018f,
                   theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 160);
     }
-    draw_text("UP/DOWN Navigate   ENTER Select   BACKSPACE Back", 0.065f, 0.855f, 14.0f,
-              theme::kTextRed, theme::kTextGreen, theme::kTextBlue);
+    draw_text(g_menu.page == MenuPage::Search ? "UP/DOWN Navigate   ENTER Select   BACKSPACE Delete"
+                                              : "UP/DOWN Navigate   ENTER Select   BACKSPACE Back",
+              0.065f, 0.855f, 14.0f, theme::kTextRed, theme::kTextGreen, theme::kTextBlue);
     char footer[48]{};
     std::snprintf(footer, sizeof(footer), hunting_companion::ui_text("%s Close"), key_name(g_menuHotkey));
     draw_text(footer, 0.065f, 0.908f, 13.5f,
@@ -4170,8 +4479,10 @@ void draw_list_page(const char* title, const char* subtitle,
         // category with the craftable-now filter on).
         const bool filtered = g_menu.craftableNow &&
             (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes);
-        draw_menu_row(filtered ? "Nothing can be crafted right now" : "Nothing to show here", "", 0, false,
-                      false, true, true);
+        const char* empty = filtered ? "Nothing can be crafted right now" : "Nothing to show here";
+        if (g_menu.page == MenuPage::Search)
+            empty = g_searchQuery[0] == '\0' ? "Type an animal, part or item name" : "No matches";
+        draw_menu_row(empty, "", 0, false, false, true, true);
     }
     for (int i = start; i < end; ++i) {
         char label[128]{};
@@ -4202,19 +4513,19 @@ void draw_list_page(const char* title, const char* subtitle,
 }
 
 const char* root_label(int index, char*, std::size_t) noexcept {
-    static const char* labels[] = {
-        "Pearson", "Trapper", "Crafting Uses", "Challenges", "Settings", "Close"
+    static const char* labels[kRootCount] = {
+        "Pearson", "Trapper", "Search", "Crafting Uses", "Challenges", "Settings", "Close"
     };
-    return (index >= 0 && index < 6) ? labels[index] : "";
+    return (index >= 0 && index < kRootCount) ? labels[index] : "";
 }
 bool root_item_disabled(int index) noexcept {
     // Satchel materials alone (antlers, claws...) count as haul, so gate on
     // the recipe list itself: no matching uncrafted recipe means nothing to open.
-    return index == 2 && (!g_currentHaul.ready || !current_haul_has_any() ||
-                          g_craftingUseCount == 0);
+    return index == kRootCraftingUses && (!g_currentHaul.ready || !current_haul_has_any() ||
+                                          g_craftingUseCount == 0);
 }
 const char* root_row_status(int index, char*, std::size_t) noexcept {
-    if (index != 2) return "";
+    if (index != kRootCraftingUses) return "";
     return root_item_disabled(index) ? "NO HAUL" : "AVAILABLE";
 }
 
@@ -4277,11 +4588,8 @@ const char* recipe_row_label(int index, char*, std::size_t) noexcept {
     const VendorState& vendor = g_menu.trapper ? g_tracker.trapper : g_tracker.pearson;
     return recipe_display_name(vendor.recipes[static_cast<std::size_t>(g_menuRecipeIndices[static_cast<std::size_t>(index)])]);
 }
-const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcept {
-    if (index < 0 || static_cast<std::size_t>(index) >= g_menuRecipeCount) return "";
-    const VendorState& vendor = g_menu.trapper ? g_tracker.trapper : g_tracker.pearson;
-    const RecipeEntry& recipe = vendor.recipes[static_cast<std::size_t>(g_menuRecipeIndices[static_cast<std::size_t>(index)])];
-    if (g_menu.trapper && recipe.categoryHash == kTrapperGarmentSetsCategoryHash) {
+const char* recipe_status(bool trapper, const RecipeEntry& recipe, char* buffer, std::size_t size) noexcept {
+    if (trapper && recipe.categoryHash == kTrapperGarmentSetsCategoryHash) {
         const GarmentSetDefinition* set = find_garment_set_definition(recipe.name);
         if (set != nullptr) {
             int crafted = 0;
@@ -4291,7 +4599,7 @@ const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcep
             return buffer;
         }
     }
-    if (g_menu.trapper && find_reinforced_equipment(recipe.name) != nullptr) {
+    if (trapper && find_reinforced_equipment(recipe.name) != nullptr) {
         if (recipe.owned) return "OWNED";
         const ReinforcedEquipmentInfo* item = find_reinforced_equipment(recipe.name);
         const ChallengeProgress* progress = item != nullptr
@@ -4308,6 +4616,25 @@ const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcep
     }
     std::snprintf(buffer, size, "%s", hunting_companion::ui_text(hasAnimal ? "MATERIALS" : "OTHER COSTS"));
     return buffer;
+}
+const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcept {
+    if (index < 0 || static_cast<std::size_t>(index) >= g_menuRecipeCount) return "";
+    const VendorState& vendor = g_menu.trapper ? g_tracker.trapper : g_tracker.pearson;
+    const RecipeEntry& recipe = vendor.recipes[static_cast<std::size_t>(g_menuRecipeIndices[static_cast<std::size_t>(index)])];
+    return recipe_status(g_menu.trapper, recipe, buffer, size);
+}
+
+const char* search_row_label(int index, char* buffer, std::size_t size) noexcept {
+    if (index < 0 || static_cast<std::size_t>(index) >= g_searchResultCount) return "";
+    return crafting_use_label(g_searchResults[static_cast<std::size_t>(index)], buffer, size);
+}
+const char* search_row_status(int index, char* buffer, std::size_t size) noexcept {
+    if (index < 0 || static_cast<std::size_t>(index) >= g_searchResultCount) return "";
+    const CraftingUseEntry& entry = g_searchResults[static_cast<std::size_t>(index)];
+    const RecipeEntry* recipe = crafting_use_recipe(entry);
+    if (recipe == nullptr) return "";
+    if (!recipe->owned && recipe_uses_current_haul(*recipe)) return "USES YOUR HAUL";
+    return recipe_status(entry.trapper, *recipe, buffer, size);
 }
 
 void draw_settings_page() noexcept {
@@ -4687,6 +5014,24 @@ void draw_crafting_uses_page() noexcept {
               0.071f, 0.815f, 10.5f, 160, 154, 142);
 }
 
+void draw_search_page() noexcept {
+    draw_list_page("SEARCH", nullptr, static_cast<int>(g_searchResultCount),
+                   search_row_label, search_row_status, true);
+    // The search box sits where other pages show their subtitle.
+    constexpr float kBoxY = 0.176f;
+    draw_rect(0.212f, kBoxY, 0.345f, 0.030f, 0, 0, 0, 170);
+    draw_rect(0.212f, kBoxY + 0.015f, 0.345f, 0.0015f,
+              theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 200);
+    char composing[96]{};
+    hunting_companion::text_input::composition(composing, sizeof(composing));
+    const bool caretOn = (GetTickCount() / 500u) % 2u == 0u;
+    char line[sizeof(g_searchQuery) + sizeof(composing) + 4]{};
+    std::snprintf(line, sizeof(line), "%s%s%s", g_searchQuery, composing, caretOn ? "_" : "");
+    if (line[0] != '\0') draw_text_raw(line, 0.071f, kBoxY - 0.012f, 15.0f, 255, 255, 255);
+    draw_text("Matches item, part and animal names in this language and in English.",
+              0.071f, 0.815f, 10.5f, 160, 154, 142);
+}
+
 void draw_crafting_use_detail() noexcept {
     if (g_menu.craftingUseIndex < 0 ||
         static_cast<std::size_t>(g_menu.craftingUseIndex) >= g_craftingUseCount) return;
@@ -4833,7 +5178,7 @@ void draw_menu() noexcept {
     switch (g_menu.page) {
         case MenuPage::Root:
             draw_list_page("HUNTING COMPANION", "Crafting, challenges and garment sets",
-                           6, root_label, root_row_status, false, root_item_disabled);
+                           kRootCount, root_label, root_row_status, false, root_item_disabled);
             break;
         case MenuPage::Categories: {
             char subtitle[80]{};
@@ -4862,6 +5207,7 @@ void draw_menu() noexcept {
             break;
         case MenuPage::ChallengeDetail: draw_challenge_detail(); break;
         case MenuPage::Settings: draw_settings_page(); break;
+        case MenuPage::Search: draw_search_page(); break;
         case MenuPage::Closed: break;
     }
 }
@@ -4899,8 +5245,18 @@ void ScriptMain() {
         InterlockedExchange(&g_refreshRequested, 0);
     }
 
+    DWORD nextPeltCheck = 0;
     for (;;) {
-        if (g_menu.page != MenuPage::Closed) refresh_current_haul_if_due();
+        if (g_menu.page != MenuPage::Closed) {
+            refresh_current_haul_if_due();
+        } else if (static_cast<LONG>(GetTickCount() - nextPeltCheck) >= 0) {
+            remember_carried_pelts();
+            nextPeltCheck = GetTickCount() + 1000;
+        }
+        // The search box takes typed text; the game ignores its controls meanwhile.
+        const bool typing = g_menu.page == MenuPage::Search && g_tracker.ready;
+        hunting_companion::text_input::set_active(typing);
+        if (typing) invoke_native<void>(kDisableAllControlActions, 0);
         {
             TrackerReadLock trackerReadLock;
             if (g_tracker.ready &&

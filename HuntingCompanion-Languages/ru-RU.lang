@@ -283,3 +283,11 @@ Nothing can be crafted right now=Сейчас нечего изготовить
 Nothing to show here=Здесь пока пусто
 Rifle=Винтовка
 Any weapon=Любое оружие
+
+# Search
+Search=Поиск
+SEARCH=ПОИСК
+Type an animal, part or item name=Введите животное, часть или предмет
+No matches=Ничего не найдено
+Matches item, part and animal names in this language and in English.=Ищет названия предметов, частей и животных на этом языке и на английском.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=ВВЕРХ/ВНИЗ - Навигация   ENTER - Выбрать   BACKSPACE - Стереть

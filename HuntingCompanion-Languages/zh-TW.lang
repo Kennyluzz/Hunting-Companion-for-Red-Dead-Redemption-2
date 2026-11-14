@@ -283,3 +283,11 @@ Nothing can be crafted right now=目前沒有可製作的物品
 Nothing to show here=沒有可顯示的項目
 Rifle=步槍
 Any weapon=任意武器
+
+# Search
+Search=搜尋
+SEARCH=搜尋
+Type an animal, part or item name=輸入動物、部位或物品名稱
+No matches=沒有符合的結果
+Matches item, part and animal names in this language and in English.=以此語言和英語搜尋物品、部位和動物名稱。
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=上/下 - 移動   ENTER - 選取   BACKSPACE - 刪除

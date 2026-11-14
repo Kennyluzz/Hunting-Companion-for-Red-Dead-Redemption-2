@@ -283,3 +283,11 @@ Nothing can be crafted right now=Derzeit ist nichts herstellbar
 Nothing to show here=Hier gibt es nichts anzuzeigen
 Rifle=Gewehr
 Any weapon=Beliebige Waffe
+
+# Search
+Search=Suche
+SEARCH=SUCHE
+Type an animal, part or item name=Tier, Teil oder Gegenstand eingeben
+No matches=Keine Treffer
+Matches item, part and animal names in this language and in English.=Durchsucht Gegenstands-, Teil- und Tiernamen in dieser Sprache und auf Englisch.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=HOCH/RUNTER - Navigieren   ENTER - Auswählen   BACKSPACE - Löschen

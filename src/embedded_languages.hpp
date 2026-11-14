@@ -287,6 +287,14 @@ Nothing can be crafted right now=Derzeit ist nichts herstellbar
 Nothing to show here=Hier gibt es nichts anzuzeigen
 Rifle=Gewehr
 Any weapon=Beliebige Waffe
+
+# Search
+Search=Suche
+SEARCH=SUCHE
+Type an animal, part or item name=Tier, Teil oder Gegenstand eingeben
+No matches=Keine Treffer
+Matches item, part and animal names in this language and in English.=Durchsucht Gegenstands-, Teil- und Tiernamen in dieser Sprache und auf Englisch.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=HOCH/RUNTER - Navigieren   ENTER - Auswählen   BACKSPACE - Löschen
 )HCL0";
 inline constexpr char kLocale_en_US[] = R"HCL1(# Hunting Companion localization — en-US
 # Companion-owned interface phrases follow this locale.
@@ -445,6 +453,14 @@ Nothing can be crafted right now=Nothing can be crafted right now
 Nothing to show here=Nothing to show here
 Rifle=Rifle
 Any weapon=Any weapon
+
+# Search
+Search=Search
+SEARCH=SEARCH
+Type an animal, part or item name=Type an animal, part or item name
+No matches=No matches
+Matches item, part and animal names in this language and in English.=Matches item, part and animal names in this language and in English.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=UP/DOWN Navigate   ENTER Select   BACKSPACE Delete
 )HCL1";
 inline constexpr char kLocale_es_ES[] = R"HCL2(# Hunting Companion localization — es-ES
 # Companion-owned interface phrases follow this locale.
@@ -731,6 +747,14 @@ Nothing can be crafted right now=Ahora mismo no hay recetas disponibles
 Nothing to show here=No hay nada que mostrar
 Rifle=Fusil
 Any weapon=Cualquier arma
+
+# Search
+Search=Buscar
+SEARCH=BUSCAR
+Type an animal, part or item name=Escribe un animal, una parte o un objeto
+No matches=Sin resultados
+Matches item, part and animal names in this language and in English.=Busca nombres de objetos, partes y animales en este idioma y en inglés.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=ARRIBA/ABAJO - Navegar   ENTER - Seleccionar   RETROCESO - Borrar
 )HCL2";
 inline constexpr char kLocale_es_MX[] = R"HCL3(# Hunting Companion localization — es-MX
 # Companion-owned interface phrases follow this locale.
@@ -1017,6 +1041,14 @@ Nothing can be crafted right now=Por ahora no hay recetas elaborables
 Nothing to show here=No hay nada que mostrar
 Rifle=Rifle
 Any weapon=Cualquier arma
+
+# Search
+Search=Buscar
+SEARCH=BUSCAR
+Type an animal, part or item name=Escribe un animal, una parte o un objeto
+No matches=Sin resultados
+Matches item, part and animal names in this language and in English.=Busca nombres de objetos, partes y animales en este idioma y en inglés.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=ARRIBA/ABAJO - Navegar   ENTER - Seleccionar   RETROCESO - Borrar
 )HCL3";
 inline constexpr char kLocale_fr_FR[] = R"HCL4(# Hunting Companion localization — fr-FR
 # Companion-owned interface phrases follow this locale.
@@ -1303,6 +1335,14 @@ Nothing can be crafted right now=Rien n’est réalisable pour le moment
 Nothing to show here=Rien à afficher ici
 Rifle=Fusil
 Any weapon=N’importe quelle arme
+
+# Search
+Search=Recherche
+SEARCH=RECHERCHE
+Type an animal, part or item name=Tapez un animal, une partie ou un objet
+No matches=Aucun résultat
+Matches item, part and animal names in this language and in English.=Cherche les noms d’objets, de parties et d’animaux dans cette langue et en anglais.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=HAUT/BAS - Naviguer   ENTRÉE - Choisir   RETOUR - Effacer
 )HCL4";
 inline constexpr char kLocale_it_IT[] = R"HCL5(# Hunting Companion localization — it-IT
 # Companion-owned interface phrases follow this locale.
@@ -1589,6 +1629,14 @@ Nothing can be crafted right now=Al momento non puoi creare nulla
 Nothing to show here=Niente da mostrare qui
 Rifle=Fucile a canna rigata
 Any weapon=Qualsiasi arma
+
+# Search
+Search=Cerca
+SEARCH=CERCA
+Type an animal, part or item name=Scrivi un animale, una parte o un oggetto
+No matches=Nessun risultato
+Matches item, part and animal names in this language and in English.=Cerca nomi di oggetti, parti e animali in questa lingua e in inglese.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=SU/GIÙ - Naviga   INVIO - Seleziona   BACKSPACE - Cancella
 )HCL5";
 inline constexpr char kLocale_ja_JP[] = R"HCL6(# Hunting Companion localization — ja-JP
 # Companion-owned interface phrases follow this locale.
@@ -1875,6 +1923,14 @@ Nothing can be crafted right now=今すぐ製作できるものはありませ�
 Nothing to show here=表示する項目はありません
 Rifle=ライフル
 Any weapon=どの武器でも可
+
+# Search
+Search=検索
+SEARCH=検索
+Type an animal, part or item name=動物・素材・アイテム名を入力
+No matches=該当なし
+Matches item, part and animal names in this language and in English.=この言語と英語で、アイテム・素材・動物の名前を検索します。
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=上下：移動   ENTER：決定   BACKSPACE：削除
 )HCL6";
 inline constexpr char kLocale_ko_KR[] = R"HCL7(# Hunting Companion localization — ko-KR
 # Companion-owned interface phrases follow this locale.
@@ -2160,6 +2216,14 @@ Nothing can be crafted right now=지금 제작 가능한 항목이 없습니다
 Nothing to show here=표시할 항목이 없습니다
 Rifle=라이플
 Any weapon=아무 무기
+
+# Search
+Search=검색
+SEARCH=검색
+Type an animal, part or item name=동물, 부위 또는 아이템 이름 입력
+No matches=검색 결과 없음
+Matches item, part and animal names in this language and in English.=이 언어와 영어로 아이템, 부위, 동물 이름을 검색합니다.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=위/아래 - 이동   ENTER - 선택   BACKSPACE - 지우기
 )HCL7";
 inline constexpr char kLocale_pl_PL[] = R"HCL8(# Hunting Companion localization — pl-PL
 # Companion-owned interface phrases follow this locale.
@@ -2445,6 +2509,14 @@ Nothing can be crafted right now=Obecnie nie możesz niczego wytworzyć
 Nothing to show here=Brak pozycji do wyświetlenia
 Rifle=Karabin
 Any weapon=Dowolna broń
+
+# Search
+Search=Szukaj
+SEARCH=SZUKAJ
+Type an animal, part or item name=Wpisz zwierzę, część lub przedmiot
+No matches=Brak wyników
+Matches item, part and animal names in this language and in English.=Szuka nazw przedmiotów, części i zwierząt w tym języku i po angielsku.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=GÓRA/DÓŁ - Nawiguj   ENTER - Wybierz   BACKSPACE - Usuń
 )HCL8";
 inline constexpr char kLocale_pt_BR[] = R"HCL9(# Hunting Companion localization — pt-BR
 # Companion-owned interface phrases follow this locale.
@@ -2731,6 +2803,14 @@ Nothing can be crafted right now=No momento não há receitas disponíveis
 Nothing to show here=Nada para mostrar aqui
 Rifle=Rifle
 Any weapon=Qualquer arma
+
+# Search
+Search=Buscar
+SEARCH=BUSCAR
+Type an animal, part or item name=Digite um animal, uma parte ou um item
+No matches=Nenhum resultado
+Matches item, part and animal names in this language and in English.=Procura nomes de itens, partes e animais neste idioma e em inglês.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=CIMA/BAIXO - Navegar   ENTER - Selecionar   BACKSPACE - Apagar
 )HCL9";
 inline constexpr char kLocale_ru_RU[] = R"HCL10(# Hunting Companion localization — ru-RU
 # Companion-owned interface phrases follow this locale.
@@ -3017,6 +3097,14 @@ Nothing can be crafted right now=Сейчас нечего изготовить
 Nothing to show here=Здесь пока пусто
 Rifle=Винтовка
 Any weapon=Любое оружие
+
+# Search
+Search=Поиск
+SEARCH=ПОИСК
+Type an animal, part or item name=Введите животное, часть или предмет
+No matches=Ничего не найдено
+Matches item, part and animal names in this language and in English.=Ищет названия предметов, частей и животных на этом языке и на английском.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=ВВЕРХ/ВНИЗ - Навигация   ENTER - Выбрать   BACKSPACE - Стереть
 )HCL10";
 inline constexpr char kLocale_zh_CN[] = R"HCL11(# Hunting Companion localization — zh-CN
 # Companion-owned interface phrases follow this locale.
@@ -3303,6 +3391,14 @@ Nothing can be crafted right now=现在没有可制作的物品
 Nothing to show here=没有可显示的项目
 Rifle=步枪
 Any weapon=任意武器
+
+# Search
+Search=搜索
+SEARCH=搜索
+Type an animal, part or item name=输入动物、部位或物品名称
+No matches=无匹配结果
+Matches item, part and animal names in this language and in English.=以此语言和英语搜索物品、部位和动物名称。
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=上/下 - 移动   ENTER - 选择   BACKSPACE - 删除
 )HCL11";
 inline constexpr char kLocale_zh_TW[] = R"HCL12(# Hunting Companion localization — zh-TW
 # Companion-owned interface phrases follow this locale.
@@ -3589,6 +3685,14 @@ Nothing can be crafted right now=目前沒有可製作的物品
 Nothing to show here=沒有可顯示的項目
 Rifle=步槍
 Any weapon=任意武器
+
+# Search
+Search=搜尋
+SEARCH=搜尋
+Type an animal, part or item name=輸入動物、部位或物品名稱
+No matches=沒有符合的結果
+Matches item, part and animal names in this language and in English.=以此語言和英語搜尋物品、部位和動物名稱。
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=上/下 - 移動   ENTER - 選取   BACKSPACE - 刪除
 )HCL12";
 inline constexpr LocaleBlob kLocales[] = {
     {"de-DE", kLocale_de_DE},

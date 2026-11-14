@@ -27,6 +27,9 @@ add_library(HuntingCompanion SHARED
     src/localization.cpp
     src/official_strings.cpp
     src/native_fonts.cpp
+    src/text_input.cpp
+    src/text_input.hpp
+    src/search_text.hpp
     src/native_fonts.hpp
     src/font_catalog.hpp
     src/embedded_languages.hpp
@@ -45,7 +48,7 @@ target_compile_definitions(HuntingCompanion PRIVATE
 target_compile_options(HuntingCompanion PRIVATE -Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Os -ffunction-sections)
 # Vendored code: keep its warnings out of our build log.
 set_source_files_properties(${HC_THIRD_PARTY_SOURCES} PROPERTIES COMPILE_OPTIONS "-w")
-target_link_libraries(HuntingCompanion PRIVATE user32)
+target_link_libraries(HuntingCompanion PRIVATE user32 imm32)
 target_link_options(HuntingCompanion PRIVATE -static -static-libgcc -static-libstdc++ -Wl,--no-undefined -Wl,--gc-sections -s)
 set_target_properties(HuntingCompanion PROPERTIES PREFIX "" SUFFIX ".asi" OUTPUT_NAME "HuntingCompanion")
 

@@ -283,3 +283,11 @@ Nothing can be crafted right now=Rien n’est réalisable pour le moment
 Nothing to show here=Rien à afficher ici
 Rifle=Fusil
 Any weapon=N’importe quelle arme
+
+# Search
+Search=Recherche
+SEARCH=RECHERCHE
+Type an animal, part or item name=Tapez un animal, une partie ou un objet
+No matches=Aucun résultat
+Matches item, part and animal names in this language and in English.=Cherche les noms d’objets, de parties et d’animaux dans cette langue et en anglais.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=HAUT/BAS - Naviguer   ENTRÉE - Choisir   RETOUR - Effacer

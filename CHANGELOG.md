@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+- **Search.** A new Search page on the main menu: type an animal, a part or an item
+  (for example "alligator") and the list narrows with every letter to the Pearson
+  and Trapper recipes it appears in, crafted ones last. Names match in the menu's
+  language and in English, ignoring capitals and accents (hiragana also finds
+  katakana); Japanese, Korean and Chinese can be typed with the Windows IME. Enter
+  opens the recipe, Backspace deletes (and goes back once the box is empty), and
+  the game ignores its controls while you type.
+- **Pelts on the horse count again in Crafting Uses.** Pelts stacked on the saddle
+  horse are now read by inventory item, and a pelt you carried keeps its identity
+  after the game removes the animal it came from, so it no longer drops out of
+  Crafting Uses once it is on the horse.
+- **Animal indicators no longer count legendary pelts for ordinary animals.** The
+  Trapper icon showed on an ordinary alligator because the Trapper still needed the
+  Legendary Alligator Skin; an ordinary animal now only counts its own materials,
+  and a legendary animal only its legendary pelt.
+- `FontLog=1` also logs what the haul scan sees (carried, on the horse, stacked),
+  for bug reports.
+
 ## 1.30.1
 
 - **Weapon and ammunition advice is read from the game itself.** For the animal in

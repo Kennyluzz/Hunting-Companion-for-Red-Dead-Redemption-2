@@ -282,3 +282,11 @@ Nothing can be crafted right now=지금 제작 가능한 항목이 없습니다
 Nothing to show here=표시할 항목이 없습니다
 Rifle=라이플
 Any weapon=아무 무기
+
+# Search
+Search=검색
+SEARCH=검색
+Type an animal, part or item name=동물, 부위 또는 아이템 이름 입력
+No matches=검색 결과 없음
+Matches item, part and animal names in this language and in English.=이 언어와 영어로 아이템, 부위, 동물 이름을 검색합니다.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=위/아래 - 이동   ENTER - 선택   BACKSPACE - 지우기

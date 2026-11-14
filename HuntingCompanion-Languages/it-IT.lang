@@ -283,3 +283,11 @@ Nothing can be crafted right now=Al momento non puoi creare nulla
 Nothing to show here=Niente da mostrare qui
 Rifle=Fucile a canna rigata
 Any weapon=Qualsiasi arma
+
+# Search
+Search=Cerca
+SEARCH=CERCA
+Type an animal, part or item name=Scrivi un animale, una parte o un oggetto
+No matches=Nessun risultato
+Matches item, part and animal names in this language and in English.=Cerca nomi di oggetti, parti e animali in questa lingua e in inglese.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=SU/GIÙ - Naviga   INVIO - Seleziona   BACKSPACE - Cancella

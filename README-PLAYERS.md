@@ -17,8 +17,13 @@ ammunition give the cleanest kill, and what you can craft with what you are carr
   Settings or with a hotkey.
 - **Pearson and Trapper:** recipes, required materials, what you own, donation
   stock, and a "craftable now" filter.
+- **Search:** type an animal, a part or an item (for example "alligator") and the
+  list narrows with every letter to the Pearson and Trapper recipes it is used in.
+  Works in the menu's language and in English, without caring about capitals or
+  accents; Japanese, Korean and Chinese can be typed with the Windows IME.
 - **Crafting Uses:** the uncrafted recipes that can use the pelts and parts you are
-  carrying. Greyed out when nothing you carry matches.
+  carrying, on you, in your satchel or on your saddle horse. Greyed out when nothing
+  you carry matches.
 - **Challenges:** live rank totals for all nine Story Mode challenge categories and
   what the next rank asks for.
 - **Reinforced equipment:** unlock requirements for all 36 bandoliers, gun belts and holsters.

@@ -283,3 +283,11 @@ Nothing can be crafted right now=今すぐ製作できるものはありませ�
 Nothing to show here=表示する項目はありません
 Rifle=ライフル
 Any weapon=どの武器でも可
+
+# Search
+Search=検索
+SEARCH=検索
+Type an animal, part or item name=動物・素材・アイテム名を入力
+No matches=該当なし
+Matches item, part and animal names in this language and in English.=この言語と英語で、アイテム・素材・動物の名前を検索します。
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=上下：移動   ENTER：決定   BACKSPACE：削除

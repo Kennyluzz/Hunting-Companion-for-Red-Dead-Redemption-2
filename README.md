@@ -46,6 +46,8 @@ python tools/package_release.py build/HuntingCompanion.asi
 | `src/official_strings.*` | The game's own item and challenge names, per language |
 | `src/native_fonts.cpp` | Loads the game's own font libraries (Japanese, Korean, Chinese, Latin, Cyrillic) on demand |
 | `src/font_catalog.hpp` | Reads the game's `fontmap.xml` and builds each language's font list |
+| `src/text_input.*` | Typed text for the search box (any keyboard layout, Windows IME) |
+| `src/search_text.hpp` | Case- and accent-insensitive matching for the search box |
 | `src/embedded_*.hpp` | Generated files; do not edit by hand (see below) |
 | `HuntingCompanion-Languages/` | One `.lang` file per language |
 | `data/` | Source data for the generators |
@@ -74,6 +76,7 @@ python tests/test_hunting_recommendations.py
 python tests/test_crafting_uses.py
 python tests/test_native_fonts_integration.py
 python tests/test_localization.py
+python tests/test_search.py
 g++ -std=c++17 -I src src/official_strings.cpp tests/test_official_strings.cpp -o test_official_strings && ./test_official_strings
 ```
 
@@ -98,11 +101,21 @@ They check data and wiring only. Anything visible has to be tested in the game.
   from the game's own `fontmap.xml`, read through the game's file system. While
   it loads the menu keeps its current language; if it cannot be loaded, a CJK
   language falls back to English and a Latin/Cyrillic one to the game's basic font.
+- **Search.** While the search page is open, the game window is subclassed so
+  typed characters (any keyboard layout, and the Windows IME for Japanese, Korean
+  and Chinese) reach the search box, and the game's controls are disabled for
+  those frames. Otherwise every window message passes straight to the game.
+- **Haul.** Crafting Uses counts what you carry, your satchel and your saddle
+  horse: pelts stacked on the horse are read by inventory item
+  (`_GET_CARRIED_PELT_SKINS`), and a carried pelt is identified through the animal
+  it came from and remembered, so it still counts after the game removes that
+  animal.
 - **Hooks.** One game function is hooked from a worker thread at load (found by
   byte pattern; skipped if the pattern is not unique) so the mod learns where the
   game keeps its font library. Nothing else in the game is changed.
 - **Diagnostics.** `FontLog=1` under `[Fonts]` in `HuntingCompanion.ini` writes
-  `HuntingCompanion.fonts.log` to the game folder.
+  `HuntingCompanion.fonts.log` to the game folder (font loading, unknown Compendium
+  labels, and what the haul scan sees while the menu is open).
 
 ## Credits
 

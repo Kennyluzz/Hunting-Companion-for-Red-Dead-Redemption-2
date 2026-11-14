@@ -282,3 +282,11 @@ Nothing can be crafted right now=Obecnie nie możesz niczego wytworzyć
 Nothing to show here=Brak pozycji do wyświetlenia
 Rifle=Karabin
 Any weapon=Dowolna broń
+
+# Search
+Search=Szukaj
+SEARCH=SZUKAJ
+Type an animal, part or item name=Wpisz zwierzę, część lub przedmiot
+No matches=Brak wyników
+Matches item, part and animal names in this language and in English.=Szuka nazw przedmiotów, części i zwierząt w tym języku i po angielsku.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=GÓRA/DÓŁ - Nawiguj   ENTER - Wybierz   BACKSPACE - Usuń

@@ -283,3 +283,11 @@ Nothing can be crafted right now=No momento não há receitas disponíveis
 Nothing to show here=Nada para mostrar aqui
 Rifle=Rifle
 Any weapon=Qualquer arma
+
+# Search
+Search=Buscar
+SEARCH=BUSCAR
+Type an animal, part or item name=Digite um animal, uma parte ou um item
+No matches=Nenhum resultado
+Matches item, part and animal names in this language and in English.=Procura nomes de itens, partes e animais neste idioma e em inglês.
+UP/DOWN Navigate   ENTER Select   BACKSPACE Delete=CIMA/BAIXO - Navegar   ENTER - Selecionar   BACKSPACE - Apagar
