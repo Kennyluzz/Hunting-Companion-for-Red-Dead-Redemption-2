@@ -3200,6 +3200,23 @@ const RecipeEntry* find_trapper_recipe_by_name(const char* name) noexcept {
     return nullptr;
 }
 
+// The garment set a Trapper piece belongs to (gloves, hats, vests...), if any.
+const GarmentSetDefinition* garment_set_of_piece(const char* pieceName) noexcept {
+    if (pieceName == nullptr) return nullptr;
+    for (const auto& set : kGarmentSets) {
+        for (std::size_t piece = 0; piece < set.componentCount; ++piece) {
+            if (std::strcmp(set.components[piece], pieceName) == 0) return &set;
+        }
+    }
+    return nullptr;
+}
+
+// A set's name in the menu language: the game's own name for the set's catalogue entry.
+const char* garment_set_display_name(const char* setName) noexcept {
+    const RecipeEntry* setEntry = find_trapper_recipe_by_name(setName);
+    return setEntry != nullptr ? recipe_display_name(*setEntry) : setName;
+}
+
 int find_trapper_recipe_index_by_name(const char* name) noexcept {
     if (name == nullptr) return -1;
     const VendorState& vendor = g_tracker.trapper;
@@ -3453,7 +3470,7 @@ const char* crafting_use_label(const CraftingUseEntry& entry,
     if (recipe == nullptr) return "";
     if (entry.setName != nullptr) {
         std::snprintf(buffer, size, "%s - %s - %s",
-                      hunting_companion::ui_text("Trapper"), entry.setName,
+                      hunting_companion::ui_text("Trapper"), garment_set_display_name(entry.setName),
                       recipe_display_name(*recipe));
     } else {
         std::snprintf(buffer, size, "%s - %s",
@@ -3639,7 +3656,10 @@ void build_search_results() noexcept {
             for (std::size_t i = 0; i < vendor.recipeCount; ++i) {
                 if (g_searchResultCount >= g_searchResults.size()) break;
                 if (!recipe_matches_search(vendor.recipes[i], query, queryLength)) continue;
-                g_searchResults[g_searchResultCount++] = CraftingUseEntry{trapper, static_cast<int>(i), nullptr, 0};
+                // A garment-set piece shows its set's name, as in Crafting Uses.
+                const GarmentSetDefinition* set = trapper ? garment_set_of_piece(vendor.recipes[i].name) : nullptr;
+                g_searchResults[g_searchResultCount++] =
+                    CraftingUseEntry{trapper, static_cast<int>(i), set != nullptr ? set->setName : nullptr, 0};
             }
         }
     }
@@ -4939,10 +4959,15 @@ const char* category_row_status(int index, char* buffer, std::size_t size) noexc
     return buffer;
 }
 
-const char* recipe_row_label(int index, char*, std::size_t) noexcept {
+const char* recipe_row_label(int index, char* buffer, std::size_t size) noexcept {
     if (index < 0 || static_cast<std::size_t>(index) >= g_menuRecipeCount) return "";
     const VendorState& vendor = g_menu.trapper ? g_tracker.trapper : g_tracker.pearson;
-    return recipe_display_name(vendor.recipes[static_cast<std::size_t>(g_menuRecipeIndices[static_cast<std::size_t>(index)])]);
+    const RecipeEntry& recipe = vendor.recipes[static_cast<std::size_t>(g_menuRecipeIndices[static_cast<std::size_t>(index)])];
+    // A garment-set piece also names its set.
+    const GarmentSetDefinition* set = g_menu.trapper ? garment_set_of_piece(recipe.name) : nullptr;
+    if (set == nullptr) return recipe_display_name(recipe);
+    std::snprintf(buffer, size, "%s (%s)", recipe_display_name(recipe), garment_set_display_name(set->setName));
+    return buffer;
 }
 const char* recipe_status(bool trapper, const RecipeEntry& recipe, char* buffer, std::size_t size) noexcept {
     if (trapper && recipe.categoryHash == kTrapperGarmentSetsCategoryHash) {
@@ -5297,8 +5322,20 @@ void draw_recipe_detail() noexcept {
         draw_menu_footer();
         return;
     }
-    draw_menu_header(recipe_display_name(*recipe), garmentSet != nullptr ? "GARMENT SET / INDIVIDUAL PIECES" :
-                     (g_menu.trapper ? "TRAPPER RECIPE" : "PEARSON RECIPE"), false);
+    // A Trapper piece that belongs to a garment set says which one.
+    const GarmentSetDefinition* pieceOfSet = g_menu.trapper && garmentSet == nullptr
+        ? garment_set_of_piece(recipe->name) : nullptr;
+    char subtitle[160]{};
+    if (garmentSet != nullptr) {
+        std::snprintf(subtitle, sizeof(subtitle), "%s", hunting_companion::ui_text("GARMENT SET / INDIVIDUAL PIECES"));
+    } else if (pieceOfSet != nullptr) {
+        std::snprintf(subtitle, sizeof(subtitle), hunting_companion::ui_text("TRAPPER RECIPE - PART OF %s"),
+                      garment_set_display_name(pieceOfSet->setName));
+    } else {
+        std::snprintf(subtitle, sizeof(subtitle), "%s",
+                      hunting_companion::ui_text(g_menu.trapper ? "TRAPPER RECIPE" : "PEARSON RECIPE"));
+    }
+    draw_menu_header(recipe_display_name(*recipe), subtitle, false);
     if (garmentSet != nullptr) {
         draw_text("COMPONENT GARMENTS AND THEIR CATALOG MATERIAL COSTS", 0.071f, 0.215f,
                   14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
@@ -5559,8 +5596,8 @@ void draw_crafting_use_detail() noexcept {
     const CraftingUseReadiness readiness = crafting_use_readiness(vendor, *recipe);
     char subtitle[128]{};
     if (entry.setName != nullptr) {
-        std::snprintf(subtitle, sizeof(subtitle), "%s - %s",
-                      hunting_companion::ui_text("TRAPPER RECIPE"), entry.setName);
+        std::snprintf(subtitle, sizeof(subtitle), hunting_companion::ui_text("TRAPPER RECIPE - PART OF %s"),
+                      garment_set_display_name(entry.setName));
     } else {
         std::snprintf(subtitle, sizeof(subtitle), "%s",
                       hunting_companion::ui_text(entry.trapper ? "TRAPPER RECIPE" : "PEARSON RECIPE"));

@@ -41,6 +41,10 @@
   White, Cream, Gold, Red, Orange, Green, Blue, Purple, Grey, Yellow, Pink, Teal,
   Light blue, Brown, Crimson, Lime, Lavender, Sand and Silver. Coloured status text
   (what you have or still need) keeps its own colours.
+- **Garment-set pieces name their set.** A Trapper piece that belongs to a garment
+  set (for example the Boar Riding Gloves) shows its set in the recipe list and on
+  its recipe page ("Part of The Bear Hunter"), and in Search and Crafting Uses. Set
+  names are now shown in the menu's language there as well.
 - **Settings wraps around:** Down on the last row goes to the first and Up on the
   first goes to the last. Settings shows seven rows at a time and scrolls.
 

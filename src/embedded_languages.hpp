@@ -337,6 +337,9 @@ Lime=Limette
 Lavender=Lavendel
 Sand=Sand
 Silver=Silber
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=FALLENSTELLER-REZEPT - TEIL VON %s
 )HCL0";
 inline constexpr char kLocale_en_US[] = R"HCL1(# Hunting Companion localization — en-US
 # Companion-owned interface phrases follow this locale.
@@ -545,6 +548,9 @@ Lime=Lime
 Lavender=Lavender
 Sand=Sand
 Silver=Silver
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=TRAPPER RECIPE - PART OF %s
 )HCL1";
 inline constexpr char kLocale_es_ES[] = R"HCL2(# Hunting Companion localization — es-ES
 # Companion-owned interface phrases follow this locale.
@@ -881,6 +887,9 @@ Lime=Lima
 Lavender=Lavanda
 Sand=Arena
 Silver=Plata
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=RECETA DEL TRAMPERO - PARTE DE %s
 )HCL2";
 inline constexpr char kLocale_es_MX[] = R"HCL3(# Hunting Companion localization — es-MX
 # Companion-owned interface phrases follow this locale.
@@ -1217,6 +1226,9 @@ Lime=Lima
 Lavender=Lavanda
 Sand=Arena
 Silver=Plata
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=RECETA DEL TRAMPERO - PARTE DE %s
 )HCL3";
 inline constexpr char kLocale_fr_FR[] = R"HCL4(# Hunting Companion localization — fr-FR
 # Companion-owned interface phrases follow this locale.
@@ -1553,6 +1565,9 @@ Lime=Vert citron
 Lavender=Lavande
 Sand=Sable
 Silver=Argent
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=RECETTE DU TRAPPEUR - FAIT PARTIE DE %s
 )HCL4";
 inline constexpr char kLocale_it_IT[] = R"HCL5(# Hunting Companion localization — it-IT
 # Companion-owned interface phrases follow this locale.
@@ -1889,6 +1904,9 @@ Lime=Lime
 Lavender=Lavanda
 Sand=Sabbia
 Silver=Argento
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=RICETTA DEL CACCIATORE - PARTE DI %s
 )HCL5";
 inline constexpr char kLocale_ja_JP[] = R"HCL6(# Hunting Companion localization — ja-JP
 # Companion-owned interface phrases follow this locale.
@@ -2225,6 +2243,9 @@ Lime=ライム
 Lavender=ラベンダー
 Sand=砂色
 Silver=銀
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=罠師のレシピ - %sの一部
 )HCL6";
 inline constexpr char kLocale_ko_KR[] = R"HCL7(# Hunting Companion localization — ko-KR
 # Companion-owned interface phrases follow this locale.
@@ -2560,6 +2581,9 @@ Lime=라임색
 Lavender=라벤더색
 Sand=모래색
 Silver=은색
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=덫 사냥꾼 제작법 - %s 세트의 일부
 )HCL7";
 inline constexpr char kLocale_pl_PL[] = R"HCL8(# Hunting Companion localization — pl-PL
 # Companion-owned interface phrases follow this locale.
@@ -2895,6 +2919,9 @@ Lime=Limonkowy
 Lavender=Lawendowy
 Sand=Piaskowy
 Silver=Srebrny
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=PRZEPIS TRAPERA - CZĘŚĆ ZESTAWU %s
 )HCL8";
 inline constexpr char kLocale_pt_BR[] = R"HCL9(# Hunting Companion localization — pt-BR
 # Companion-owned interface phrases follow this locale.
@@ -3231,6 +3258,9 @@ Lime=Lima
 Lavender=Lavanda
 Sand=Areia
 Silver=Prata
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=RECEITA DO CAÇADOR - PARTE DE %s
 )HCL9";
 inline constexpr char kLocale_ru_RU[] = R"HCL10(# Hunting Companion localization — ru-RU
 # Companion-owned interface phrases follow this locale.
@@ -3567,6 +3597,9 @@ Lime=Лаймовый
 Lavender=Лавандовый
 Sand=Песочный
 Silver=Серебряный
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=РЕЦЕПТ ОХОТНИКА - ЧАСТЬ КОМПЛЕКТА %s
 )HCL10";
 inline constexpr char kLocale_zh_CN[] = R"HCL11(# Hunting Companion localization — zh-CN
 # Companion-owned interface phrases follow this locale.
@@ -3903,6 +3936,9 @@ Lime=青柠色
 Lavender=薰衣草色
 Sand=沙色
 Silver=银色
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=捕兽人配方 - %s 的一部分
 )HCL11";
 inline constexpr char kLocale_zh_TW[] = R"HCL12(# Hunting Companion localization — zh-TW
 # Companion-owned interface phrases follow this locale.
@@ -4239,6 +4275,9 @@ Lime=萊姆色
 Lavender=薰衣草色
 Sand=沙色
 Silver=銀色
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=捕獸人配方 - %s 的一部分
 )HCL12";
 inline constexpr LocaleBlob kLocales[] = {
     {"de-DE", kLocale_de_DE},
