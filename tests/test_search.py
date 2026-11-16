@@ -30,7 +30,8 @@ required = (
     "text.add(source_species(hash));",
     # Typed text, never game controls, while the box is open.
     "hunting_companion::text_input::set_active(typing);",
-    "if (g_menu.page == MenuPage::Search) invoke_native<void>(kDisableAllControlActions, 0);",
+    "if (typing) {\n            invoke_native<void>(kDisableAllControlActions, 0);",
+    'invoke_native<void>(kDisableControlAction, 0, joaat("INPUT_JUMP"), false);',
     "if (key_pressed(VK_SPACE)) {\n            g_menu.searchEditing = true;",
     "} else if (g_searchDeleteArmed && g_keyDown[VK_BACK] &&",
     "!(typing && key_types_text(g_iconsHotkey))",

@@ -107,6 +107,7 @@ constexpr std::uint64_t kGetCarriedPeltSkins = 0x6F43C351A5D51E2Full;
 // While the search box takes typing, or HUD icons are being moved, the game
 // must not act on the same keys.
 constexpr std::uint64_t kDisableAllControlActions = 0x5F4B6931816E599Bull;
+constexpr std::uint64_t kDisableControlAction = 0xFE99B66D079CF6BCull;
 constexpr std::uint64_t kGetCarriedAttachedInfoForSlot = 0x608BC6A6AACD5036ull;
 constexpr std::uint64_t kFindAllAttachedCarriableEntities = 0xB5ACE8B23A438EC0ull;
 constexpr std::uint64_t kCreateItemset = 0xA1AF16083320065Aull;
@@ -5813,9 +5814,15 @@ void ScriptMain() {
         // The search box takes typed text; the game ignores its controls meanwhile.
         const bool typing = g_menu.page == MenuPage::Search && g_tracker.ready && g_menu.searchEditing;
         hunting_companion::text_input::set_active(typing);
-        // On the search page the game ignores its controls even while the box is
-        // closed: Space opens the box and must not make Arthur jump.
-        if (g_menu.page == MenuPage::Search) invoke_native<void>(kDisableAllControlActions, 0);
+        // The game ignores its controls only while the search box is open. With the
+        // box closed you can move as usual; only jumping is held back on the Search
+        // page, as Space opens the box.
+        if (typing) {
+            invoke_native<void>(kDisableAllControlActions, 0);
+        } else if (g_menu.page == MenuPage::Search) {
+            invoke_native<void>(kDisableControlAction, 0, joaat("INPUT_JUMP"), false);
+            invoke_native<void>(kDisableControlAction, 0, joaat("INPUT_HORSE_JUMP"), false);
+        }
         // While HUD icons are being moved, the game ignores its controls too.
         if (g_menu.page == MenuPage::HudLayout && g_menu.adjustingHud >= 0)
             invoke_native<void>(kDisableAllControlActions, 0);

@@ -19,8 +19,10 @@
   **Backspace** goes back. Inside the box Backspace only deletes, and only when
   pressed there, so a key still held from leaving a recipe never removes letters.
 - While you type, neither the game nor other mods react to the keys: the game
-  ignores its controls on the Search page, and other mods' hotkeys (for example a
-  mod bound to K) do not fire on typed letters.
+  ignores its controls while the search box is open, and other mods' hotkeys (for
+  example a mod bound to K) do not fire on typed letters. With the box closed you
+  can move as usual; only jumping is held back on the Search page, as Space opens
+  the box.
 
 ### HUD
 
