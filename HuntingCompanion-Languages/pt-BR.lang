@@ -283,3 +283,53 @@ Nothing can be crafted right now=No momento não há receitas disponíveis
 Nothing to show here=Nada para mostrar aqui
 Rifle=Rifle
 Any weapon=Qualquer arma
+
+# Search
+Search=Buscar
+SEARCH=BUSCAR
+Type an animal, part or item name=Digite um animal, uma parte ou um item
+No matches=Nenhum resultado
+Matches item, part and animal names in this language and in English.=Procura nomes de itens, partes e animais neste idioma e em inglês.
+
+# Colours and HUD layout
+Text colour=Cor do texto
+Heading colour=Cor dos títulos
+HUD label colour=Cor dos rótulos do HUD
+HUD layout=Layout do HUD
+Default=Padrão
+White=Branco
+Cream=Creme
+Gold=Dourado
+Red=Vermelho
+Orange=Laranja
+Green=Verde
+Blue=Azul
+Purple=Roxo
+Grey=Cinza
+HUD LAYOUT=LAYOUT DO HUD
+Move and resize the HUD icons=Mover e redimensionar os ícones do HUD
+All icons=Todos os ícones
+Weapon and ammo icons=Ícones de armas e munição
+Pearson and Trapper icons=Ícones de Pearson e do caçador
+Reset layout=Redefinir layout
+SIZE %d%%=TAMANHO %d%%
+The icons on the right are a preview. Select a group to move it.=Os ícones à direita são uma prévia. Escolha um grupo para movê-lo.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=SETAS - Mover   SHIFT - Mais rápido   PAGE UP/DOWN - Tamanho
+ENTER Save   BACKSPACE Cancel=ENTER - Salvar   BACKSPACE - Cancelar
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=ESPAÇO - Buscar   ENTER - Selecionar   BACKSPACE - Voltar
+ENTER Done   BACKSPACE Delete=ENTER - Pronto   BACKSPACE - Apagar
+SPACE Search=ESPAÇO - Buscar
+ENTER Done=ENTER - Pronto
+Press SPACE, then type an animal, part or item name=Pressione ESPAÇO e digite um animal, uma parte ou um item
+Yellow=Amarelo
+Pink=Rosa
+Teal=Verde-azulado
+Light blue=Azul-claro
+Brown=Marrom
+Crimson=Carmesim
+Lime=Lima
+Lavender=Lavanda
+Sand=Areia
+Silver=Prata

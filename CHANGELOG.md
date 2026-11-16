@@ -1,5 +1,79 @@
 # Changelog
 
+## 1.40.0
+
+### Search
+
+- **A new Search page** on the main menu finds every Pearson and Trapper recipe by
+  an animal, a part or an item. Press **Space** to open the search box, type for
+  example "alligator", and the list narrows with every letter to the recipes it
+  appears in, uncrafted ones first.
+- Names match in the menu's language and in English, ignoring capitals and accents
+  ("skora" finds "skóra"); several words must all match ("wolf perfect"). Hiragana
+  also finds katakana, and Japanese, Korean and Chinese can be typed with the
+  Windows IME.
+- The search box is a box of its own beside the menu, in the menu's style. It
+  starts small, grows with the text and then scrolls; a search can be up to 100
+  characters.
+- **Enter** or the arrows close the box, **Enter** on a result opens the recipe and
+  **Backspace** goes back. Inside the box Backspace only deletes, and only when
+  pressed there, so a key still held from leaving a recipe never removes letters.
+- While you type, neither the game nor other mods react to the keys: the game
+  ignores its controls on the Search page, and other mods' hotkeys (for example a
+  mod bound to K) do not fire on typed letters.
+
+### HUD
+
+- **HUD layout** (Settings > HUD layout): move and resize the HUD icons, all of them
+  together, or the weapon and ammo icons and the Pearson and Trapper icons on their
+  own. Sample icons show while the page is open. Pick a group, then the arrows move
+  it (Shift for bigger steps), Page Up/Down or +/- change its size (50-250%), Enter
+  saves and Backspace puts it back. "Reset layout" restores the defaults.
+- **Animal indicators no longer count legendary pelts for ordinary animals.** An
+  ordinary alligator showed the Trapper icon because the Trapper still needed the
+  Legendary Alligator Skin. An ordinary animal now only counts its own materials,
+  and a legendary animal only its legendary pelt.
+
+### Menu
+
+- **Colours:** Settings has a Text colour, a Heading colour and a HUD label colour
+  (the names under the weapon and ammo icons), each with 20 choices: Default,
+  White, Cream, Gold, Red, Orange, Green, Blue, Purple, Grey, Yellow, Pink, Teal,
+  Light blue, Brown, Crimson, Lime, Lavender, Sand and Silver. Coloured status text
+  (what you have or still need) keeps its own colours.
+- **Settings wraps around:** Down on the last row goes to the first and Up on the
+  first goes to the last. Settings shows seven rows at a time and scrolls.
+
+### Crafting Uses
+
+- **A whole animal counts for what skinning it will give.** An animal you carry or
+  have on your horse, not yet skinned, now counts for its pelt (and feathers or
+  antlers) as well as its carcass, so a muskrat on your shoulder shows the recipes
+  its pelt is for. A perfect pelt or carcass is only counted from a three-star
+  animal killed cleanly.
+- **Pelts on the horse count again.** Pelts stacked on the saddle horse are read by
+  inventory item, and a pelt you carried keeps its identity after the game removes
+  the animal it came from, so it no longer drops out of Crafting Uses once it is on
+  the horse.
+
+### Settings (`HuntingCompanion.ini`)
+
+- New: `TextColour`, `HeadingColour` and `HudLabelColour` under `[General]`, and a
+  `[HUD]` section (`AllX`, `AllY`, `AllSize`, `WeaponX`, `WeaponY`, `WeaponSize`,
+  `VendorX`, `VendorY`, `VendorSize`). All of them are set from the in-game Settings
+  page; an existing ini keeps working.
+- `FontLog=1` also logs what the haul scan sees (carried, on the horse, stacked),
+  for bug reports.
+
+### For developers
+
+- New `src/text_input.*` (typed text through the game window and the Windows IME)
+  and `src/search_text.hpp` (case- and accent-insensitive matching), with host
+  tests `tests/test_search.py` and `tests/test_hud_layout.py`.
+- While the search box is open, `GetAsyncKeyState` and `GetKeyState` are hooked so
+  that other modules see keyboard keys as up; the game window is subclassed for
+  typed characters. Both pass everything through while the box is closed.
+
 ## 1.30.1
 
 - **Weapon and ammunition advice is read from the game itself.** For the animal in

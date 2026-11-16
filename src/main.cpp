@@ -11,8 +11,12 @@
 #include "font_catalog.hpp"
 #include "embedded_challenge_objective_hashes.hpp"
 #include "embedded_hunting_recommendations.hpp"
+#include "search_text.hpp"
+#include "text_input.hpp"
 
 #include <algorithm>
+#include <cmath>
+#include <cstdarg>
 #include <array>
 #include <cstdint>
 #include <cstring>
@@ -98,6 +102,11 @@ constexpr std::uint64_t kPlayerPedId = 0x096275889B8E0EE0ull;
 constexpr std::uint64_t kPlayerId = 0x217E9DC48139933Dull;
 constexpr std::uint64_t kGetSaddleHorseForPlayer = 0xB48050D326E9A2F3ull;
 constexpr std::uint64_t kGetPeltFromHorse = 0x0CEEB6F4780B1F2Full;
+// _GET_CARRIED_PELT_SKINS: the pelts stacked on a horse, by inventory item.
+constexpr std::uint64_t kGetCarriedPeltSkins = 0x6F43C351A5D51E2Full;
+// While the search box takes typing, or HUD icons are being moved, the game
+// must not act on the same keys.
+constexpr std::uint64_t kDisableAllControlActions = 0x5F4B6931816E599Bull;
 constexpr std::uint64_t kGetCarriedAttachedInfoForSlot = 0x608BC6A6AACD5036ull;
 constexpr std::uint64_t kFindAllAttachedCarriableEntities = 0xB5ACE8B23A438EC0ull;
 constexpr std::uint64_t kCreateItemset = 0xA1AF16083320065Aull;
@@ -110,6 +119,9 @@ constexpr std::uint64_t kIsEntityAPed = 0xCF8176912DDA4EA5ull;
 constexpr std::uint64_t kGetIsCarriablePelt = 0x255B6DB4E3AD3C3Eull;
 constexpr std::uint64_t kGetCarcassFromPelt = 0x2A77EF9BEC8518F4ull;
 constexpr std::uint64_t kGetPedQuality = 0x7BCC6087D130312Aull;
+constexpr std::uint64_t kIsAnimalSkinned = 0x88A5564B19C15391ull;
+// How cleanly the animal was killed (0 = poor, 1 = good, 2 = perfect).
+constexpr std::uint64_t kGetPedDamageCleanliness = 0x88EFFED5FE8B0B4Aull;
 constexpr std::uint64_t kInventoryGetInventoryIdFromPed = 0x13D234A2A3F66E63ull;
 constexpr std::uint64_t kCountInventoryItems = 0xE787F05DFC977BDEull;
 constexpr std::uint64_t kInventoryGetGuidFromItemId = 0x886DFD3E185C8A89ull;
@@ -1405,13 +1417,19 @@ const char* source_species(std::uint32_t materialHash) noexcept {
     return nullptr;
 }
 
-bool species_needed(const VendorDemand& vendor, const char* species) noexcept {
+// True when the vendor still needs a material this animal can give: a
+// legendary animal gives only its legendary pelt, any other animal only the
+// ordinary materials of its species.
+bool species_needed(const VendorDemand& vendor, const char* species, bool legendary) noexcept {
     if (!vendor.ready || species == nullptr) return false;
     for (std::size_t i = 0; i < vendor.count; ++i) {
         const auto& material = vendor.materials[i];
         if (material.stillNeeded <= 0) continue;
         const char* source = source_species(material.hash);
-        if (source != nullptr && std::strcmp(source, species) == 0) return true;
+        if (source == nullptr || std::strcmp(source, species) != 0) continue;
+        const char* name = find_material_name(material.hash);
+        const bool legendaryMaterial = name != nullptr && std::strstr(name, "Legendary") != nullptr;
+        if (legendaryMaterial == legendary) return true;
     }
     return false;
 }
@@ -1487,6 +1505,7 @@ struct CurrentHaulMaterial {
     int carriedCount{};
     int horseCount{};
     int stowedPeltCount{};  // scratch: pelts in the horse's stowed-pelt list
+    int peltSkinCount{};    // scratch: pelts stacked on the horse, by inventory item
 };
 struct CurrentHaulState {
     std::array<CurrentHaulMaterial, kMaxMaterials> materials{};
@@ -1523,7 +1542,8 @@ void add_current_haul_count(std::uint32_t hash, int amount, int source) noexcept
     CurrentHaulMaterial& material = g_currentHaul.materials[static_cast<std::size_t>(index)];
     int* destination = source == 0 ? &material.inventoryCount :
                        source == 1 ? &material.carriedCount :
-                       source == 2 ? &material.horseCount : &material.stowedPeltCount;
+                       source == 2 ? &material.horseCount :
+                       source == 3 ? &material.stowedPeltCount : &material.peltSkinCount;
     *destination = std::min(1000000, *destination + amount);
 }
 
@@ -1550,25 +1570,78 @@ struct CarriedAttachedInfo {
 };
 static_assert(sizeof(CarriedAttachedInfo) == 32);
 
-void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcept {
-    if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) return;
-    const bool isPelt = knownPelt ||
-        invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
+// What a carried or stowed pelt was identified as, by entity. A pelt is told
+// apart through the animal it came from, and the game removes that animal some
+// time after skinning; the pelt keeps its identity here once it has been seen.
+struct PeltIdentity {
+    int entity{};
+    std::array<std::uint32_t, 4> materials{};
+    std::size_t count{};
+};
+std::array<PeltIdentity, 32> g_peltIdentities{};
+std::size_t g_nextPeltIdentity{};
+
+const PeltIdentity* find_pelt_identity(int entity) noexcept {
+    for (const PeltIdentity& identity : g_peltIdentities) {
+        if (identity.entity == entity && identity.count > 0) return &identity;
+    }
+    return nullptr;
+}
+
+void remember_pelt_identity(int entity, const std::uint32_t* materials, std::size_t count) noexcept {
+    PeltIdentity* slot = nullptr;
+    for (PeltIdentity& identity : g_peltIdentities) {
+        if (identity.entity == entity) { slot = &identity; break; }
+    }
+    if (slot == nullptr) {
+        slot = &g_peltIdentities[g_nextPeltIdentity];
+        g_nextPeltIdentity = (g_nextPeltIdentity + 1) % g_peltIdentities.size();
+    }
+    slot->entity = entity;
+    slot->count = std::min(count, slot->materials.size());
+    for (std::size_t i = 0; i < slot->count; ++i) slot->materials[i] = materials[i];
+}
+
+// Diagnostics (FontLog=1): what the haul scan saw, written when it changes.
+char g_haulTrace[512]{};
+std::size_t g_haulTraceLength{};
+void haul_trace(const char* format, ...) noexcept {
+    if (g_haulTraceLength >= sizeof(g_haulTrace) - 1) return;
+    va_list args;
+    va_start(args, format);
+    const int written = std::vsnprintf(g_haulTrace + g_haulTraceLength,
+                                       sizeof(g_haulTrace) - g_haulTraceLength, format, args);
+    va_end(args);
+    if (written > 0) g_haulTraceLength = std::min(sizeof(g_haulTrace) - 1, g_haulTraceLength + static_cast<std::size_t>(written));
+}
+
+// The materials an animal or pelt entity stands for. Returns false when the
+// animal it came from is gone (a pelt's identity is then looked up instead).
+bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t, 4>& found,
+                               std::size_t& foundCount) noexcept {
+    foundCount = 0;
     int carcass = entity;
     if (isPelt) carcass = invoke_native<int>(kGetCarcassFromPelt, entity);
     const bool carcassFound = carcass != 0 && invoke_native<int>(kDoesEntityExist, carcass) != 0 &&
                               invoke_native<int>(kIsEntityAPed, carcass) != 0;
-    const std::uint32_t model = carcassFound ? invoke_native<std::uint32_t>(kGetEntityModel, carcass) : 0;
-    const char* species = carcassFound ? find_animal_species(model) : nullptr;
+    if (!carcassFound) return false;
+    const std::uint32_t model = invoke_native<std::uint32_t>(kGetEntityModel, carcass);
+    const char* species = find_animal_species(model);
     // _GET_PED_QUALITY reports the ordinary skinning grade (0=poor, 1=good, 2=perfect).
-    const int quality = carcassFound ? invoke_native<int>(kGetPedQuality, carcass) : -1;
-    if (!carcassFound || species == nullptr) return;
+    const int quality = invoke_native<int>(kGetPedQuality, carcass);
+    haul_trace(" [%c %s q%d]", isPelt ? 'P' : 'A', species != nullptr ? species : "?", quality);
+    if (species == nullptr) return true;
     // Chipmunks share a HUD recommendation group with squirrels, but do not
     // yield squirrel pelts. Do not let that display grouping invent loot.
-    if (model == joaat("a_c_chipmunk_01")) return;
+    if (model == joaat("a_c_chipmunk_01")) return true;
 
     // The quality value does not identify a legendary animal, so it is never used to infer one.
     const bool qualityKnown = quality >= 0 && quality <= 2;
+    const bool skinned = !isPelt && invoke_native<int>(kIsAnimalSkinned, carcass) != 0;
+    // From a whole animal, a perfect pelt or carcass also needs a clean kill (a
+    // pelt already skinned has its grade from its animal's quality).
+    const int cleanliness = isPelt ? -1 : invoke_native<int>(kGetPedDamageCleanliness, carcass);
+    const bool cleanKill = cleanliness < 0 || cleanliness > 2 || cleanliness == 2;
     for (const auto& sourceEntry : kMaterialSources) {
         if (std::strcmp(sourceEntry.species, species) != 0) continue;
         const char* name = find_material_name(sourceEntry.hash);
@@ -1576,21 +1649,62 @@ void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcep
         const bool perfectOnly = std::strstr(name, "Perfect") != nullptr;
         const bool legendaryOnly = std::strstr(name, "Legendary") != nullptr;
         const bool carcassMaterial = std::strstr(name, "Carcass") != nullptr;
-        if (perfectOnly && qualityKnown && quality != 2) continue;
+        if (perfectOnly && ((qualityKnown && quality != 2) || !cleanKill)) continue;
         // A legendary pelt has a distinct inventory item identity. The public
         // carried-entity natives do not expose that identity reliably, so
         // only count it when the player's inventory native reports the item.
         if (legendaryOnly) continue;
-        // A carried pelt yields its pelt/hide/skin material. An intact animal
-        // yields only a catalogued carcass material until it has been skinned;
-        // do not promise pelt, feather or antler recipes prematurely.
-        if (isPelt ? (carcassMaterial || !perfectOnly) : !carcassMaterial) continue;
-        add_current_haul_count(sourceEntry.hash, 1, source);
+        // A carried pelt is its pelt/hide/skin material. A whole animal is its
+        // carcass and also everything skinning it will give (pelt, feathers,
+        // antlers), unless it has been skinned already.
+        if (isPelt ? (carcassMaterial || !perfectOnly) : (!carcassMaterial && skinned)) continue;
+        if (foundCount < found.size()) found[foundCount++] = sourceEntry.hash;
+    }
+    if (isPelt) remember_pelt_identity(entity, found.data(), foundCount);
+    return true;
+}
+
+void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcept {
+    if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) return;
+    const bool isPelt = knownPelt ||
+        invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
+    std::array<std::uint32_t, 4> found{};
+    std::size_t foundCount = 0;
+    if (!identify_entity_materials(entity, isPelt, found, foundCount)) {
+        // The animal is gone: use what this pelt was identified as earlier.
+        const PeltIdentity* identity = isPelt ? find_pelt_identity(entity) : nullptr;
+        haul_trace(" [%c gone%s]", isPelt ? 'P' : 'A', identity != nullptr ? ", remembered" : "");
+        if (identity == nullptr) return;
+        for (std::size_t i = 0; i < identity->count; ++i) found[i] = identity->materials[i];
+        foundCount = identity->count;
+    }
+    for (std::size_t i = 0; i < foundCount; ++i) add_current_haul_count(found[i], 1, source);
+}
+
+// While the menu is closed, a pelt the player carries is identified once, so
+// it is still known after it is put on the horse and its animal is removed.
+void remember_carried_pelts() noexcept {
+    const int playerPed = invoke_native<int>(kPlayerPedId);
+    if (playerPed == 0) return;
+    for (int slot = 0; slot <= 4; ++slot) {
+        CarriedAttachedInfo info{};
+        if (invoke_native<bool>(kGetCarriedAttachedInfoForSlot, &info, playerPed, slot, 0) == 0) continue;
+        const int entity = static_cast<int>(info.entity);
+        if (entity == 0 || find_pelt_identity(entity) != nullptr ||
+            invoke_native<int>(kDoesEntityExist, entity) == 0 ||
+            invoke_native<int>(kGetIsCarriablePelt, entity) == 0) continue;
+        std::array<std::uint32_t, 4> found{};
+        std::size_t foundCount = 0;
+        identify_entity_materials(entity, true, found, foundCount);
     }
 }
 
+char g_lastHaulTrace[sizeof(g_haulTrace)]{};
+
 void update_current_haul() noexcept {
     g_currentHaul = {};
+    g_haulTrace[0] = '\0';
+    g_haulTraceLength = 0;
     const int playerPed = invoke_native<int>(kPlayerPedId);
     if (playerPed == 0) return;
     const int inventoryId = invoke_native<int>(kInventoryGetInventoryIdFromPed, playerPed);
@@ -1615,6 +1729,7 @@ void update_current_haul() noexcept {
         if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) continue;
         const bool isPelt = invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
         const bool isPed = invoke_native<int>(kIsEntityAPed, entity) != 0;
+        haul_trace(" carry%d:%08X", slot, invoke_native<std::uint32_t>(kGetEntityModel, entity));
         if (isPelt || isPed) add_entity_animal_materials(entity, 1, isPelt);
     }
 
@@ -1633,25 +1748,48 @@ void update_current_haul() noexcept {
                 if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) continue;
                 const bool isPelt = invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
                 const bool isPed = invoke_native<int>(kIsEntityAPed, entity) != 0;
+                haul_trace(" horse:%08X", invoke_native<std::uint32_t>(kGetEntityModel, entity));
                 if (isPelt || isPed) add_entity_animal_materials(entity, 2, isPelt);
             }
             invoke_native<void>(kDestroyItemset, itemSet);
         }
 
-        // Small and medium pelts are not attached entities: the horse keeps them
-        // in its own stowed-pelt list (the satchel's Horse Cargo tab), whose
-        // entries are the pelts' inventory item hashes. A large pelt may show up
-        // both here and as an attached entity, so take the larger of the two
-        // counts instead of adding them.
+        // Pelts stacked on the horse are not entities: the horse keeps them by
+        // inventory item (the satchel's Horse Cargo tab). _GET_CARRIED_PELT_SKINS
+        // fills a script array (count, then five 8-byte fields per pelt, the
+        // first being the item). _GET_PELT_FROM_HORSE is read as well; on the
+        // builds where it returns a pelt id rather than an item, it matches no
+        // material and adds nothing.
+        constexpr int kMaxPeltSkins = 8;
+        std::array<std::uint64_t, 1 + kMaxPeltSkins * 5 + 64> skins{};  // room to spare
+        skins[0] = kMaxPeltSkins;
+        invoke_native<int>(kGetCarriedPeltSkins, horse, skins.data());
+        haul_trace(" skins:");
+        for (int index = 0; index < kMaxPeltSkins; ++index) {
+            const auto item = static_cast<std::uint32_t>(skins[1 + static_cast<std::size_t>(index) * 5] & 0xFFFFFFFFu);
+            if (item == 0) continue;
+            haul_trace(" %08X%s", item, is_animal_part_material(item) ? "*" : "");
+            add_current_haul_count(item, 1, 4);
+        }
+        haul_trace(" stowed:");
         for (int index = 0; index < 32; ++index) {
             const std::uint32_t pelt = invoke_native<std::uint32_t>(kGetPeltFromHorse, horse, index);
-            if (pelt != 0) add_current_haul_count(pelt, 1, 3);
+            if (pelt == 0) continue;
+            haul_trace(" %08X%s", pelt, is_animal_part_material(pelt) ? "*" : "");
+            add_current_haul_count(pelt, 1, 3);
         }
+        // A pelt can show up as an attached entity and in either list at once,
+        // so take the largest of the counts instead of adding them.
         for (std::size_t i = 0; i < g_currentHaul.count; ++i) {
             CurrentHaulMaterial& material = g_currentHaul.materials[i];
-            material.horseCount = std::max(material.horseCount, material.stowedPeltCount);
+            material.horseCount = std::max({material.horseCount, material.stowedPeltCount, material.peltSkinCount});
             material.stowedPeltCount = 0;
+            material.peltSkinCount = 0;
         }
+    }
+    if (std::strcmp(g_haulTrace, g_lastHaulTrace) != 0) {
+        std::memcpy(g_lastHaulTrace, g_haulTrace, sizeof(g_haulTrace));
+        hunting_companion::native_fonts::diagnostic("Haul:%s", g_haulTrace);
     }
 }
 
@@ -1698,7 +1836,108 @@ struct HudIconLayout {
     float pearsonCenterX{};
     float trapperCenterX{};
     float centerY{};
+    float weaponAnchorY{};  // bottom of the weapon/ammo stack, before any moving
 };
+
+// Where the player has moved the HUD icons and how large they are (Settings >
+// HUD layout). Each group is moved and sized around its own default position,
+// then "all icons" moves and sizes everything around the vendor icons.
+struct HudPlacement { float x{}; float y{}; float scale{1.0f}; };
+constexpr int kHudAll = 0;
+constexpr int kHudWeapons = 1;
+constexpr int kHudVendors = 2;
+constexpr int kHudGroupCount = 3;
+HudPlacement g_hudPlacement[kHudGroupCount]{};
+constexpr float kHudRightEdge = 0.972f;
+constexpr float kHudMinScale = 0.5f;
+constexpr float kHudMaxScale = 2.5f;
+
+struct HudPoint { float x; float y; };
+
+HudPoint hud_place(int group, float x, float y, const HudIconLayout& layout) noexcept {
+    const HudPlacement& own = g_hudPlacement[group];
+    const HudPlacement& all = g_hudPlacement[kHudAll];
+    const float ownAnchorY = group == kHudWeapons ? layout.weaponAnchorY : layout.centerY;
+    x = kHudRightEdge + (x - kHudRightEdge) * own.scale + own.x;
+    y = ownAnchorY + (y - ownAnchorY) * own.scale + own.y;
+    x = kHudRightEdge + (x - kHudRightEdge) * all.scale + all.x;
+    y = layout.centerY + (y - layout.centerY) * all.scale + all.y;
+    return HudPoint{x, y};
+}
+
+float hud_scale(int group) noexcept {
+    return g_hudPlacement[group].scale * g_hudPlacement[kHudAll].scale;
+}
+
+namespace theme {
+constexpr int kAccentRed = 168, kAccentGreen = 22, kAccentBlue = 22;   // selection red
+int kGoldRed = 226, kGoldGreen = 188, kGoldBlue = 118;                 // headings (Heading colour)
+constexpr int kTextRed = 236, kTextGreen = 230, kTextBlue = 218;       // body text
+constexpr int kMutedRed = 168, kMutedGreen = 161, kMutedBlue = 146;    // hints
+// Game texture sets and textures, and the title font face.
+constexpr const char* kGeneric = "generic_textures";
+constexpr const char* kMenu = "menu_textures";
+constexpr const char* kSelectionBox = "selection_box_bg_1d";
+constexpr const char* kChipBox = "selection_box_bg_1c";
+constexpr const char* kInkPanel = "inkroller_1a";
+constexpr const char* kHeaderPlate = "menu_header_1a";
+constexpr const char* kDivider = "divider_line";
+constexpr const char* kArrowUp = "scroller_arrow_top";
+constexpr const char* kArrowDown = "scroller_arrow_bottom";
+constexpr const char* kTitleFace = "$title1";
+}
+
+// Colour choices for the menu text, the menu headings and the HUD labels
+// (Settings). "Default" keeps each one's own colour.
+struct ColourPreset { const char* name; int red; int green; int blue; };
+constexpr ColourPreset kColourPresets[] = {
+    {"Default", -1, -1, -1}, {"White", 255, 255, 255}, {"Cream", 236, 230, 218},
+    {"Gold", 226, 188, 118}, {"Red", 222, 96, 84}, {"Orange", 232, 150, 80},
+    {"Green", 140, 210, 140}, {"Blue", 130, 175, 235}, {"Purple", 190, 150, 230},
+    {"Grey", 175, 170, 160}, {"Yellow", 240, 222, 110}, {"Pink", 236, 140, 190},
+    {"Teal", 90, 200, 190}, {"Light blue", 170, 210, 245}, {"Brown", 185, 135, 92},
+    {"Crimson", 200, 45, 60}, {"Lime", 180, 230, 90}, {"Lavender", 200, 182, 240},
+    {"Sand", 216, 196, 150}, {"Silver", 200, 205, 212},
+};
+constexpr int kColourPresetCount = static_cast<int>(std::size(kColourPresets));
+int g_textColour = 0;
+int g_headingColour = 0;
+int g_hudLabelColour = 0;
+bool g_menuTextColourScope = false;  // set while the menu draws
+
+void apply_heading_colour() noexcept {
+    const ColourPreset& preset = kColourPresets[g_headingColour];
+    theme::kGoldRed = preset.red >= 0 ? preset.red : 226;
+    theme::kGoldGreen = preset.red >= 0 ? preset.green : 188;
+    theme::kGoldBlue = preset.red >= 0 ? preset.blue : 118;
+}
+
+void hud_label_colour(int* red, int* green, int* blue) noexcept {
+    const ColourPreset& preset = kColourPresets[g_hudLabelColour];
+    if (preset.red < 0) return;
+    *red = preset.red;
+    *green = preset.green;
+    *blue = preset.blue;
+}
+
+// Menu text in a neutral colour (white text excepted: it marks the selected
+// row and the title) takes the chosen text colour, keeping its brightness, so
+// hints stay dimmer than the rows.
+void apply_text_colour(int* red, int* green, int* blue) noexcept {
+    if (!g_menuTextColourScope || g_textColour <= 0) return;
+    const int high = std::max({*red, *green, *blue});
+    const int low = std::min({*red, *green, *blue});
+    if (high - low > 45 || (*red == 255 && *green == 255 && *blue == 255)) return;
+    const float luma = 0.299f * static_cast<float>(*red) + 0.587f * static_cast<float>(*green) +
+                       0.114f * static_cast<float>(*blue);
+    if (luma < 110.0f) return;
+    const ColourPreset& preset = kColourPresets[g_textColour];
+    const float factor = luma / 231.0f;
+    *red = static_cast<int>(std::clamp(static_cast<float>(preset.red) * factor, 0.0f, 255.0f));
+    *green = static_cast<int>(std::clamp(static_cast<float>(preset.green) * factor, 0.0f, 255.0f));
+    *blue = static_cast<int>(std::clamp(static_cast<float>(preset.blue) * factor, 0.0f, 255.0f));
+}
+
 
 bool get_hud_icon_layout(HudIconLayout* layout) noexcept {
     if (layout == nullptr) return false;
@@ -1728,6 +1967,8 @@ bool get_hud_icon_layout(HudIconLayout* layout) noexcept {
     layout->trapperCenterX = rightCenter;
     layout->pearsonCenterX = rightCenter - layout->width - gap;
     layout->centerY = kTargetPromptTopEdge - layout->height * 0.5f - kPromptIconGap;
+    // The weapon/ammo stack sits just above the vendor icons by default.
+    layout->weaponAnchorY = layout->centerY - layout->height * 0.5f - 0.014f;
     return true;
 }
 
@@ -1759,8 +2000,9 @@ void draw_rect(float x, float y, float width, float height,
 float g_textRightLimit = 0.0f;
 
 struct TextRightLimitScope {
-    explicit TextRightLimitScope(float limit) noexcept { g_textRightLimit = limit; }
-    ~TextRightLimitScope() { g_textRightLimit = 0.0f; }
+    explicit TextRightLimitScope(float limit) noexcept : previous(g_textRightLimit) { g_textRightLimit = limit; }
+    ~TextRightLimitScope() { g_textRightLimit = previous; }
+    float previous;
     TextRightLimitScope(const TextRightLimitScope&) = delete;
     TextRightLimitScope& operator=(const TextRightLimitScope&) = delete;
 };
@@ -1994,15 +2236,19 @@ void draw_icon_with_shadow(const RecommendationIcon& icon, float centerX, float 
 
 // Draws a centred label of up to two lines, always inside maxWidth.
 void draw_label_with_shadow(const char* text, float centerX, float y, float maxWidth,
-                            float startSize = 9.0f) noexcept {
+                            float startSize = 9.0f, float scale = 1.0f) noexcept {
     const float correction = screen_width_correction();
     FittedLines fitted;
-    float size = startSize;
-    while (!wrap_to_width(text, size, correction, maxWidth, 2, &fitted) && size > 7.5f) size -= 0.5f;
+    float size = startSize * scale;
+    const float smallest = 7.5f * scale;
+    while (!wrap_to_width(text, size, correction, maxWidth, 2, &fitted) && size > smallest) size -= 0.5f;
+    int red = 238, green = 232, blue = 218;
+    hud_label_colour(&red, &green, &blue);
     for (int line = 0; line < fitted.count; ++line) {
         const float lineY = y + static_cast<float>(line) * size * 0.00155f;
-        draw_text_impl(fitted.lines[line], centerX + 0.0006f, lineY + 0.0011f, size, 0, 0, 0, 215, false, true);
-        draw_text_impl(fitted.lines[line], centerX, lineY, size, 238, 232, 218, 255, false, true);
+        draw_text_impl(fitted.lines[line], centerX + 0.0006f * scale, lineY + 0.0011f * scale, size,
+                       0, 0, 0, 215, false, true);
+        draw_text_impl(fitted.lines[line], centerX, lineY, size, red, green, blue, 255, false, true);
     }
 }
 
@@ -2047,6 +2293,7 @@ void draw_hunting_recommendation_icons(
     const float rightColumnCenterX = kRightEdge - iconWidth * 0.5f;
     const float vendorTop = layout.centerY - layout.height * 0.5f;
     const float stackBottom = vendorTop - kGapAboveVendorIcons;
+    const float scale = hud_scale(kHudWeapons);
 
     char label[96]{};
     for (std::size_t r = 0; r < rowCount; ++r) {
@@ -2056,13 +2303,16 @@ void draw_hunting_recommendation_icons(
         for (int i = 0; i < row.count; ++i) {
             // A lone icon goes in the right-hand column.
             const int column = row.count == 1 ? 1 : i;
-            const float centerX = rightColumnCenterX - kCellWidth * (1.0f - static_cast<float>(column));
-            draw_icon_with_shadow(row.icons[i], centerX, rowTop + kIconHeight * 0.5f, iconWidth, kIconHeight);
+            const float defaultX = rightColumnCenterX - kCellWidth * (1.0f - static_cast<float>(column));
+            const HudPoint icon = hud_place(kHudWeapons, defaultX, rowTop + kIconHeight * 0.5f, layout);
+            draw_icon_with_shadow(row.icons[i], icon.x, icon.y, iconWidth * scale, kIconHeight * scale);
             std::snprintf(label, sizeof(label), "%s", hunting_companion::ui_text(row.icons[i].label));
-            // A label is wider than its icon, so the right column's label is
+            // A label is wider than its icon, so a label near the right edge is
             // narrowed rather than allowed to run off the screen.
-            const float labelWidth = std::min(kCellWidth * 0.97f, (kLabelRightLimit - centerX) * 2.0f);
-            draw_label_with_shadow(label, centerX, rowTop + kIconHeight + kLabelGap, labelWidth);
+            const HudPoint text = hud_place(kHudWeapons, defaultX, rowTop + kIconHeight + kLabelGap, layout);
+            const float labelWidth = std::max(0.02f, std::min(kCellWidth * 0.97f * scale,
+                                                              (kLabelRightLimit - text.x) * 2.0f));
+            draw_label_with_shadow(label, text.x, text.y, labelWidth, 9.0f, scale);
         }
     }
 }
@@ -2126,6 +2376,7 @@ void draw_any_weapon_hint(const HudIconLayout& layout) noexcept {
     const float iconWidth = kIconHeight * heightOverWidth;
     const float vendorTop = layout.centerY - layout.height * 0.5f;
     const float bottom = vendorTop - kGapAboveVendorIcons;
+    const float scale = hud_scale(kHudWeapons);
     char label[96]{};
     std::snprintf(label, sizeof(label), "%s", hunting_companion::ui_text("Any weapon"));
     if (g_legendaryIcon) {
@@ -2133,19 +2384,60 @@ void draw_any_weapon_hint(const HudIconLayout& layout) noexcept {
         const float rowTop = bottom - kIconHeight - kLabelGap - kLabelBlockHeight;
         if (texture_dictionary_ready(kLegendaryIconDictionary)) {
             const RecommendationIcon icon{kLegendaryIconDictionary, kLegendaryIconTexture, ""};
-            draw_icon_with_shadow(icon, centerX, rowTop + kIconHeight * 0.5f, iconWidth, kIconHeight);
+            const HudPoint at = hud_place(kHudWeapons, centerX, rowTop + kIconHeight * 0.5f, layout);
+            draw_icon_with_shadow(icon, at.x, at.y, iconWidth * scale, kIconHeight * scale);
         }
         // Centred under the icon and narrowed near the screen edge, like the
         // weapon labels.
-        const float labelWidth = std::min(0.09f, (0.988f - centerX) * 2.0f);
-        draw_label_with_shadow(label, centerX, rowTop + kIconHeight + kLabelGap, labelWidth);
+        const HudPoint text = hud_place(kHudWeapons, centerX, rowTop + kIconHeight + kLabelGap, layout);
+        const float labelWidth = std::max(0.02f, std::min(0.09f * scale, (0.988f - text.x) * 2.0f));
+        draw_label_with_shadow(label, text.x, text.y, labelWidth, 9.0f, scale);
         return;
     }
     constexpr float kWidth = 0.12f;
-    draw_label_with_shadow(label, kRightEdge - kWidth * 0.5f, bottom - 0.030f, kWidth, 12.0f);
+    const HudPoint text = hud_place(kHudWeapons, kRightEdge - kWidth * 0.5f, bottom - 0.030f, layout);
+    draw_label_with_shadow(label, text.x, text.y, kWidth * scale, 12.0f, scale);
+}
+
+void draw_vendor_icons(const HudIconLayout& layout, bool pearson, bool trapper) noexcept {
+    const float scale = hud_scale(kHudVendors);
+    if (pearson) {
+        const HudPoint at = hud_place(kHudVendors, layout.pearsonCenterX, layout.centerY, layout);
+        draw_vendor_icon("blip_shop_butcher", at.x, at.y, layout.width * scale, layout.height * scale,
+                         245, 184, 72);
+    }
+    if (trapper) {
+        const HudPoint at = hud_place(kHudVendors, layout.trapperCenterX, layout.centerY, layout);
+        draw_vendor_icon("blip_shop_animal_trapper", at.x, at.y, layout.width * scale, layout.height * scale,
+                         100, 190, 245);
+    }
+}
+
+bool hud_preview_active() noexcept;
+
+// While the HUD layout page is open: sample icons, whatever is in focus, so
+// they can be placed and sized.
+void draw_hud_preview() noexcept {
+    HudIconLayout layout{};
+    if (!get_hud_icon_layout(&layout)) return;
+    if (g_showWeaponIcons && inventory_texture_dictionary_ready()) {
+        // The first piece of advice with a weapon and an ammunition (Bow with Small
+        // Game Arrows) shows both kinds of icon.
+        const hunting_companion::hunting::Recommendation* sample = nullptr;
+        for (std::size_t i = 0; i < hunting_companion::hunting::kLabelAdviceCount && sample == nullptr; ++i) {
+            const auto& advice = hunting_companion::hunting::kLabelAdvice[i].advice;
+            if (advice.choiceCount == 1 && advice.choices[0].ammoCount == 1) sample = &advice;
+        }
+        if (sample != nullptr) draw_hunting_recommendation_icons(*sample, layout);
+    }
+    if (blip_texture_dictionary_ready()) draw_vendor_icons(layout, true, true);
 }
 
 void update_hud() noexcept {
+    if (hud_preview_active()) {
+        draw_hud_preview();
+        return;
+    }
     if (!g_tracker.ready) return;
     const int player = invoke_native<int>(0x217E9DC48139933Dull);
     int focusedEntity = 0;
@@ -2167,8 +2459,8 @@ void update_hud() noexcept {
     const bool legendary = is_legendary_animal(focusedEntity);
     if (species == nullptr && recommendation == nullptr && !legendary) return;
 
-    const bool needsPearson = species != nullptr && species_needed(g_tracker.pearson.demand, species);
-    const bool needsTrapper = species != nullptr && species_needed(g_tracker.trapper.demand, species);
+    const bool needsPearson = species != nullptr && species_needed(g_tracker.pearson.demand, species, legendary);
+    const bool needsTrapper = species != nullptr && species_needed(g_tracker.trapper.demand, species, legendary);
 
     HudIconLayout layout{};
     if (!get_hud_icon_layout(&layout)) return;
@@ -2180,14 +2472,7 @@ void update_hud() noexcept {
     }
 
     if ((!needsPearson && !needsTrapper) || !blip_texture_dictionary_ready()) return;
-    if (needsPearson) {
-        draw_vendor_icon("blip_shop_butcher", layout.pearsonCenterX, layout.centerY,
-                         layout.width, layout.height, 245, 184, 72);
-    }
-    if (needsTrapper) {
-        draw_vendor_icon("blip_shop_animal_trapper", layout.trapperCenterX, layout.centerY,
-                         layout.width, layout.height, 100, 190, 245);
-    }
+    draw_vendor_icons(layout, needsPearson, needsTrapper);
 }
 
 // -----------------------------------------------------------------------------
@@ -2197,8 +2482,35 @@ void update_hud() noexcept {
 
 enum class MenuPage {
     Closed, Root, Categories, Recipes, Detail, CraftingUses,
-    CraftingUseDetail, Challenges, ChallengeDetail, Settings
+    CraftingUseDetail, Challenges, ChallengeDetail, Settings, Search, HudLayout
 };
+// Rows of the main menu.
+constexpr int kRootPearson = 0;
+constexpr int kRootTrapper = 1;
+constexpr int kRootSearch = 2;
+constexpr int kRootCraftingUses = 3;
+constexpr int kRootChallenges = 4;
+constexpr int kRootSettings = 5;
+constexpr int kRootClose = 6;
+constexpr int kRootCount = 7;
+// Rows of the Settings page.
+constexpr int kSetMenuKey = 0;
+constexpr int kSetLanguage = 1;
+constexpr int kSetFilterKey = 2;
+constexpr int kSetIconsShown = 3;
+constexpr int kSetIconsKey = 4;
+constexpr int kSetMenuFont = 5;
+constexpr int kSetTextColour = 6;
+constexpr int kSetHeadingColour = 7;
+constexpr int kSetHudLabelColour = 8;
+constexpr int kSetHudLayout = 9;
+constexpr int kSetBack = 10;
+constexpr int kSettingsCount = 11;
+constexpr int kSettingsVisibleRows = 7;  // the language details sit below them
+// Rows of the HUD layout page; the first three are kHudAll, kHudWeapons, kHudVendors.
+constexpr int kLayoutReset = 3;
+constexpr int kLayoutBack = 4;
+constexpr int kLayoutCount = 5;
 struct MenuCategory { std::uint32_t hash{}; const char* label{}; int recipeCount{}; };
 struct MenuState {
     MenuPage page{MenuPage::Closed};
@@ -2221,6 +2533,9 @@ struct MenuState {
     bool captureHotkey{};
     bool captureFilterHotkey{};
     bool captureIconsHotkey{};
+    int adjustingHud{-1};          // HUD group being moved, or -1
+    bool searchEditing{};          // the search box takes typing (Space opens it)
+    HudPlacement adjustStart{};    // its placement before, for Backspace
 };
 MenuState g_menu{};
 std::array<MenuCategory, kMaxCategories> g_menuCategories{};
@@ -2295,6 +2610,60 @@ void initialise_ini_path() noexcept {
     std::snprintf(g_iniPath, sizeof(g_iniPath), "%sHuntingCompanion.ini", modulePath);
 }
 
+// [HUD] in the ini: each group's offset in thousandths of the screen and its
+// size in percent.
+constexpr const char* kHudKeyNames[kHudGroupCount] = {"All", "Weapon", "Vendor"};
+
+void load_hud_layout() noexcept {
+    for (int group = 0; group < kHudGroupCount; ++group) {
+        char key[24];
+        std::snprintf(key, sizeof(key), "%sX", kHudKeyNames[group]);
+        const int x = static_cast<int>(GetPrivateProfileIntA("HUD", key, 0, g_iniPath));
+        std::snprintf(key, sizeof(key), "%sY", kHudKeyNames[group]);
+        const int y = static_cast<int>(GetPrivateProfileIntA("HUD", key, 0, g_iniPath));
+        std::snprintf(key, sizeof(key), "%sSize", kHudKeyNames[group]);
+        const int size = static_cast<int>(GetPrivateProfileIntA("HUD", key, 100, g_iniPath));
+        HudPlacement& placement = g_hudPlacement[group];
+        placement.x = std::clamp(static_cast<float>(x) / 1000.0f, -0.95f, 0.10f);
+        placement.y = std::clamp(static_cast<float>(y) / 1000.0f, -0.85f, 0.25f);
+        placement.scale = std::clamp(static_cast<float>(size) / 100.0f, kHudMinScale, kHudMaxScale);
+    }
+}
+
+void save_hud_layout() noexcept {
+    if (g_iniPath[0] == '\0') return;
+    for (int group = 0; group < kHudGroupCount; ++group) {
+        const HudPlacement& placement = g_hudPlacement[group];
+        char key[24];
+        char value[16];
+        std::snprintf(key, sizeof(key), "%sX", kHudKeyNames[group]);
+        std::snprintf(value, sizeof(value), "%d", static_cast<int>(std::lround(placement.x * 1000.0f)));
+        WritePrivateProfileStringA("HUD", key, value, g_iniPath);
+        std::snprintf(key, sizeof(key), "%sY", kHudKeyNames[group]);
+        std::snprintf(value, sizeof(value), "%d", static_cast<int>(std::lround(placement.y * 1000.0f)));
+        WritePrivateProfileStringA("HUD", key, value, g_iniPath);
+        std::snprintf(key, sizeof(key), "%sSize", kHudKeyNames[group]);
+        std::snprintf(value, sizeof(value), "%d", static_cast<int>(std::lround(placement.scale * 100.0f)));
+        WritePrivateProfileStringA("HUD", key, value, g_iniPath);
+    }
+}
+
+int load_colour(const char* key) noexcept {
+    const int value = static_cast<int>(GetPrivateProfileIntA("General", key, 0, g_iniPath));
+    return value >= 0 && value < kColourPresetCount ? value : 0;
+}
+
+void save_colour_settings() noexcept {
+    if (g_iniPath[0] == '\0') return;
+    char value[16]{};
+    std::snprintf(value, sizeof(value), "%d", g_textColour);
+    WritePrivateProfileStringA("General", "TextColour", value, g_iniPath);
+    std::snprintf(value, sizeof(value), "%d", g_headingColour);
+    WritePrivateProfileStringA("General", "HeadingColour", value, g_iniPath);
+    std::snprintf(value, sizeof(value), "%d", g_hudLabelColour);
+    WritePrivateProfileStringA("General", "HudLabelColour", value, g_iniPath);
+}
+
 void load_configuration() noexcept {
     initialise_ini_path();
     if (g_iniPath[0] == '\0') {
@@ -2311,6 +2680,11 @@ void load_configuration() noexcept {
     g_iconsHotkey = (iconsKey > 0 && iconsKey < 256) ? iconsKey : kDefaultIconsKey;
     g_showWeaponIcons = GetPrivateProfileIntA("General", "ShowWeaponIcons", 1, g_iniPath) != 0;
     g_legendaryIcon = GetPrivateProfileIntA("General", "LegendaryIcon", 1, g_iniPath) != 0;
+    g_textColour = load_colour("TextColour");
+    g_headingColour = load_colour("HeadingColour");
+    g_hudLabelColour = load_colour("HudLabelColour");
+    apply_heading_colour();
+    load_hud_layout();
     // MenuFont (0-4, one of the fallback fonts) is the default for languages
     // without their own MenuFont.<locale> choice.
     const UINT menuFont = GetPrivateProfileIntA("General", "MenuFont", 0, g_iniPath);
@@ -3206,6 +3580,131 @@ const char* crafting_use_readiness_label(CraftingUseReadiness readiness) noexcep
     return "USES YOUR HAUL";
 }
 
+// -----------------------------------------------------------------------------
+// Search: every Pearson and Trapper recipe whose name, or the name of one of
+// its materials (or that material's animal), contains every typed word. Names
+// are matched in the menu language and in English, ignoring case and accents.
+// -----------------------------------------------------------------------------
+
+constexpr std::size_t kMaxSearchCodepoints = 100;
+char g_searchQuery[kMaxSearchCodepoints * 4 + 1]{};
+std::size_t g_searchQueryCodepoints{};
+std::array<CraftingUseEntry, kMaxRecipesPerShop * 2> g_searchResults{};
+std::size_t g_searchResultCount{};
+bool g_searchDirty = true;
+bool g_searchDeleteArmed = false;
+DWORD g_searchNextDeleteAt = 0;
+int g_searchLanguage = -1;
+
+class FoldedText {
+public:
+    void add(const char* text) noexcept {
+        if (text == nullptr || length_ + 1 >= kCapacity) return;
+        length_ += hunting_companion::search_text::fold_utf8(text, buffer_ + length_, kCapacity - 1 - length_);
+        buffer_[length_++] = U'|';  // keeps words of different names apart
+    }
+    const char32_t* data() const noexcept { return buffer_; }
+    std::size_t size() const noexcept { return length_; }
+private:
+    static constexpr std::size_t kCapacity = 2048;
+    char32_t buffer_[kCapacity]{};
+    std::size_t length_{};
+};
+
+bool recipe_matches_search(const RecipeEntry& recipe, const char32_t* query, std::size_t queryLength) noexcept {
+    FoldedText text;
+    text.add(recipe_display_name(recipe));
+    text.add(recipe.name);
+    for (std::size_t i = 0; i < recipe.costCount; ++i) {
+        const std::uint32_t hash = recipe.costs[i].hash;
+        if (!is_animal_part_material(hash)) continue;
+        text.add(display_material_name(hash));
+        text.add(find_material_name(hash));
+        text.add(source_species(hash));
+    }
+    return hunting_companion::search_text::matches_all_words(text.data(), text.size(), query, queryLength);
+}
+
+void build_search_results() noexcept {
+    g_searchDirty = false;
+    g_searchLanguage = hunting_companion::active_ui_language();
+    g_searchResultCount = 0;
+    char32_t query[kMaxSearchCodepoints + 1]{};
+    const std::size_t queryLength =
+        hunting_companion::search_text::fold_utf8(g_searchQuery, query, kMaxSearchCodepoints);
+    if (queryLength > 0 && g_tracker.ready) {
+        for (int vendorIndex = 0; vendorIndex < 2; ++vendorIndex) {
+            const bool trapper = vendorIndex == 1;
+            const VendorState& vendor = trapper ? g_tracker.trapper : g_tracker.pearson;
+            for (std::size_t i = 0; i < vendor.recipeCount; ++i) {
+                if (g_searchResultCount >= g_searchResults.size()) break;
+                if (!recipe_matches_search(vendor.recipes[i], query, queryLength)) continue;
+                g_searchResults[g_searchResultCount++] = CraftingUseEntry{trapper, static_cast<int>(i), nullptr, 0};
+            }
+        }
+    }
+    // Recipes still to make first, then alphabetically.
+    char valueLabel[160]{};
+    char otherLabel[160]{};
+    for (std::size_t i = 1; i < g_searchResultCount; ++i) {
+        const CraftingUseEntry value = g_searchResults[i];
+        const RecipeEntry* valueRecipe = crafting_use_recipe(value);
+        const bool valueOwned = valueRecipe != nullptr && valueRecipe->owned;
+        crafting_use_label(value, valueLabel, sizeof(valueLabel));
+        std::size_t j = i;
+        while (j > 0) {
+            const RecipeEntry* other = crafting_use_recipe(g_searchResults[j - 1]);
+            const bool otherOwned = other != nullptr && other->owned;
+            if (otherOwned == valueOwned) {
+                crafting_use_label(g_searchResults[j - 1], otherLabel, sizeof(otherLabel));
+                if (std::strcmp(otherLabel, valueLabel) <= 0) break;
+            } else if (!otherOwned) {
+                break;
+            }
+            g_searchResults[j] = g_searchResults[j - 1];
+            --j;
+        }
+        g_searchResults[j] = value;
+    }
+    g_menu.selection = 0;
+    g_menu.scroll = 0;
+}
+
+// Characters the game's text renderer treats as markup are not typed.
+bool search_character_allowed(const char* character) noexcept {
+    return character[1] != '\0' ||
+           (character[0] != '~' && character[0] != '<' && character[0] != '>' && character[0] != '\\');
+}
+
+void search_type(const char* character) noexcept {
+    if (g_searchQueryCodepoints >= kMaxSearchCodepoints || !search_character_allowed(character)) return;
+    // A leading space (the Space that opened the box) is not typed.
+    if (character[0] == ' ' && g_searchQuery[0] == '\0') return;
+    const std::size_t used = std::strlen(g_searchQuery);
+    const std::size_t add = std::strlen(character);
+    if (used + add >= sizeof(g_searchQuery)) return;
+    std::memcpy(g_searchQuery + used, character, add + 1);
+    ++g_searchQueryCodepoints;
+    g_searchDirty = true;
+}
+
+void search_delete_last() noexcept {
+    std::size_t length = std::strlen(g_searchQuery);
+    if (length == 0) return;
+    do { --length; } while (length > 0 && (static_cast<unsigned char>(g_searchQuery[length]) & 0xC0) == 0x80);
+    g_searchQuery[length] = '\0';
+    if (g_searchQueryCodepoints > 0) --g_searchQueryCodepoints;
+    g_searchDirty = true;
+}
+
+// Keys that type a character: on the search page they never act as hotkeys.
+bool key_types_text(unsigned key) noexcept {
+    return key == VK_SPACE || (key >= '0' && key <= '9') || (key >= 'A' && key <= 'Z') ||
+           (key >= VK_NUMPAD0 && key <= VK_DIVIDE && key != VK_SEPARATOR) ||
+           (key >= VK_OEM_1 && key <= VK_OEM_3) || (key >= VK_OEM_4 && key <= VK_OEM_8) ||
+           key == VK_OEM_102;
+}
+
 void toggle_craftable_filter() noexcept {
     const MenuPage previousPage = g_menu.page;
     const int previousSelection = g_menu.selection;
@@ -3290,7 +3789,6 @@ void move_selection(int delta, int count) noexcept {
     }
 }
 void move_root_selection(int delta) noexcept {
-    constexpr int kRootCount = 6;
     int candidate = g_menu.selection;
     for (int attempt = 0; attempt < kRootCount; ++attempt) {
         candidate = std::clamp(candidate + delta, 0, kRootCount - 1);
@@ -3331,7 +3829,12 @@ void go_back() noexcept {
             break;
         case MenuPage::CraftingUses:
             g_menu.page = MenuPage::Root;
-            g_menu.selection = 2;
+            g_menu.selection = kRootCraftingUses;
+            g_menu.scroll = 0;
+            break;
+        case MenuPage::Search:
+            g_menu.page = MenuPage::Root;
+            g_menu.selection = kRootSearch;
             g_menu.scroll = 0;
             break;
         case MenuPage::CraftingUseDetail:
@@ -3341,7 +3844,7 @@ void go_back() noexcept {
             break;
         case MenuPage::Challenges:
             g_menu.page = MenuPage::Root;
-            g_menu.selection = 3;
+            g_menu.selection = kRootChallenges;
             g_menu.scroll = 0;
             break;
         case MenuPage::ChallengeDetail:
@@ -3351,8 +3854,13 @@ void go_back() noexcept {
             break;
         case MenuPage::Settings:
             g_menu.page = MenuPage::Root;
-            g_menu.selection = 4;
+            g_menu.selection = kRootSettings;
             g_menu.scroll = 0;
+            break;
+        case MenuPage::HudLayout:
+            g_menu.page = MenuPage::Settings;
+            g_menu.selection = kSetHudLayout;
+            g_menu.scroll = kSetHudLayout - kSettingsVisibleRows + 1;
             break;
         case MenuPage::Closed:
             break;
@@ -3361,7 +3869,8 @@ void go_back() noexcept {
 
 int current_page_count() noexcept {
     switch (g_menu.page) {
-        case MenuPage::Root: return 6;
+        case MenuPage::Root: return kRootCount;
+        case MenuPage::Search: return static_cast<int>(g_searchResultCount);
         case MenuPage::Categories: return static_cast<int>(g_menuCategoryCount);
         case MenuPage::Recipes: return static_cast<int>(g_menuRecipeCount);
         case MenuPage::Detail: {
@@ -3380,10 +3889,69 @@ int current_page_count() noexcept {
         case MenuPage::ChallengeDetail:
             return reinforced_equipment_count_for_challenge(
                 static_cast<std::size_t>(g_menu.challengeIndex));
-        case MenuPage::Settings: return 7;
+        case MenuPage::Settings: return kSettingsCount;
+        case MenuPage::HudLayout: return kLayoutCount;
         case MenuPage::Closed: return 0;
     }
     return 0;
+}
+
+void move_settings_selection(int delta, bool newPress) noexcept {
+    const int last = kSettingsCount - 1;
+    if ((delta == 1 || delta == -1) && newPress &&
+        ((delta == 1 && g_menu.selection == last) || (delta == -1 && g_menu.selection == 0))) {
+        g_menu.selection = delta == 1 ? 0 : last;
+    } else {
+        g_menu.selection = std::clamp(g_menu.selection + delta, 0, last);
+    }
+    if (g_menu.selection < g_menu.scroll) g_menu.scroll = g_menu.selection;
+    if (g_menu.selection >= g_menu.scroll + kSettingsVisibleRows)
+        g_menu.scroll = g_menu.selection - kSettingsVisibleRows + 1;
+}
+
+// A key that acts once when pressed, then repeatedly while held.
+bool held_or_pressed(unsigned key) noexcept {
+    static DWORD nextAt[256]{};
+    if (key >= 256 || !g_keyDown[key]) return false;
+    const DWORD now = GetTickCount();
+    if (key_pressed(key)) { nextAt[key] = now + 300; return true; }
+    if (static_cast<LONG>(now - nextAt[key]) >= 0) { nextAt[key] = now + 25; return true; }
+    return false;
+}
+
+// Moving one group of HUD icons: arrows move it (Shift for bigger steps),
+// Page Up/Down or +/- size it, Enter keeps it and Backspace puts it back.
+void adjust_hud_placement() noexcept {
+    HudPlacement& placement = g_hudPlacement[g_menu.adjustingHud];
+    if (key_pressed(VK_RETURN) || key_pressed(g_menuHotkey)) {
+        save_hud_layout();
+        g_menu.adjustingHud = -1;
+        if (key_pressed(g_menuHotkey)) g_menu.page = MenuPage::Closed;
+        return;
+    }
+    if (key_pressed(VK_BACK) || key_pressed(VK_ESCAPE)) {
+        placement = g_menu.adjustStart;
+        g_menu.adjustingHud = -1;
+        return;
+    }
+    const bool fast = g_keyDown[VK_SHIFT];
+    const float step = fast ? 0.010f : 0.002f;
+    if (held_or_pressed(VK_LEFT)) placement.x -= step;
+    if (held_or_pressed(VK_RIGHT)) placement.x += step;
+    if (held_or_pressed(VK_UP)) placement.y -= step;
+    if (held_or_pressed(VK_DOWN)) placement.y += step;
+    const float factor = fast ? 1.10f : 1.02f;
+    if (held_or_pressed(VK_PRIOR) || held_or_pressed(VK_OEM_PLUS) || held_or_pressed(VK_ADD))
+        placement.scale *= factor;
+    if (held_or_pressed(VK_NEXT) || held_or_pressed(VK_OEM_MINUS) || held_or_pressed(VK_SUBTRACT))
+        placement.scale /= factor;
+    placement.x = std::clamp(placement.x, -0.95f, 0.10f);
+    placement.y = std::clamp(placement.y, -0.85f, 0.25f);
+    placement.scale = std::clamp(placement.scale, kHudMinScale, kHudMaxScale);
+}
+
+bool hud_preview_active() noexcept {
+    return g_menu.page == MenuPage::HudLayout && g_tracker.ready;
 }
 
 // Keys that can be bound: not modifiers, mouse buttons or the keys the menu
@@ -3408,7 +3976,9 @@ bool capture_cancelled() noexcept {
 
 void update_menu_input() noexcept {
     update_keyboard_edges();
+    const bool typing = g_menu.page == MenuPage::Search && g_tracker.ready && g_menu.searchEditing;
     if (!g_menu.captureHotkey && !g_menu.captureFilterHotkey && !g_menu.captureIconsHotkey &&
+        !(typing && key_types_text(g_iconsHotkey)) &&
         key_pressed(g_iconsHotkey) && g_iconsHotkey != g_menuHotkey) {
         g_showWeaponIcons = !g_showWeaponIcons;
         save_icons_settings();
@@ -3476,10 +4046,69 @@ void update_menu_input() noexcept {
         if (key_pressed(g_menuHotkey)) open_menu();
         return;
     }
-    if (g_menu.page == MenuPage::Root && root_item_disabled(2) && g_menu.selection == 2)
-        g_menu.selection = 3;
-    if (key_pressed(g_menuHotkey)) {
+    if (g_menu.page == MenuPage::HudLayout && g_menu.adjustingHud >= 0) {
+        adjust_hud_placement();
+        return;
+    }
+    if (g_menu.page == MenuPage::Root && root_item_disabled(kRootCraftingUses) &&
+        g_menu.selection == kRootCraftingUses)
+        g_menu.selection = kRootChallenges;
+    if (key_pressed(g_menuHotkey) && !(typing && key_types_text(g_menuHotkey))) {
         g_menu.page = MenuPage::Closed;
+        return;
+    }
+    if (g_menu.page == MenuPage::Search && g_tracker.ready) {
+        if (g_searchDirty || g_searchLanguage != hunting_companion::active_ui_language())
+            build_search_results();
+        const int count = static_cast<int>(g_searchResultCount);
+        if (g_menu.searchEditing) {
+            // The box takes typed text (any layout, IME included). Backspace only
+            // deletes, and only when pressed while the box is open, so a key
+            // still held from leaving a recipe never eats letters.
+            char character[5]{};
+            while (hunting_companion::text_input::next_character(character)) search_type(character);
+            const DWORD now = GetTickCount();
+            if (key_pressed(VK_BACK)) {
+                g_searchDeleteArmed = true;
+                g_searchNextDeleteAt = now + 400;
+                search_delete_last();
+            } else if (g_searchDeleteArmed && g_keyDown[VK_BACK] &&
+                       static_cast<LONG>(now - g_searchNextDeleteAt) >= 0) {
+                g_searchNextDeleteAt = now + 45;
+                search_delete_last();
+            }
+            if (!g_keyDown[VK_BACK]) g_searchDeleteArmed = false;
+            if (g_searchDirty) build_search_results();
+            // Enter, Esc or the arrows close the box; the arrows go on to the list.
+            if (key_pressed(VK_RETURN) || key_pressed(VK_ESCAPE) || key_pressed(VK_UP) ||
+                key_pressed(VK_DOWN)) {
+                g_menu.searchEditing = false;
+            }
+            return;
+        }
+        if (key_pressed(VK_SPACE)) {
+            g_menu.searchEditing = true;
+            g_searchDeleteArmed = false;
+            return;
+        }
+        if (key_pressed(VK_ESCAPE) || key_pressed(VK_BACK)) {
+            go_back();
+            return;
+        }
+        if (upRepeated) move_selection(-1, count);
+        if (downRepeated) move_selection(1, count);
+        if (key_pressed(VK_PRIOR)) move_selection(-kVisibleMenuRows, count);
+        if (key_pressed(VK_NEXT)) move_selection(kVisibleMenuRows, count);
+        if (key_pressed(VK_RETURN) && g_menu.selection >= 0 && g_menu.selection < count) {
+            const CraftingUseEntry& entry = g_searchResults[static_cast<std::size_t>(g_menu.selection)];
+            g_menu.recipeReturnSelection = g_menu.selection;
+            g_menu.recipeReturnScroll = g_menu.scroll;
+            g_menu.detailReturnPage = MenuPage::Search;
+            g_menu.trapper = entry.trapper;
+            g_menu.recipeIndex = entry.recipeIndex;
+            g_menu.page = MenuPage::Detail;
+            g_menu.selection = g_menu.scroll = 0;
+        }
         return;
     }
     if (key_pressed(VK_ESCAPE) || key_pressed(VK_BACK)) {
@@ -3503,6 +4132,13 @@ void update_menu_input() noexcept {
                 g_menu.scroll = g_menu.selection - kDetailRows + 1;
             }
         }
+    } else if (g_menu.page == MenuPage::Settings) {
+        // Settings wraps around: Down on the last row goes to the first and Up
+        // on the first to the last (on a new key press, not while held).
+        if (upRepeated) move_settings_selection(-1, key_pressed(VK_UP));
+        if (downRepeated) move_settings_selection(1, key_pressed(VK_DOWN));
+        if (key_pressed(VK_PRIOR)) move_settings_selection(-kSettingsVisibleRows, false);
+        if (key_pressed(VK_NEXT)) move_settings_selection(kSettingsVisibleRows, false);
     } else if (g_menu.page == MenuPage::Root) {
         if (upRepeated) move_root_selection(-1);
         if (downRepeated) move_root_selection(1);
@@ -3515,39 +4151,61 @@ void update_menu_input() noexcept {
         if (key_pressed(VK_NEXT)) move_selection(kVisibleMenuRows, current_page_count());
     }
 
-    if (g_menu.page == MenuPage::Settings && g_menu.selection == 3) {
+    if (g_menu.page == MenuPage::Settings && g_menu.selection == kSetIconsShown) {
         if (key_pressed(VK_LEFT) || key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) {
             g_showWeaponIcons = !g_showWeaponIcons;
             save_icons_settings();
             return;
         }
     }
-    if (g_menu.page == MenuPage::Settings && g_menu.selection == 5) {
+    if (g_menu.page == MenuPage::Settings && g_menu.selection == kSetMenuFont) {
         if (key_pressed(VK_LEFT)) { change_menu_font(-1); return; }
         if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_menu_font(1); return; }
     }
-    if (g_menu.page == MenuPage::Settings && g_menu.selection == 1) {
+    if (g_menu.page == MenuPage::Settings && g_menu.selection == kSetLanguage) {
         if (key_pressed(VK_LEFT)) { change_ui_language(-1); return; }
         if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_ui_language(1); return; }
+    }
+    if (g_menu.page == MenuPage::Settings &&
+        (g_menu.selection == kSetTextColour || g_menu.selection == kSetHeadingColour ||
+         g_menu.selection == kSetHudLabelColour)) {
+        int* colour = g_menu.selection == kSetTextColour ? &g_textColour :
+                      (g_menu.selection == kSetHeadingColour ? &g_headingColour : &g_hudLabelColour);
+        int direction = 0;
+        if (key_pressed(VK_LEFT)) direction = -1;
+        else if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) direction = 1;
+        if (direction != 0) {
+            *colour = (*colour + direction + kColourPresetCount) % kColourPresetCount;
+            apply_heading_colour();
+            save_colour_settings();
+            return;
+        }
     }
 
     if (!key_pressed(VK_RETURN)) return;
     switch (g_menu.page) {
         case MenuPage::Root:
-            if (g_menu.selection == 0 || g_menu.selection == 1) {
-                g_menu.trapper = (g_menu.selection == 1);
+            if (g_menu.selection == kRootPearson || g_menu.selection == kRootTrapper) {
+                g_menu.trapper = (g_menu.selection == kRootTrapper);
                 g_menu.rootReturnSelection = g_menu.selection;
                 build_menu_categories();
                 g_menu.page = MenuPage::Categories;
                 g_menu.selection = g_menu.scroll = 0;
-            } else if (g_menu.selection == 2 && !root_item_disabled(2)) {
+            } else if (g_menu.selection == kRootSearch) {
+                g_menu.page = MenuPage::Search;
+                // The last search is kept: its results show again straight away.
+                // With nothing searched yet, the box opens for typing at once.
+                build_search_results();
+                g_menu.searchEditing = g_searchQuery[0] == '\0';
+                g_searchDeleteArmed = false;
+            } else if (g_menu.selection == kRootCraftingUses && !root_item_disabled(kRootCraftingUses)) {
                 build_crafting_uses_list();
                 g_menu.page = MenuPage::CraftingUses;
                 g_menu.selection = g_menu.scroll = 0;
-            } else if (g_menu.selection == 3) {
+            } else if (g_menu.selection == kRootChallenges) {
                 g_menu.page = MenuPage::Challenges;
                 g_menu.selection = g_menu.scroll = 0;
-            } else if (g_menu.selection == 4) {
+            } else if (g_menu.selection == kRootSettings) {
                 g_menu.page = MenuPage::Settings;
                 g_menu.selection = g_menu.scroll = 0;
             } else {
@@ -3610,17 +4268,32 @@ void update_menu_input() noexcept {
             }
             break;
         }
+        case MenuPage::Search: break;
         case MenuPage::Settings:
-            if (g_menu.selection == 0) {
+            if (g_menu.selection == kSetMenuKey) {
                 g_menu.captureHotkey = true;
-            } else if (g_menu.selection == 2) {
+            } else if (g_menu.selection == kSetFilterKey) {
                 g_menu.captureFilterHotkey = true;
-            } else if (g_menu.selection == 4) {
+            } else if (g_menu.selection == kSetIconsKey) {
                 g_menu.captureIconsHotkey = true;
-            } else if (g_menu.selection == 6) {
+            } else if (g_menu.selection == kSetHudLayout) {
+                g_menu.page = MenuPage::HudLayout;
+                g_menu.selection = g_menu.scroll = 0;
+            } else if (g_menu.selection == kSetBack) {
                 g_menu.page = MenuPage::Root;
-                g_menu.selection = 4;
+                g_menu.selection = kRootSettings;
                 g_menu.scroll = 0;
+            }
+            break;
+        case MenuPage::HudLayout:
+            if (g_menu.selection < kHudGroupCount) {
+                g_menu.adjustingHud = g_menu.selection;
+                g_menu.adjustStart = g_hudPlacement[g_menu.selection];
+            } else if (g_menu.selection == kLayoutReset) {
+                for (HudPlacement& placement : g_hudPlacement) placement = HudPlacement{};
+                save_hud_layout();
+            } else {
+                go_back();
             }
             break;
         case MenuPage::Closed: break;
@@ -3646,24 +4319,6 @@ float native_text_scale(float referencePixelHeight) noexcept {
 // The menu is dressed with the game's own menu artwork. Every textured element
 // has a plain-rectangle fallback, so the menu stays complete while the texture
 // sets are still streaming in (or if one is ever missing).
-namespace theme {
-constexpr int kAccentRed = 168, kAccentGreen = 22, kAccentBlue = 22;   // selection red
-constexpr int kGoldRed = 226, kGoldGreen = 188, kGoldBlue = 118;       // headings
-constexpr int kTextRed = 236, kTextGreen = 230, kTextBlue = 218;       // body text
-constexpr int kMutedRed = 168, kMutedGreen = 161, kMutedBlue = 146;    // hints
-// Game texture sets and textures, and the title font face.
-constexpr const char* kGeneric = "generic_textures";
-constexpr const char* kMenu = "menu_textures";
-constexpr const char* kSelectionBox = "selection_box_bg_1d";
-constexpr const char* kChipBox = "selection_box_bg_1c";
-constexpr const char* kInkPanel = "inkroller_1a";
-constexpr const char* kHeaderPlate = "menu_header_1a";
-constexpr const char* kDivider = "divider_line";
-constexpr const char* kArrowUp = "scroller_arrow_top";
-constexpr const char* kArrowDown = "scroller_arrow_bottom";
-constexpr const char* kTitleFace = "$title1";
-}
-
 const char* g_fontFaceOverride = nullptr;
 bool g_fontFaceForced = false;   // the override also applies on Asian-language games
 struct FontFaceScope {
@@ -3751,6 +4406,7 @@ void draw_text_impl(const char* text, float x, float y, float referencePixelHeig
     if (text == nullptr || text[0] == '\0') return;
     if (localize) text = hunting_companion::ui_text(text);
 
+    apply_text_colour(&red, &green, &blue);
     // Text colours are drawn richer than specified. The game shows
     // tinted text rather flat, so the tint is pushed away from grey (white and
     // grey text are unaffected).
@@ -4142,8 +4798,11 @@ void draw_menu_footer() noexcept {
         draw_rect(0.212f, 0.895f, 0.34f, 0.0018f,
                   theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 160);
     }
-    draw_text("UP/DOWN Navigate   ENTER Select   BACKSPACE Back", 0.065f, 0.855f, 14.0f,
-              theme::kTextRed, theme::kTextGreen, theme::kTextBlue);
+    const char* keys = "UP/DOWN Navigate   ENTER Select   BACKSPACE Back";
+    if (g_menu.page == MenuPage::Search)
+        keys = g_menu.searchEditing ? "ENTER Done   BACKSPACE Delete" : "SPACE Search   ENTER Select   BACKSPACE Back";
+    draw_text(keys,
+              0.065f, 0.855f, 14.0f, theme::kTextRed, theme::kTextGreen, theme::kTextBlue);
     char footer[48]{};
     std::snprintf(footer, sizeof(footer), hunting_companion::ui_text("%s Close"), key_name(g_menuHotkey));
     draw_text(footer, 0.065f, 0.908f, 13.5f,
@@ -4155,6 +4814,21 @@ void draw_menu_footer() noexcept {
         draw_text(filterHint, 0.240f, 0.908f, 12.5f,
                   theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     }
+}
+
+// Scroll arrows appear only while rows are hidden above or below. `raise`
+// moves them up from their place beside the list's "n of m".
+void draw_scroll_arrows(bool above, bool below, float raise) noexcept {
+    if (!menu_textures_ready()) return;
+    const float arrowWidth = 0.0105f * screen_width_correction();
+    // The two arrow textures sit at different heights inside their sprites;
+    // the y values differ so both appear level with the "n of m" text.
+    if (above)
+        draw_sprite(theme::kMenu, theme::kArrowUp, 0.283f, 0.8365f - raise, arrowWidth, 0.0187f,
+                    theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 235);
+    if (below)
+        draw_sprite(theme::kMenu, theme::kArrowDown, 0.297f, 0.8475f - raise, arrowWidth, 0.0187f,
+                    theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 235);
 }
 
 void draw_list_page(const char* title, const char* subtitle,
@@ -4170,8 +4844,12 @@ void draw_list_page(const char* title, const char* subtitle,
         // category with the craftable-now filter on).
         const bool filtered = g_menu.craftableNow &&
             (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes);
-        draw_menu_row(filtered ? "Nothing can be crafted right now" : "Nothing to show here", "", 0, false,
-                      false, true, true);
+        const char* empty = filtered ? "Nothing can be crafted right now" : "Nothing to show here";
+        if (g_menu.page == MenuPage::Search)
+            empty = g_searchQuery[0] != '\0' ? "No matches" :
+                    (g_menu.searchEditing ? "Type an animal, part or item name"
+                                          : "Press SPACE, then type an animal, part or item name");
+        draw_menu_row(empty, "", 0, false, false, true, true);
     }
     for (int i = start; i < end; ++i) {
         char label[128]{};
@@ -4186,35 +4864,24 @@ void draw_list_page(const char* title, const char* subtitle,
     std::snprintf(count, sizeof(count), hunting_companion::ui_text("%d of %d"), total > 0 ? g_menu.selection + 1 : 0, total);
     draw_text(count, 0.31f, 0.832f, 13.5f,
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
-    // Scroll arrows appear only while rows are hidden above or below.
-    if (menu_textures_ready()) {
-        const float arrowWidth = 0.0105f * screen_width_correction();
-        // The two arrow textures sit at different heights inside their sprites;
-        // the y values differ so both appear level with the "n of m" text.
-        if (start > 0)
-            draw_sprite(theme::kMenu, theme::kArrowUp, 0.283f, 0.8365f, arrowWidth, 0.0187f,
-                        theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 235);
-        if (end < total)
-            draw_sprite(theme::kMenu, theme::kArrowDown, 0.297f, 0.8475f, arrowWidth, 0.0187f,
-                        theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 235);
-    }
+    draw_scroll_arrows(start > 0, end < total, 0.0f);
     draw_menu_footer();
 }
 
 const char* root_label(int index, char*, std::size_t) noexcept {
-    static const char* labels[] = {
-        "Pearson", "Trapper", "Crafting Uses", "Challenges", "Settings", "Close"
+    static const char* labels[kRootCount] = {
+        "Pearson", "Trapper", "Search", "Crafting Uses", "Challenges", "Settings", "Close"
     };
-    return (index >= 0 && index < 6) ? labels[index] : "";
+    return (index >= 0 && index < kRootCount) ? labels[index] : "";
 }
 bool root_item_disabled(int index) noexcept {
     // Satchel materials alone (antlers, claws...) count as haul, so gate on
     // the recipe list itself: no matching uncrafted recipe means nothing to open.
-    return index == 2 && (!g_currentHaul.ready || !current_haul_has_any() ||
-                          g_craftingUseCount == 0);
+    return index == kRootCraftingUses && (!g_currentHaul.ready || !current_haul_has_any() ||
+                                          g_craftingUseCount == 0);
 }
 const char* root_row_status(int index, char*, std::size_t) noexcept {
-    if (index != 2) return "";
+    if (index != kRootCraftingUses) return "";
     return root_item_disabled(index) ? "NO HAUL" : "AVAILABLE";
 }
 
@@ -4277,11 +4944,8 @@ const char* recipe_row_label(int index, char*, std::size_t) noexcept {
     const VendorState& vendor = g_menu.trapper ? g_tracker.trapper : g_tracker.pearson;
     return recipe_display_name(vendor.recipes[static_cast<std::size_t>(g_menuRecipeIndices[static_cast<std::size_t>(index)])]);
 }
-const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcept {
-    if (index < 0 || static_cast<std::size_t>(index) >= g_menuRecipeCount) return "";
-    const VendorState& vendor = g_menu.trapper ? g_tracker.trapper : g_tracker.pearson;
-    const RecipeEntry& recipe = vendor.recipes[static_cast<std::size_t>(g_menuRecipeIndices[static_cast<std::size_t>(index)])];
-    if (g_menu.trapper && recipe.categoryHash == kTrapperGarmentSetsCategoryHash) {
+const char* recipe_status(bool trapper, const RecipeEntry& recipe, char* buffer, std::size_t size) noexcept {
+    if (trapper && recipe.categoryHash == kTrapperGarmentSetsCategoryHash) {
         const GarmentSetDefinition* set = find_garment_set_definition(recipe.name);
         if (set != nullptr) {
             int crafted = 0;
@@ -4291,7 +4955,7 @@ const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcep
             return buffer;
         }
     }
-    if (g_menu.trapper && find_reinforced_equipment(recipe.name) != nullptr) {
+    if (trapper && find_reinforced_equipment(recipe.name) != nullptr) {
         if (recipe.owned) return "OWNED";
         const ReinforcedEquipmentInfo* item = find_reinforced_equipment(recipe.name);
         const ChallengeProgress* progress = item != nullptr
@@ -4309,6 +4973,25 @@ const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcep
     std::snprintf(buffer, size, "%s", hunting_companion::ui_text(hasAnimal ? "MATERIALS" : "OTHER COSTS"));
     return buffer;
 }
+const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcept {
+    if (index < 0 || static_cast<std::size_t>(index) >= g_menuRecipeCount) return "";
+    const VendorState& vendor = g_menu.trapper ? g_tracker.trapper : g_tracker.pearson;
+    const RecipeEntry& recipe = vendor.recipes[static_cast<std::size_t>(g_menuRecipeIndices[static_cast<std::size_t>(index)])];
+    return recipe_status(g_menu.trapper, recipe, buffer, size);
+}
+
+const char* search_row_label(int index, char* buffer, std::size_t size) noexcept {
+    if (index < 0 || static_cast<std::size_t>(index) >= g_searchResultCount) return "";
+    return crafting_use_label(g_searchResults[static_cast<std::size_t>(index)], buffer, size);
+}
+const char* search_row_status(int index, char* buffer, std::size_t size) noexcept {
+    if (index < 0 || static_cast<std::size_t>(index) >= g_searchResultCount) return "";
+    const CraftingUseEntry& entry = g_searchResults[static_cast<std::size_t>(index)];
+    const RecipeEntry* recipe = crafting_use_recipe(entry);
+    if (recipe == nullptr) return "";
+    if (!recipe->owned && recipe_uses_current_haul(*recipe)) return "USES YOUR HAUL";
+    return recipe_status(entry.trapper, *recipe, buffer, size);
+}
 
 void draw_settings_page() noexcept {
     draw_menu_header("SETTINGS", "Configuration is saved to HuntingCompanion.ini");
@@ -4318,15 +5001,11 @@ void draw_settings_page() noexcept {
         const char* prompt = g_menu.captureFilterHotkey ? "PRESS A KEY FOR THE CRAFTABLE FILTER" :
                              (g_menu.captureIconsHotkey ? "PRESS A KEY FOR THE WEAPON/AMMO ICONS" :
                               "PRESS A KEY TO ASSIGN THE MENU HOTKEY");
-        draw_wrapped_text(prompt, 0.071f, 0.260f, 38, 2, 0.034f, 15.0f, 230, 205, 150);
+        draw_wrapped_text(prompt, 0.071f, 0.260f, 38, 2, 0.034f, 15.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
         draw_text("BACKSPACE cancels", 0.071f, 0.350f, 13.0f, 210, 205, 195);
         draw_menu_footer();
         return;
     }
-    char hotkeyLine[128]{};
-    std::snprintf(hotkeyLine, sizeof(hotkeyLine), hunting_companion::ui_text("Menu hotkey: %s"), key_name(g_menuHotkey));
-    draw_menu_row(hotkeyLine, "CHANGE", 0, g_menu.selection == 0);
-
     static constexpr const char* kLanguageNames[] = {
         "English", "French", "German", "Italian", "Spanish (Spain)",
         "Portuguese (Brazil)", "Polish", "Russian", "Korean",
@@ -4335,35 +5014,76 @@ void draw_settings_page() noexcept {
     };
     const int selectedLanguage = g_uiLanguageOverride >= 0
         ? g_uiLanguageOverride : g_detectedGameLanguage;
-    const char* interfaceName = g_uiLanguageOverride < 0
-        ? hunting_companion::ui_text("Auto (RDR2)")
-        : hunting_companion::ui_text(kLanguageNames[g_uiLanguageOverride]);
-    draw_menu_row("Interface language", interfaceName, 1, g_menu.selection == 1);
-    char filterKeyLine[128]{};
-    std::snprintf(filterKeyLine, sizeof(filterKeyLine),
-                  hunting_companion::ui_text("Craftable filter key: %s"), key_name(g_filterHotkey));
-    draw_menu_row(filterKeyLine, "CHANGE", 2, g_menu.selection == 2);
-    draw_menu_row("Weapon/ammo icons", g_showWeaponIcons ? "SHOWN" : "HIDDEN", 3,
-                  g_menu.selection == 3);
-    char iconsKeyLine[128]{};
-    std::snprintf(iconsKeyLine, sizeof(iconsKeyLine),
-                  hunting_companion::ui_text("Weapon/ammo icons key: %s"), key_name(g_iconsHotkey));
-    draw_menu_row(iconsKeyLine, "CHANGE", 4, g_menu.selection == 4);
-    {
-        // Each language has its own fonts; show which one of how many.
-        const MenuFontList& fonts = menu_fonts();
-        char fontValue[112]{};
-        if (fonts.count > 1) {
-            std::snprintf(fontValue, sizeof(fontValue), "%s  %d/%d", current_menu_font().label,
-                          current_menu_font_index() + 1, fonts.count);
-        } else {
-            std::snprintf(fontValue, sizeof(fontValue), "%s", current_menu_font().label);
+    // Seven rows show at a time; the rest scroll into view.
+    const int start = std::clamp(g_menu.scroll, 0, kSettingsCount - kSettingsVisibleRows);
+    for (int index = start; index < start + kSettingsVisibleRows; ++index) {
+        char line[128]{};
+        char value[112]{};
+        const char* label = line;
+        const char* status = value;
+        switch (index) {
+            case kSetMenuKey:
+                std::snprintf(line, sizeof(line), hunting_companion::ui_text("Menu hotkey: %s"), key_name(g_menuHotkey));
+                status = "CHANGE";
+                break;
+            case kSetLanguage:
+                label = "Interface language";
+                status = g_uiLanguageOverride < 0
+                    ? hunting_companion::ui_text("Auto (RDR2)")
+                    : hunting_companion::ui_text(kLanguageNames[g_uiLanguageOverride]);
+                break;
+            case kSetFilterKey:
+                std::snprintf(line, sizeof(line), hunting_companion::ui_text("Craftable filter key: %s"),
+                              key_name(g_filterHotkey));
+                status = "CHANGE";
+                break;
+            case kSetIconsShown:
+                label = "Weapon/ammo icons";
+                status = g_showWeaponIcons ? "SHOWN" : "HIDDEN";
+                break;
+            case kSetIconsKey:
+                std::snprintf(line, sizeof(line), hunting_companion::ui_text("Weapon/ammo icons key: %s"),
+                              key_name(g_iconsHotkey));
+                status = "CHANGE";
+                break;
+            case kSetMenuFont: {
+                // Each language has its own fonts; show which one of how many.
+                const MenuFontList& fonts = menu_fonts();
+                label = "Menu font";
+                if (fonts.count > 1) {
+                    std::snprintf(value, sizeof(value), "%s  %d/%d", current_menu_font().label,
+                                  current_menu_font_index() + 1, fonts.count);
+                } else {
+                    std::snprintf(value, sizeof(value), "%s", current_menu_font().label);
+                }
+                break;
+            }
+            case kSetTextColour:
+                label = "Text colour";
+                status = kColourPresets[g_textColour].name;
+                break;
+            case kSetHeadingColour:
+                label = "Heading colour";
+                status = kColourPresets[g_headingColour].name;
+                break;
+            case kSetHudLabelColour:
+                label = "HUD label colour";
+                status = kColourPresets[g_hudLabelColour].name;
+                break;
+            case kSetHudLayout:
+                label = "HUD layout";
+                status = "CHANGE";
+                break;
+            default:
+                label = "Back";
+                status = "";
+                break;
         }
-        draw_menu_row("Menu font", fontValue, 5, g_menu.selection == 5);
+        draw_menu_row(label, status, index - start, g_menu.selection == index);
     }
-    draw_menu_row("Back", "", 6, g_menu.selection == 6);
+    draw_scroll_arrows(start > 0, start + kSettingsVisibleRows < kSettingsCount, 0.0f);
 
-    // The seven rows end near y = 0.63, so the information block starts below them.
+    // The seven visible rows end near y = 0.63, so the information block starts below them.
     char languageLine[256]{};
     std::snprintf(languageLine, sizeof(languageLine), hunting_companion::ui_text("RDR2 language: %s (%s)"),
                   game_language_name(g_detectedGameLanguage),
@@ -4394,6 +5114,42 @@ void draw_settings_page() noexcept {
         draw_wrapped_text(officialStatus, 0.071f, 0.710f, 44, 2, 0.026f, 12.0f, 220, 174, 128);
     }
     draw_menu_footer();
+}
+
+const char* hud_layout_row_label(int index, char*, std::size_t) noexcept {
+    static const char* labels[kLayoutCount] = {
+        "All icons", "Weapon and ammo icons", "Pearson and Trapper icons", "Reset layout", "Back"
+    };
+    return index >= 0 && index < kLayoutCount ? labels[index] : "";
+}
+const char* hud_layout_row_status(int index, char* buffer, std::size_t size) noexcept {
+    if (index < 0 || index >= kHudGroupCount) return "";
+    std::snprintf(buffer, size, hunting_companion::ui_text("SIZE %d%%"),
+                  static_cast<int>(std::lround(g_hudPlacement[index].scale * 100.0f)));
+    return buffer;
+}
+
+void draw_hud_layout_page() noexcept {
+    if (g_menu.adjustingHud < 0) {
+        draw_list_page("HUD LAYOUT", "Move and resize the HUD icons", kLayoutCount,
+                       hud_layout_row_label, hud_layout_row_status);
+        draw_wrapped_text("The icons on the right are a preview. Select a group to move it.",
+                          0.071f, 0.560f, 48, 2, 0.026f, 11.5f, 184, 178, 164);
+        return;
+    }
+    // While moving, only a short guide is shown so the whole screen is free.
+    draw_rect(0.5f, 0.075f, 0.46f, 0.105f, 0, 0, 0, 175);
+    draw_text_impl(hud_layout_row_label(g_menu.adjustingHud, nullptr, 0), 0.5f, 0.030f, 17.0f,
+                   theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 255, true, true);
+    draw_text_impl("ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size", 0.5f, 0.066f, 13.0f,
+                   theme::kTextRed, theme::kTextGreen, theme::kTextBlue, 255, true, true);
+    char sizeLine[48]{};
+    hud_layout_row_status(g_menu.adjustingHud, sizeLine, sizeof(sizeLine));
+    char guide[160]{};
+    std::snprintf(guide, sizeof(guide), "%s   %s", sizeLine,
+                  hunting_companion::ui_text("ENTER Save   BACKSPACE Cancel"));
+    draw_text_impl(guide, 0.5f, 0.096f, 13.0f, theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue,
+                   255, false, true);
 }
 
 void draw_challenge_detail() noexcept {
@@ -4430,7 +5186,7 @@ void draw_challenge_detail() noexcept {
             draw_text("ALL TEN RANKS COMPLETE", 0.071f, 0.281f,
                       13.0f, 130, 215, 151);
             draw_text("CHALLENGE STATUS", 0.071f, 0.326f,
-                      11.0f, 220, 184, 112);
+                      11.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
             draw_wrapped_text("Every rank in this challenge category is complete.",
                               0.071f, 0.350f, 48, 2, 0.028f, 13.0f,
                               225, 218, 202);
@@ -4440,7 +5196,7 @@ void draw_challenge_detail() noexcept {
                           progress.ranksCompleted + 1, progress.maxRanks);
             draw_text(activeRank, 0.071f, 0.281f, 13.0f, 215, 202, 177);
             draw_text("NEXT RANK OBJECTIVE", 0.071f, 0.326f,
-                      11.0f, 220, 184, 112);
+                      11.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
             const char* objective = localized_challenge_objective(
                 definition.rankObjectives[progress.ranksCompleted]);
             // Translated objectives can be longer than the concise English source.
@@ -4457,7 +5213,7 @@ void draw_challenge_detail() noexcept {
                   0.071f, 0.462f, 10.5f, 174, 168, 154);
     }
 
-    draw_text("REINFORCED REWARDS", 0.071f, 0.520f, 14.0f, 220, 184, 112);
+    draw_text("REINFORCED REWARDS", 0.071f, 0.520f, 14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
     const int rewardCount = reinforced_equipment_count_for_challenge(challengeIndex);
     for (int i = 0; i < rewardCount; ++i) {
         char label[128]{};
@@ -4488,12 +5244,12 @@ void draw_recipe_detail() noexcept {
                   recipe->owned || unlocked ? 130 : 220,
                   recipe->owned || unlocked ? 205 : 184,
                   recipe->owned || unlocked ? 145 : 112);
-        draw_text("PURCHASE PRICE", 0.071f, 0.282f, 14.0f, 220, 184, 112);
+        draw_text("PURCHASE PRICE", 0.071f, 0.282f, 14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
         char price[24]{};
         std::snprintf(price, sizeof(price), "$%u.%02u",
                       reinforced->priceCents / 100u, reinforced->priceCents % 100u);
         draw_text(price, 0.315f, 0.282f, 15.0f, 235, 224, 200);
-        draw_text("UNLOCK REQUIREMENT", 0.071f, 0.350f, 14.0f, 220, 184, 112);
+        draw_text("UNLOCK REQUIREMENT", 0.071f, 0.350f, 14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
         char requirement[128]{};
         std::snprintf(requirement, sizeof(requirement), hunting_companion::ui_text("Complete the %s Challenge Rank %u."),
                       hunting_companion::ui_text(reinforced->challengeName), reinforced->unlockRank);
@@ -4517,7 +5273,7 @@ void draw_recipe_detail() noexcept {
                               progress->ranksCompleted + 1, progress->maxRanks);
                 draw_text(currentRank, 0.071f, 0.510f, 12.0f, 215, 202, 177);
                 draw_text("NEXT RANK OBJECTIVE", 0.071f, 0.546f,
-                          11.0f, 220, 184, 112);
+                          11.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
                 if (challenge != nullptr) {
                     const char* objective = localized_challenge_objective(
                         challenge->rankObjectives[progress->ranksCompleted]);
@@ -4545,7 +5301,7 @@ void draw_recipe_detail() noexcept {
                      (g_menu.trapper ? "TRAPPER RECIPE" : "PEARSON RECIPE"), false);
     if (garmentSet != nullptr) {
         draw_text("COMPONENT GARMENTS AND THEIR CATALOG MATERIAL COSTS", 0.071f, 0.215f,
-                  14.0f, 220, 184, 112);
+                  14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
         draw_wrapped_centered_text(
             "Donated counts use shared Trapper stock; they are not reserved per piece.",
             0.212f, 0.250f, 49, 2, 0.019f, 11.0f, 188, 184, 174);
@@ -4613,7 +5369,7 @@ void draw_recipe_detail() noexcept {
         draw_text("CRAFTED", 0.071f, 0.215f, 18.0f, 128, 218, 153);
         draw_text("This item is already in your owned catalog.", 0.071f, 0.270f, 13.0f);
     } else {
-        draw_text("DONATED / NEEDED FOR THIS RECIPE", 0.071f, 0.215f, 16.0f, 220, 184, 112);
+        draw_text("DONATED / NEEDED FOR THIS RECIPE", 0.071f, 0.215f, 16.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
         draw_text("Counts use vendor donation stock, not your inventory.", 0.071f, 0.258f, 12.0f, 188, 184, 174);
     }
 
@@ -4687,6 +5443,112 @@ void draw_crafting_uses_page() noexcept {
               0.071f, 0.815f, 10.5f, 160, 154, 142);
 }
 
+// The search box while it takes typing: a box of its own right of the menu
+// (the game draws text above every box, so it must not overlap the menu), in
+// the menu's own style. It starts half as wide as the menu, grows with the
+// text up to three quarters of it, and beyond that shows the end of the text.
+// The results behind it update with every letter.
+void draw_search_entry_box() noexcept {
+    constexpr float kLeft = 0.445f;
+    constexpr float kMinWidth = 0.1725f;   // half the menu's width
+    constexpr float kMaxWidth = 0.2590f;   // three quarters of it
+    constexpr float kTop = 0.235f;
+    constexpr float kHeight = 0.150f;
+    constexpr float kTextSize = 16.0f;
+    const float correction = screen_width_correction();
+    const float sideMargin = 0.016f * correction;
+
+    char composing[96]{};
+    hunting_companion::text_input::composition(composing, sizeof(composing));
+    const bool caretOn = (GetTickCount() / 500u) % 2u == 0u;
+    char typed[sizeof(g_searchQuery) + sizeof(composing)]{};
+    std::snprintf(typed, sizeof(typed), "%s%s", g_searchQuery, composing);
+    char line[sizeof(typed) + 2]{};
+    std::snprintf(line, sizeof(line), "%s|", typed);  // measured with the caret
+
+    // Grow with the text, then scroll it: drop letters from the front until the
+    // end of the text and the caret fit.
+    const float textWidth = text_width_estimate(line, kTextSize, correction);
+    const float width = std::clamp(textWidth + sideMargin * 2.0f, kMinWidth, kMaxWidth);
+    const float room = width - sideMargin * 2.0f;
+    const char* shown = typed;
+    bool scrolled = false;
+    while (*shown != '\0') {
+        char candidate[sizeof(line) + 4]{};
+        std::snprintf(candidate, sizeof(candidate), "%s%s|", scrolled ? "..." : "", shown);
+        if (text_width_estimate(candidate, kTextSize, correction) <= room) break;
+        next_codepoint(shown);
+        scrolled = true;
+    }
+
+    const float centerX = kLeft + width * 0.5f;
+    const float midY = kTop + kHeight * 0.5f;
+    const bool textured = menu_textures_ready();
+    if (textured) {
+        draw_rect(centerX, midY, width * 0.93f, kHeight * 0.96f, 0, 0, 0, 150);
+        draw_sprite(theme::kGeneric, theme::kInkPanel, centerX, midY, width * 1.08f, kHeight * 1.12f,
+                    0, 0, 0, 238);
+        draw_sprite(theme::kMenu, theme::kDivider, centerX, kTop + 0.050f, width * 0.86f, 0.0042f,
+                    theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 215);
+    } else {
+        draw_rect(centerX, midY, width, kHeight, 0, 0, 0, 232);
+        draw_rect(centerX, kTop + 0.050f, width * 0.86f, 0.0018f,
+                  theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 200);
+    }
+    {
+        const char* title = hunting_companion::ui_text("SEARCH");
+        const bool plain = ascii_only(title);
+        const FontFaceScope titleFace(plain ? theme::kTitleFace : nullptr, plain);
+        draw_text_impl(title, centerX, kTop + 0.013f, 20.0f,
+                       theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 255, false, true);
+    }
+    // The field: a dark strip with a gold underline, as on the menu's rows.
+    const float fieldY = kTop + 0.088f;
+    draw_rect(centerX, fieldY, width - sideMargin, 0.042f, 0, 0, 0, 165);
+    draw_rect(centerX, fieldY + 0.021f, width - sideMargin, 0.0015f,
+              theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 190);
+
+    const TextRightLimitScope noPanelLimit(0.0f);
+    const float textLeft = kLeft + sideMargin;
+    if (typed[0] == '\0') {
+        if (caretOn) draw_text_impl("|", textLeft, fieldY - 0.015f, kTextSize, 255, 255, 255, 255, false, false);
+        char hint[160]{};
+        shorten_to_width(hunting_companion::ui_text("Type an animal, part or item name"), 11.0f, correction,
+                         room - 0.010f, hint, sizeof(hint));
+        draw_text_impl(hint, textLeft + 0.008f, fieldY - 0.010f, 11.0f,
+                       theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue, 255, false, false);
+    } else {
+        // "..." in front shows that the start of the text has scrolled out.
+        char visible[sizeof(line) + 4]{};
+        std::snprintf(visible, sizeof(visible), "%s%s%s", scrolled ? "..." : "", shown, caretOn ? "|" : "");
+        draw_text_impl(visible, textLeft, fieldY - 0.015f, kTextSize, 255, 255, 255, 255, false, false);
+    }
+    draw_text_impl("ENTER Done   BACKSPACE Delete", centerX, kTop + kHeight + 0.006f, 11.5f,
+                   theme::kTextRed, theme::kTextGreen, theme::kTextBlue, 255, true, true);
+}
+
+void draw_search_page() noexcept {
+    // While typing, no result row is highlighted: Enter closes the box first.
+    const int selection = g_menu.selection;
+    if (g_menu.searchEditing) g_menu.selection = -1;
+    draw_list_page("SEARCH", nullptr, static_cast<int>(g_searchResultCount),
+                   search_row_label, search_row_status, true);
+    g_menu.selection = selection;
+
+    // What is being searched for, under the title.
+    constexpr float kLineY = 0.177f;
+    draw_rect(0.212f, kLineY, 0.345f, 0.030f, 0, 0, 0, 140);
+    if (g_searchQuery[0] != '\0') {
+        const TextRightLimitScope keepInsideBox(0.300f);
+        draw_text_raw(g_searchQuery, 0.071f, kLineY - 0.012f, 15.0f, 220, 214, 202);
+    }
+    draw_text(g_menu.searchEditing ? "ENTER Done" : "SPACE Search", 0.305f, kLineY - 0.009f, 11.0f,
+              theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
+    draw_text("Matches item, part and animal names in this language and in English.",
+              0.071f, 0.815f, 10.5f, 160, 154, 142);
+    if (g_menu.searchEditing) draw_search_entry_box();
+}
+
 void draw_crafting_use_detail() noexcept {
     if (g_menu.craftingUseIndex < 0 ||
         static_cast<std::size_t>(g_menu.craftingUseIndex) >= g_craftingUseCount) return;
@@ -4711,7 +5573,7 @@ void draw_crafting_use_detail() noexcept {
     draw_wrapped_text(readinessText, 0.071f, 0.208f, 30, 2, 0.030f, 14.0f,
                       partsReady ? 130 : 218, partsReady ? 205 : 184, partsReady ? 145 : 120);
     draw_wrapped_text("HELD / NEEDED (YOUR HAUL + VENDOR STOCK)", 0.071f, 0.275f, 44, 2, 0.022f,
-                      10.5f, 220, 184, 112);
+                      10.5f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
 
     // Cash is read from the catalog in units that cannot be confirmed here, so
     // only material costs are listed.
@@ -4770,7 +5632,7 @@ void draw_scan_progress() noexcept {
     const DWORD stalledSeconds = lastProgress != 0 ? (now - lastProgress) / 1000u : 0u;
 
     draw_menu_header("HUNTING COMPANION", "INITIALIZING READ-ONLY CATALOG");
-    draw_text(scan_stage_label(stage), 0.071f, 0.235f, 15.0f, 225, 193, 145);
+    draw_text(scan_stage_label(stage), 0.071f, 0.235f, 15.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
     if (stage == ScanStage::Failed) {
         const char* reason = "The game did not expose the required Story Mode inventory.";
         if (error == 2) reason = "The shop catalog returned an invalid item count.";
@@ -4826,6 +5688,8 @@ void draw_menu() noexcept {
     if (g_menu.page == MenuPage::Closed) return;
     // Right edge of the menu rows; all menu text is kept to its left.
     const TextRightLimitScope keepTextInsidePanel(0.3885f);
+    g_menuTextColourScope = true;
+    struct EndScope { ~EndScope() { g_menuTextColourScope = false; } } endScope;
     if (!g_tracker.ready) {
         draw_scan_progress();
         return;
@@ -4833,7 +5697,7 @@ void draw_menu() noexcept {
     switch (g_menu.page) {
         case MenuPage::Root:
             draw_list_page("HUNTING COMPANION", "Crafting, challenges and garment sets",
-                           6, root_label, root_row_status, false, root_item_disabled);
+                           kRootCount, root_label, root_row_status, false, root_item_disabled);
             break;
         case MenuPage::Categories: {
             char subtitle[80]{};
@@ -4862,6 +5726,8 @@ void draw_menu() noexcept {
             break;
         case MenuPage::ChallengeDetail: draw_challenge_detail(); break;
         case MenuPage::Settings: draw_settings_page(); break;
+        case MenuPage::Search: draw_search_page(); break;
+        case MenuPage::HudLayout: draw_hud_layout_page(); break;
         case MenuPage::Closed: break;
     }
 }
@@ -4899,8 +5765,23 @@ void ScriptMain() {
         InterlockedExchange(&g_refreshRequested, 0);
     }
 
+    DWORD nextPeltCheck = 0;
     for (;;) {
-        if (g_menu.page != MenuPage::Closed) refresh_current_haul_if_due();
+        if (g_menu.page != MenuPage::Closed) {
+            refresh_current_haul_if_due();
+        } else if (static_cast<LONG>(GetTickCount() - nextPeltCheck) >= 0) {
+            remember_carried_pelts();
+            nextPeltCheck = GetTickCount() + 1000;
+        }
+        // The search box takes typed text; the game ignores its controls meanwhile.
+        const bool typing = g_menu.page == MenuPage::Search && g_tracker.ready && g_menu.searchEditing;
+        hunting_companion::text_input::set_active(typing);
+        // On the search page the game ignores its controls even while the box is
+        // closed: Space opens the box and must not make Arthur jump.
+        if (g_menu.page == MenuPage::Search) invoke_native<void>(kDisableAllControlActions, 0);
+        // While HUD icons are being moved, the game ignores its controls too.
+        if (g_menu.page == MenuPage::HudLayout && g_menu.adjustingHud >= 0)
+            invoke_native<void>(kDisableAllControlActions, 0);
         {
             TrackerReadLock trackerReadLock;
             if (g_tracker.ready &&

@@ -283,3 +283,53 @@ Nothing can be crafted right now=Derzeit ist nichts herstellbar
 Nothing to show here=Hier gibt es nichts anzuzeigen
 Rifle=Gewehr
 Any weapon=Beliebige Waffe
+
+# Search
+Search=Suche
+SEARCH=SUCHE
+Type an animal, part or item name=Tier, Teil oder Gegenstand eingeben
+No matches=Keine Treffer
+Matches item, part and animal names in this language and in English.=Durchsucht Gegenstands-, Teil- und Tiernamen in dieser Sprache und auf Englisch.
+
+# Colours and HUD layout
+Text colour=Textfarbe
+Heading colour=Überschriftenfarbe
+HUD label colour=HUD-Beschriftungsfarbe
+HUD layout=HUD-Anordnung
+Default=Standard
+White=Weiß
+Cream=Creme
+Gold=Gold
+Red=Rot
+Orange=Orange
+Green=Grün
+Blue=Blau
+Purple=Lila
+Grey=Grau
+HUD LAYOUT=HUD-ANORDNUNG
+Move and resize the HUD icons=HUD-Symbole verschieben und skalieren
+All icons=Alle Symbole
+Weapon and ammo icons=Waffen- und Munitionssymbole
+Pearson and Trapper icons=Pearson- und Fallensteller-Symbole
+Reset layout=Anordnung zurücksetzen
+SIZE %d%%=GRÖSSE %d%%
+The icons on the right are a preview. Select a group to move it.=Die Symbole rechts sind eine Vorschau. Wähle eine Gruppe, um sie zu verschieben.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=PFEILE - Verschieben   UMSCHALT - Schneller   BILD AUF/AB - Größe
+ENTER Save   BACKSPACE Cancel=ENTER - Speichern   BACKSPACE - Abbrechen
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=LEERTASTE - Suchen   ENTER - Auswählen   BACKSPACE - Zurück
+ENTER Done   BACKSPACE Delete=ENTER - Fertig   BACKSPACE - Löschen
+SPACE Search=LEERTASTE - Suchen
+ENTER Done=ENTER - Fertig
+Press SPACE, then type an animal, part or item name=LEERTASTE drücken, dann Tier, Teil oder Gegenstand eingeben
+Yellow=Gelb
+Pink=Rosa
+Teal=Petrol
+Light blue=Hellblau
+Brown=Braun
+Crimson=Karmesin
+Lime=Limette
+Lavender=Lavendel
+Sand=Sand
+Silver=Silber
