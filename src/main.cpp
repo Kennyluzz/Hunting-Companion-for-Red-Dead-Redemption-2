@@ -3731,6 +3731,13 @@ void search_delete_last() noexcept {
     g_searchDirty = true;
 }
 
+void clear_search() noexcept {
+    g_searchQuery[0] = '\0';
+    g_searchQueryCodepoints = 0;
+    g_searchResultCount = 0;
+    g_searchDirty = true;
+}
+
 // Keys that type a character: on the search page they never act as hotkeys.
 bool key_types_text(unsigned key) noexcept {
     return key == VK_SPACE || (key >= '0' && key <= '9') || (key >= 'A' && key <= 'Z') ||
@@ -3833,6 +3840,7 @@ void move_root_selection(int delta) noexcept {
 
 void open_menu() noexcept {
     g_menu = {};
+    clear_search();  // a search does not outlive closing the menu
     g_menu.page = MenuPage::Root;
     g_currentHaul.lastRefreshTick = 0;
     InterlockedExchange(&g_haulDirty, 1);
@@ -3867,6 +3875,8 @@ void go_back() noexcept {
             g_menu.scroll = 0;
             break;
         case MenuPage::Search:
+            // Leaving Search starts the next search afresh.
+            clear_search();
             g_menu.page = MenuPage::Root;
             g_menu.selection = kRootSearch;
             g_menu.scroll = 0;
@@ -4227,8 +4237,7 @@ void update_menu_input() noexcept {
                 g_menu.selection = g_menu.scroll = 0;
             } else if (g_menu.selection == kRootSearch) {
                 g_menu.page = MenuPage::Search;
-                // The last search is kept: its results show again straight away.
-                // With nothing searched yet, the box opens for typing at once.
+                // The box opens for typing at once (a search is cleared on leaving).
                 build_search_results();
                 g_menu.searchEditing = g_searchQuery[0] == '\0';
                 g_searchDeleteArmed = false;
@@ -5597,7 +5606,12 @@ void draw_search_page() noexcept {
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     draw_text("Matches item, part and animal names in this language and in English.",
               0.071f, 0.815f, 10.5f, 160, 154, 142);
-    if (g_menu.searchEditing) draw_search_entry_box();
+    if (g_menu.searchEditing) {
+        // Everything around the open box is darkened (the game still draws text
+        // above any shading, so the results stay readable).
+        draw_rect(0.5f, 0.5f, 1.0f, 1.0f, 0, 0, 0, 150);
+        draw_search_entry_box();
+    }
 }
 
 void draw_crafting_use_detail() noexcept {

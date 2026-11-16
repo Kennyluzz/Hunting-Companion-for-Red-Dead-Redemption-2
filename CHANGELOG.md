@@ -15,6 +15,8 @@
 - The search box is a box of its own beside the menu, in the menu's style. It
   starts small, grows with the text and then scrolls; a search can be up to 100
   characters.
+- Opening the box darkens the screen around it. The search is cleared when you
+  leave the Search page or close the menu; it stays while you look at a recipe.
 - **Enter** or the arrows close the box, **Enter** on a result opens the recipe and
   **Backspace** goes back. Inside the box Backspace only deletes, and only when
   pressed there, so a key still held from leaving a recipe never removes letters.
