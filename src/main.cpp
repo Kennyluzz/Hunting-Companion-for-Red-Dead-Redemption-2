@@ -1618,6 +1618,8 @@ void haul_trace(const char* format, ...) noexcept {
 
 // The materials an animal or pelt entity stands for. Returns false when the
 // animal it came from is gone (a pelt's identity is then looked up instead).
+bool is_legendary_animal(int ped) noexcept;
+
 bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t, 4>& found,
                                std::size_t& foundCount) noexcept {
     foundCount = 0;
@@ -1632,6 +1634,10 @@ bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t
     const int quality = invoke_native<int>(kGetPedQuality, carcass);
     haul_trace(" [%c %s q%d]", isPelt ? 'P' : 'A', species != nullptr ? species : "?", quality);
     if (species == nullptr) return true;
+    // A legendary animal (or its pelt) gives only its legendary pelt, which is
+    // counted from the inventory; it never stands for the ordinary materials of
+    // its species.
+    if (is_legendary_animal(carcass)) return true;
     // Chipmunks share a HUD recommendation group with squirrels, but do not
     // yield squirrel pelts. Do not let that display grouping invent loot.
     if (model == joaat("a_c_chipmunk_01")) return true;
@@ -1852,6 +1858,13 @@ HudPlacement g_hudPlacement[kHudGroupCount]{};
 constexpr float kHudRightEdge = 0.972f;
 constexpr float kHudMinScale = 0.5f;
 constexpr float kHudMaxScale = 2.5f;
+// How far a group can move from its default place, in screen fractions. The
+// icons sit at the right edge and about three quarters down, so these keep at
+// least part of every group on screen.
+constexpr float kHudMinX = -0.92f;
+constexpr float kHudMaxX = 0.02f;
+constexpr float kHudMinY = -0.62f;
+constexpr float kHudMaxY = 0.22f;
 
 struct HudPoint { float x; float y; };
 
@@ -2625,8 +2638,8 @@ void load_hud_layout() noexcept {
         std::snprintf(key, sizeof(key), "%sSize", kHudKeyNames[group]);
         const int size = static_cast<int>(GetPrivateProfileIntA("HUD", key, 100, g_iniPath));
         HudPlacement& placement = g_hudPlacement[group];
-        placement.x = std::clamp(static_cast<float>(x) / 1000.0f, -0.95f, 0.10f);
-        placement.y = std::clamp(static_cast<float>(y) / 1000.0f, -0.85f, 0.25f);
+        placement.x = std::clamp(static_cast<float>(x) / 1000.0f, kHudMinX, kHudMaxX);
+        placement.y = std::clamp(static_cast<float>(y) / 1000.0f, kHudMinY, kHudMaxY);
         placement.scale = std::clamp(static_cast<float>(size) / 100.0f, kHudMinScale, kHudMaxScale);
     }
 }
@@ -3966,8 +3979,8 @@ void adjust_hud_placement() noexcept {
         placement.scale *= factor;
     if (held_or_pressed(VK_NEXT) || held_or_pressed(VK_OEM_MINUS) || held_or_pressed(VK_SUBTRACT))
         placement.scale /= factor;
-    placement.x = std::clamp(placement.x, -0.95f, 0.10f);
-    placement.y = std::clamp(placement.y, -0.85f, 0.25f);
+    placement.x = std::clamp(placement.x, kHudMinX, kHudMaxX);
+    placement.y = std::clamp(placement.y, kHudMinY, kHudMaxY);
     placement.scale = std::clamp(placement.scale, kHudMinScale, kHudMaxScale);
 }
 
@@ -5853,7 +5866,7 @@ void ScriptMain() {
 }
 } // namespace
 
-BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
+BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(module);
         g_module = module;
@@ -5875,6 +5888,9 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
         g_api.registerScript(module, ScriptMain);
     } else if (reason == DLL_PROCESS_DETACH) {
         if (g_api.unregisterScript && g_module) g_api.unregisterScript(g_module);
+        // Unloaded while the game keeps running (not at game exit): undo the
+        // search box's hooks so nothing points into this unloaded module.
+        if (reserved == nullptr) hunting_companion::text_input::shutdown();
     }
     return TRUE;
 }

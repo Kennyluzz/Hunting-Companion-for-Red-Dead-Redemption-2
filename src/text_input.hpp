@@ -20,6 +20,10 @@ void set_active(bool active) noexcept;
 // returned; Backspace, Enter and the arrows are read as keys by the menu.
 bool next_character(char out[5]) noexcept;
 
+// When the mod is unloaded while the game keeps running: removes the key-state
+// hooks and, if nothing else has subclassed the window since, the subclass.
+void shutdown() noexcept;
+
 // Script thread: the IME's text still being composed (not yet committed), as
 // UTF-8, or an empty string.
 void composition(char* out, std::size_t size) noexcept;

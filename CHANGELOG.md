@@ -56,7 +56,8 @@
   have on your horse, not yet skinned, now counts for its pelt (and feathers or
   antlers) as well as its carcass, so a muskrat on your shoulder shows the recipes
   its pelt is for. A perfect pelt or carcass is only counted from a three-star
-  animal killed cleanly.
+  animal killed cleanly, and a legendary animal never counts for the ordinary
+  materials of its species.
 - **Pelts on the horse count again.** Pelts stacked on the saddle horse are read by
   inventory item, and a pelt you carried keeps its identity after the game removes
   the animal it came from, so it no longer drops out of Crafting Uses once it is on

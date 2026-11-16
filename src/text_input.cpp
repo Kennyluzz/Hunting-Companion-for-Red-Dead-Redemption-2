@@ -93,6 +93,18 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wParam, LPARAM lP
         }
         return 0;
     }
+    if (message == WM_NCDESTROY) {
+        // The game is closing or recreating its window: step out of its chain so
+        // the next time the box opens subclasses the new window.
+        const WNDPROC previous = g_previous;
+        if (reinterpret_cast<WNDPROC>(GetWindowLongPtrW(window, GWLP_WNDPROC)) == &window_proc)
+            SetWindowLongPtrW(window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(previous));
+        g_window = nullptr;
+        g_contextSwapped = false;
+        InterlockedExchange(&g_active, 0);
+        return previous != nullptr ? CallWindowProcW(previous, window, message, wParam, lParam)
+                                   : DefWindowProcW(window, message, wParam, lParam);
+    }
     if (InterlockedCompareExchange(&g_active, 0, 0) == 0) {
         return pass_on(window, message, wParam, lParam);
     }
@@ -130,8 +142,12 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wParam, LPARAM lP
         case WM_IME_NOTIFY:
         case WM_IME_CONTROL:
         case WM_IME_SELECT:
-        case WM_INPUTLANGCHANGE:
             return DefWindowProcW(window, message, wParam, lParam);
+        case WM_INPUTLANGCHANGE:
+            // A keyboard-layout switch reaches the game as usual; any text being
+            // composed in the old layout is dropped.
+            set_composition(nullptr, 0);
+            return pass_on(window, message, wParam, lParam);
         default:
             return pass_on(window, message, wParam, lParam);
     }
@@ -161,6 +177,8 @@ BOOL CALLBACK find_game_window(HWND window, LPARAM result) {
 using KeyStateFn = SHORT (WINAPI*)(int);
 KeyStateFn g_originalGetAsyncKeyState = nullptr;
 KeyStateFn g_originalGetKeyState = nullptr;
+LPVOID g_asyncKeyStateTarget = nullptr;
+LPVOID g_keyStateTarget = nullptr;
 std::uintptr_t g_moduleStart = 0;
 std::uintptr_t g_moduleEnd = 0;
 
@@ -196,19 +214,25 @@ void install_key_state_hooks() noexcept {
     g_moduleEnd = g_moduleStart + nt->OptionalHeader.SizeOfImage;
     const MH_STATUS init = MH_Initialize();
     if (init != MH_OK && init != MH_ERROR_ALREADY_INITIALIZED) return;
+    // If a hook cannot be made (another tool holds the function in a way MinHook
+    // cannot patch), typing still works; only that kind of mod keeps seeing keys.
     LPVOID target = nullptr;
     if (MH_CreateHookApiEx(L"user32", "GetAsyncKeyState", reinterpret_cast<LPVOID>(&hooked_get_async_key_state),
-                           reinterpret_cast<LPVOID*>(&g_originalGetAsyncKeyState), &target) == MH_OK)
-        MH_EnableHook(target);
+                           reinterpret_cast<LPVOID*>(&g_originalGetAsyncKeyState), &target) == MH_OK &&
+        MH_EnableHook(target) == MH_OK)
+        g_asyncKeyStateTarget = target;
     target = nullptr;
     if (MH_CreateHookApiEx(L"user32", "GetKeyState", reinterpret_cast<LPVOID>(&hooked_get_key_state),
-                           reinterpret_cast<LPVOID*>(&g_originalGetKeyState), &target) == MH_OK)
-        MH_EnableHook(target);
+                           reinterpret_cast<LPVOID*>(&g_originalGetKeyState), &target) == MH_OK &&
+        MH_EnableHook(target) == MH_OK)
+        g_keyStateTarget = target;
 }
 
 bool install() noexcept {
     install_key_state_hooks();
-    if (g_window != nullptr) return true;
+    if (g_window != nullptr && IsWindow(g_window)) return true;
+    g_window = nullptr;  // gone without telling us: subclass the current one
+    g_contextSwapped = false;
     HWND window = nullptr;
     EnumWindows(find_game_window, reinterpret_cast<LPARAM>(&window));
     if (window == nullptr) return false;
@@ -284,6 +308,19 @@ bool next_character(char out[5]) noexcept {
         return true;
     }
     return false;
+}
+
+void shutdown() noexcept {
+    InterlockedExchange(&g_active, 0);
+    if (g_asyncKeyStateTarget != nullptr) MH_DisableHook(g_asyncKeyStateTarget);
+    if (g_keyStateTarget != nullptr) MH_DisableHook(g_keyStateTarget);
+    g_asyncKeyStateTarget = g_keyStateTarget = nullptr;
+    // Only undo the subclass if nothing has subclassed the window after us;
+    // otherwise leave the chain alone (our procedure then just passes messages on).
+    if (g_window != nullptr && IsWindow(g_window) &&
+        reinterpret_cast<WNDPROC>(GetWindowLongPtrW(g_window, GWLP_WNDPROC)) == &window_proc)
+        SetWindowLongPtrW(g_window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(g_previous));
+    g_window = nullptr;
 }
 
 void composition(char* out, std::size_t size) noexcept {
