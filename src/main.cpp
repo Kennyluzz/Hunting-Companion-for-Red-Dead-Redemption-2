@@ -1635,7 +1635,8 @@ bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t
     const char* species = find_animal_species(model);
     // _GET_PED_QUALITY reports the ordinary skinning grade (0=poor, 1=good, 2=perfect).
     const int quality = invoke_native<int>(kGetPedQuality, carcass);
-    haul_trace(" [%c %s q%d]", isPelt ? 'P' : 'A', species != nullptr ? species : "?", quality);
+    haul_trace(" [%c %s q%d c%d]", isPelt ? 'P' : 'A', species != nullptr ? species : "?", quality,
+               invoke_native<int>(kGetPedDamageCleanliness, carcass));
     if (species == nullptr) return true;
     // A legendary animal (or its pelt) gives only its own legendary pelt, never
     // the ordinary materials of its species. The two legendary bison are told
