@@ -1661,9 +1661,9 @@ bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t
     // The quality value does not identify a legendary animal, so it is never used to infer one.
     const bool qualityKnown = quality >= 0 && quality <= 2;
     const bool skinned = !isPelt && invoke_native<int>(kIsAnimalSkinned, carcass) != 0;
-    // From a whole animal, a perfect pelt or carcass also needs a clean kill (a
-    // pelt already skinned has its grade from its animal's quality).
-    const int cleanliness = isPelt ? -1 : invoke_native<int>(kGetPedDamageCleanliness, carcass);
+    // A perfect pelt or carcass also needs a clean kill: a three-star animal shot
+    // messily gives a lesser pelt, also once it has been skinned.
+    const int cleanliness = invoke_native<int>(kGetPedDamageCleanliness, carcass);
     const bool cleanKill = cleanliness < 0 || cleanliness > 2 || cleanliness == 2;
     for (const auto& sourceEntry : kMaterialSources) {
         if (std::strcmp(sourceEntry.species, species) != 0) continue;

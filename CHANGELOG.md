@@ -57,8 +57,8 @@
 - **A whole animal counts for what skinning it will give.** An animal you carry or
   have on your horse, not yet skinned, now counts for its pelt (and feathers or
   antlers) as well as its carcass, so a muskrat on your shoulder shows the recipes
-  its pelt is for. A perfect pelt or carcass is only counted from a three-star
-  animal killed cleanly. A legendary animal, or its pelt, counts for its own
+  its pelt is for. A perfect pelt or carcass, whole or already skinned, is only
+  counted from a three-star animal killed cleanly. A legendary animal, or its pelt, counts for its own
   legendary pelt (the white bison and Tatanka told apart), never for the ordinary
   materials of its species.
 - **Animals in the satchel count too.** A small animal put away whole (for example
