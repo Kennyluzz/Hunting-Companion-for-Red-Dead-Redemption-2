@@ -1642,7 +1642,10 @@ bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t
     // the ordinary materials of its species. The two legendary bison are told
     // apart by their animal type.
     if (is_legendary_animal(carcass)) {
-        if (!isPelt && invoke_native<int>(kIsAnimalSkinned, carcass) != 0) return true;
+        // No "already skinned" check here: in game, a whole legendary animal on
+        // the shoulder or the horse did not count, which only that check could
+        // cause (its pelt did count), so the game seems to report legendary
+        // animals as skinned. A skinned legendary carcass is not worth carrying.
         const bool tatanka = invoke_native<std::uint32_t>(kGetPedAnimalType, carcass) == joaat("AT_BUFFALO_TATANKA");
         for (const auto& sourceEntry : kMaterialSources) {
             if (std::strcmp(sourceEntry.species, species) != 0) continue;
