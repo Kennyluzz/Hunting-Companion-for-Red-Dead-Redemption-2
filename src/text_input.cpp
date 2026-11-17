@@ -256,8 +256,11 @@ bool install() noexcept {
     const LONG_PTR previous = SetWindowLongPtrW(window, GWLP_WNDPROC,
                                                 reinterpret_cast<LONG_PTR>(&window_proc));
     if (previous == 0) {
-        hunting_companion::native_fonts::diagnostic("Search box: could not attach to the game window (error %lu)",
-                                                    static_cast<unsigned long>(GetLastError()));
+        static bool reported = false;  // retried every frame; logged once
+        if (!reported)
+            hunting_companion::native_fonts::diagnostic("Search box: could not attach to the game window (error %lu)",
+                                                        static_cast<unsigned long>(GetLastError()));
+        reported = true;
         return false;
     }
     g_previous = reinterpret_cast<WNDPROC>(previous);
