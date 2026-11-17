@@ -43,6 +43,8 @@ required = (
     "kGetCarriedPeltSkins, horse, skins.data()",
     "find_pelt_identity(entity)",
     "remember_carried_pelts();",
+    'joaat("AT_BUFFALO_TATANKA")',
+    "if (name == nullptr || std::strstr(name, \"Legendary\") == nullptr) continue;",
     "for (const auto& carcass : hunting_companion::satchel::kCarcassItems) {",
     "if (std::strstr(name, \"Perfect\") != nullptr && carcass.quality != 2) continue;",
     "if (isPelt ? (carcassMaterial || !perfectOnly) : (!carcassMaterial && skinned)) continue;",

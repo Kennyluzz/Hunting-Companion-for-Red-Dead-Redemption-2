@@ -122,6 +122,8 @@ constexpr std::uint64_t kGetIsCarriablePelt = 0x255B6DB4E3AD3C3Eull;
 constexpr std::uint64_t kGetCarcassFromPelt = 0x2A77EF9BEC8518F4ull;
 constexpr std::uint64_t kGetPedQuality = 0x7BCC6087D130312Aull;
 constexpr std::uint64_t kIsAnimalSkinned = 0x88A5564B19C15391ull;
+// The animal type (eAnimalType hash); legendary animals have their own.
+constexpr std::uint64_t kGetPedAnimalType = 0x964000D355219FC0ull;
 // How cleanly the animal was killed (0 = poor, 1 = good, 2 = perfect).
 constexpr std::uint64_t kGetPedDamageCleanliness = 0x88EFFED5FE8B0B4Aull;
 constexpr std::uint64_t kInventoryGetInventoryIdFromPed = 0x13D234A2A3F66E63ull;
@@ -1635,10 +1637,23 @@ bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t
     const int quality = invoke_native<int>(kGetPedQuality, carcass);
     haul_trace(" [%c %s q%d]", isPelt ? 'P' : 'A', species != nullptr ? species : "?", quality);
     if (species == nullptr) return true;
-    // A legendary animal (or its pelt) gives only its legendary pelt, which is
-    // counted from the inventory; it never stands for the ordinary materials of
-    // its species.
-    if (is_legendary_animal(carcass)) return true;
+    // A legendary animal (or its pelt) gives only its own legendary pelt, never
+    // the ordinary materials of its species. The two legendary bison are told
+    // apart by their animal type.
+    if (is_legendary_animal(carcass)) {
+        if (!isPelt && invoke_native<int>(kIsAnimalSkinned, carcass) != 0) return true;
+        const bool tatanka = invoke_native<std::uint32_t>(kGetPedAnimalType, carcass) == joaat("AT_BUFFALO_TATANKA");
+        for (const auto& sourceEntry : kMaterialSources) {
+            if (std::strcmp(sourceEntry.species, species) != 0) continue;
+            const char* name = find_material_name(sourceEntry.hash);
+            if (name == nullptr || std::strstr(name, "Legendary") == nullptr) continue;
+            if (std::strcmp(species, "Bison") == 0 &&
+                (std::strstr(name, "Tatanka") != nullptr) != tatanka) continue;
+            if (foundCount < found.size()) found[foundCount++] = sourceEntry.hash;
+        }
+        if (isPelt) remember_pelt_identity(entity, found.data(), foundCount);
+        return true;
+    }
     // Chipmunks share a HUD recommendation group with squirrels, but do not
     // yield squirrel pelts. Do not let that display grouping invent loot.
     if (model == joaat("a_c_chipmunk_01")) return true;
@@ -2351,11 +2366,7 @@ void draw_hunting_recommendation_icons(
     }
 }
 
-// Legendary animals: the game's own animal types (eAnimalType, the hash of the
-// type name). Their models are the regular ones with a special outfit, so only
-// the type tells them apart. A legendary pelt cannot be damaged, so any weapon
-// gives a perfect carcass and no weapon icons are shown for them.
-constexpr std::uint64_t kGetPedAnimalType = 0x964000D355219FC0ull;
+// The focused animal's Animal Compendium short-description label.
 constexpr std::uint64_t kCompendiumShortDescriptionFromPed = 0x6C5E5D48E48B4C65ull;
 
 // Logged once per label (with [Fonts] FontLog=1): a Compendium label the advice
@@ -2371,6 +2382,10 @@ void note_unknown_compendium_label(std::uint32_t label, const char* species) noe
     hunting_companion::native_fonts::diagnostic("Compendium label %08X (%s) is not in the advice table", label,
                                                 species);
 }
+// Legendary animals: the game's own animal types (eAnimalType, the hash of the
+// type name). Their models are the regular ones with a special outfit, so only
+// the type tells them apart. A legendary pelt cannot be damaged, so any weapon
+// gives a perfect carcass and no weapon icons are shown for them.
 constexpr std::uint32_t kLegendaryAnimalTypes[] = {
     joaat("AT_GATOR_BULL"), joaat("AT_BEAR_LEGENDARY"), joaat("AT_BEAVER_LEGENDARY"),
     joaat("AT_BUFFALO_LEGENDARY"), joaat("AT_BUFFALO_TATANKA"), joaat("AT_BOAR_LEGENDARY"),
