@@ -287,6 +287,59 @@ Nothing can be crafted right now=Derzeit ist nichts herstellbar
 Nothing to show here=Hier gibt es nichts anzuzeigen
 Rifle=Gewehr
 Any weapon=Beliebige Waffe
+
+# Search
+Search=Suche
+SEARCH=SUCHE
+Type an animal, part or item name=Tier, Teil oder Gegenstand eingeben
+No matches=Keine Treffer
+Matches item, part and animal names in this language and in English.=Durchsucht Gegenstands-, Teil- und Tiernamen in dieser Sprache und auf Englisch.
+
+# Colours and HUD layout
+Text colour=Textfarbe
+Heading colour=Überschriftenfarbe
+HUD label colour=HUD-Beschriftungsfarbe
+HUD layout=HUD-Anordnung
+Default=Standard
+White=Weiß
+Cream=Creme
+Gold=Gold
+Red=Rot
+Orange=Orange
+Green=Grün
+Blue=Blau
+Purple=Lila
+Grey=Grau
+HUD LAYOUT=HUD-ANORDNUNG
+Move and resize the HUD icons=HUD-Symbole verschieben und skalieren
+All icons=Alle Symbole
+Weapon and ammo icons=Waffen- und Munitionssymbole
+Pearson and Trapper icons=Pearson- und Fallensteller-Symbole
+Reset layout=Anordnung zurücksetzen
+SIZE %d%%=GRÖSSE %d%%
+The icons on the right are a preview. Select a group to move it.=Die Symbole rechts sind eine Vorschau. Wähle eine Gruppe, um sie zu verschieben.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=PFEILE - Verschieben   UMSCHALT - Schneller   BILD AUF/AB - Größe
+ENTER Save   BACKSPACE Cancel=ENTER - Speichern   BACKSPACE - Abbrechen
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=LEERTASTE - Suchen   ENTER - Auswählen   BACKSPACE - Zurück
+ENTER Done   BACKSPACE Delete=ENTER - Fertig   BACKSPACE - Löschen
+SPACE Search=LEERTASTE - Suchen
+ENTER Done=ENTER - Fertig
+Press SPACE, then type an animal, part or item name=LEERTASTE drücken, dann Tier, Teil oder Gegenstand eingeben
+Yellow=Gelb
+Pink=Rosa
+Teal=Petrol
+Light blue=Hellblau
+Brown=Braun
+Crimson=Karmesin
+Lime=Limette
+Lavender=Lavendel
+Sand=Sand
+Silver=Silber
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=FALLENSTELLER-REZEPT - TEIL VON %s
 )HCL0";
 inline constexpr char kLocale_en_US[] = R"HCL1(# Hunting Companion localization — en-US
 # Companion-owned interface phrases follow this locale.
@@ -445,6 +498,59 @@ Nothing can be crafted right now=Nothing can be crafted right now
 Nothing to show here=Nothing to show here
 Rifle=Rifle
 Any weapon=Any weapon
+
+# Search
+Search=Search
+SEARCH=SEARCH
+Type an animal, part or item name=Type an animal, part or item name
+No matches=No matches
+Matches item, part and animal names in this language and in English.=Matches item, part and animal names in this language and in English.
+
+# Colours and HUD layout
+Text colour=Text colour
+Heading colour=Heading colour
+HUD label colour=HUD label colour
+HUD layout=HUD layout
+Default=Default
+White=White
+Cream=Cream
+Gold=Gold
+Red=Red
+Orange=Orange
+Green=Green
+Blue=Blue
+Purple=Purple
+Grey=Grey
+HUD LAYOUT=HUD LAYOUT
+Move and resize the HUD icons=Move and resize the HUD icons
+All icons=All icons
+Weapon and ammo icons=Weapon and ammo icons
+Pearson and Trapper icons=Pearson and Trapper icons
+Reset layout=Reset layout
+SIZE %d%%=SIZE %d%%
+The icons on the right are a preview. Select a group to move it.=The icons on the right are a preview. Select a group to move it.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=ARROWS - Move   SHIFT - Faster   PAGE UP/DOWN - Size
+ENTER Save   BACKSPACE Cancel=ENTER - Save   BACKSPACE - Cancel
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=SPACE - Search   ENTER - Select   BACKSPACE - Back
+ENTER Done   BACKSPACE Delete=ENTER - Done   BACKSPACE - Delete
+SPACE Search=SPACE - Search
+ENTER Done=ENTER - Done
+Press SPACE, then type an animal, part or item name=Press SPACE, then type an animal, part or item name
+Yellow=Yellow
+Pink=Pink
+Teal=Teal
+Light blue=Light blue
+Brown=Brown
+Crimson=Crimson
+Lime=Lime
+Lavender=Lavender
+Sand=Sand
+Silver=Silver
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=TRAPPER RECIPE - PART OF %s
 )HCL1";
 inline constexpr char kLocale_es_ES[] = R"HCL2(# Hunting Companion localization — es-ES
 # Companion-owned interface phrases follow this locale.
@@ -731,6 +837,59 @@ Nothing can be crafted right now=Ahora mismo no hay recetas disponibles
 Nothing to show here=No hay nada que mostrar
 Rifle=Fusil
 Any weapon=Cualquier arma
+
+# Search
+Search=Buscar
+SEARCH=BUSCAR
+Type an animal, part or item name=Escribe un animal, una parte o un objeto
+No matches=Sin resultados
+Matches item, part and animal names in this language and in English.=Busca nombres de objetos, partes y animales en este idioma y en inglés.
+
+# Colours and HUD layout
+Text colour=Color del texto
+Heading colour=Color de los títulos
+HUD label colour=Color de las etiquetas del HUD
+HUD layout=Disposición del HUD
+Default=Predeterminado
+White=Blanco
+Cream=Crema
+Gold=Dorado
+Red=Rojo
+Orange=Naranja
+Green=Verde
+Blue=Azul
+Purple=Morado
+Grey=Gris
+HUD LAYOUT=DISPOSICIÓN DEL HUD
+Move and resize the HUD icons=Mover y cambiar el tamaño de los iconos del HUD
+All icons=Todos los iconos
+Weapon and ammo icons=Iconos de armas y munición
+Pearson and Trapper icons=Iconos de Pearson y el trampero
+Reset layout=Restablecer disposición
+SIZE %d%%=TAMAÑO %d%%
+The icons on the right are a preview. Select a group to move it.=Los iconos de la derecha son una vista previa. Elige un grupo para moverlo.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=FLECHAS - Mover   MAYÚS - Más rápido   RE PÁG/AV PÁG - Tamaño
+ENTER Save   BACKSPACE Cancel=ENTER - Guardar   RETROCESO - Cancelar
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=ESPACIO - Buscar   ENTER - Seleccionar   RETROCESO - Volver
+ENTER Done   BACKSPACE Delete=ENTER - Listo   RETROCESO - Borrar
+SPACE Search=ESPACIO - Buscar
+ENTER Done=ENTER - Listo
+Press SPACE, then type an animal, part or item name=Pulsa ESPACIO y escribe un animal, una parte o un objeto
+Yellow=Amarillo
+Pink=Rosa
+Teal=Verde azulado
+Light blue=Azul claro
+Brown=Marrón
+Crimson=Carmesí
+Lime=Lima
+Lavender=Lavanda
+Sand=Arena
+Silver=Plata
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=RECETA DEL TRAMPERO - PARTE DE %s
 )HCL2";
 inline constexpr char kLocale_es_MX[] = R"HCL3(# Hunting Companion localization — es-MX
 # Companion-owned interface phrases follow this locale.
@@ -1017,6 +1176,59 @@ Nothing can be crafted right now=Por ahora no hay recetas elaborables
 Nothing to show here=No hay nada que mostrar
 Rifle=Rifle
 Any weapon=Cualquier arma
+
+# Search
+Search=Buscar
+SEARCH=BUSCAR
+Type an animal, part or item name=Escribe un animal, una parte o un objeto
+No matches=Sin resultados
+Matches item, part and animal names in this language and in English.=Busca nombres de objetos, partes y animales en este idioma y en inglés.
+
+# Colours and HUD layout
+Text colour=Color del texto
+Heading colour=Color de los títulos
+HUD label colour=Color de las etiquetas del HUD
+HUD layout=Disposición del HUD
+Default=Predeterminado
+White=Blanco
+Cream=Crema
+Gold=Dorado
+Red=Rojo
+Orange=Naranja
+Green=Verde
+Blue=Azul
+Purple=Morado
+Grey=Gris
+HUD LAYOUT=DISPOSICIÓN DEL HUD
+Move and resize the HUD icons=Mover y cambiar el tamaño de los íconos del HUD
+All icons=Todos los íconos
+Weapon and ammo icons=Íconos de armas y munición
+Pearson and Trapper icons=Íconos de Pearson y el trampero
+Reset layout=Restablecer disposición
+SIZE %d%%=TAMAÑO %d%%
+The icons on the right are a preview. Select a group to move it.=Los íconos de la derecha son una vista previa. Elige un grupo para moverlo.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=FLECHAS - Mover   MAYÚS - Más rápido   RE PÁG/AV PÁG - Tamaño
+ENTER Save   BACKSPACE Cancel=ENTER - Guardar   RETROCESO - Cancelar
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=ESPACIO - Buscar   ENTER - Seleccionar   RETROCESO - Volver
+ENTER Done   BACKSPACE Delete=ENTER - Listo   RETROCESO - Borrar
+SPACE Search=ESPACIO - Buscar
+ENTER Done=ENTER - Listo
+Press SPACE, then type an animal, part or item name=Presiona ESPACIO y escribe un animal, una parte o un objeto
+Yellow=Amarillo
+Pink=Rosa
+Teal=Verde azulado
+Light blue=Azul claro
+Brown=Café
+Crimson=Carmesí
+Lime=Lima
+Lavender=Lavanda
+Sand=Arena
+Silver=Plata
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=RECETA DEL TRAMPERO - PARTE DE %s
 )HCL3";
 inline constexpr char kLocale_fr_FR[] = R"HCL4(# Hunting Companion localization — fr-FR
 # Companion-owned interface phrases follow this locale.
@@ -1303,6 +1515,59 @@ Nothing can be crafted right now=Rien n’est réalisable pour le moment
 Nothing to show here=Rien à afficher ici
 Rifle=Fusil
 Any weapon=N’importe quelle arme
+
+# Search
+Search=Recherche
+SEARCH=RECHERCHE
+Type an animal, part or item name=Tapez un animal, une partie ou un objet
+No matches=Aucun résultat
+Matches item, part and animal names in this language and in English.=Cherche les noms d’objets, de parties et d’animaux dans cette langue et en anglais.
+
+# Colours and HUD layout
+Text colour=Couleur du texte
+Heading colour=Couleur des titres
+HUD label colour=Couleur des libellés du HUD
+HUD layout=Disposition du HUD
+Default=Par défaut
+White=Blanc
+Cream=Crème
+Gold=Or
+Red=Rouge
+Orange=Orange
+Green=Vert
+Blue=Bleu
+Purple=Violet
+Grey=Gris
+HUD LAYOUT=DISPOSITION DU HUD
+Move and resize the HUD icons=Déplacer et redimensionner les icônes du HUD
+All icons=Toutes les icônes
+Weapon and ammo icons=Icônes d'armes et de munitions
+Pearson and Trapper icons=Icônes de Pearson et du trappeur
+Reset layout=Réinitialiser la disposition
+SIZE %d%%=TAILLE %d%%
+The icons on the right are a preview. Select a group to move it.=Les icônes à droite sont un aperçu. Choisissez un groupe pour le déplacer.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=FLÈCHES - Déplacer   MAJ - Plus vite   PAGE HAUT/BAS - Taille
+ENTER Save   BACKSPACE Cancel=ENTRÉE - Enregistrer   RETOUR - Annuler
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=ESPACE - Rechercher   ENTRÉE - Choisir   RETOUR - Revenir
+ENTER Done   BACKSPACE Delete=ENTRÉE - Terminé   RETOUR - Effacer
+SPACE Search=ESPACE - Rechercher
+ENTER Done=ENTRÉE - Terminé
+Press SPACE, then type an animal, part or item name=Appuyez sur ESPACE, puis tapez un animal, une partie ou un objet
+Yellow=Jaune
+Pink=Rose
+Teal=Sarcelle
+Light blue=Bleu clair
+Brown=Marron
+Crimson=Cramoisi
+Lime=Vert citron
+Lavender=Lavande
+Sand=Sable
+Silver=Argent
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=RECETTE DU TRAPPEUR - FAIT PARTIE DE %s
 )HCL4";
 inline constexpr char kLocale_it_IT[] = R"HCL5(# Hunting Companion localization — it-IT
 # Companion-owned interface phrases follow this locale.
@@ -1589,6 +1854,59 @@ Nothing can be crafted right now=Al momento non puoi creare nulla
 Nothing to show here=Niente da mostrare qui
 Rifle=Fucile a canna rigata
 Any weapon=Qualsiasi arma
+
+# Search
+Search=Cerca
+SEARCH=CERCA
+Type an animal, part or item name=Scrivi un animale, una parte o un oggetto
+No matches=Nessun risultato
+Matches item, part and animal names in this language and in English.=Cerca nomi di oggetti, parti e animali in questa lingua e in inglese.
+
+# Colours and HUD layout
+Text colour=Colore del testo
+Heading colour=Colore dei titoli
+HUD label colour=Colore etichette HUD
+HUD layout=Disposizione HUD
+Default=Predefinito
+White=Bianco
+Cream=Crema
+Gold=Oro
+Red=Rosso
+Orange=Arancione
+Green=Verde
+Blue=Blu
+Purple=Viola
+Grey=Grigio
+HUD LAYOUT=DISPOSIZIONE HUD
+Move and resize the HUD icons=Sposta e ridimensiona le icone dell'HUD
+All icons=Tutte le icone
+Weapon and ammo icons=Icone di armi e munizioni
+Pearson and Trapper icons=Icone di Pearson e del cacciatore di pelli
+Reset layout=Ripristina disposizione
+SIZE %d%%=DIMENSIONE %d%%
+The icons on the right are a preview. Select a group to move it.=Le icone a destra sono un'anteprima. Seleziona un gruppo per spostarlo.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=FRECCE - Sposta   MAIUSC - Più veloce   PAG SU/GIÙ - Dimensione
+ENTER Save   BACKSPACE Cancel=INVIO - Salva   BACKSPACE - Annulla
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=SPAZIO - Cerca   INVIO - Seleziona   BACKSPACE - Indietro
+ENTER Done   BACKSPACE Delete=INVIO - Fatto   BACKSPACE - Cancella
+SPACE Search=SPAZIO - Cerca
+ENTER Done=INVIO - Fatto
+Press SPACE, then type an animal, part or item name=Premi SPAZIO, poi scrivi un animale, una parte o un oggetto
+Yellow=Giallo
+Pink=Rosa
+Teal=Verde acqua
+Light blue=Azzurro
+Brown=Marrone
+Crimson=Cremisi
+Lime=Lime
+Lavender=Lavanda
+Sand=Sabbia
+Silver=Argento
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=RICETTA DEL CACCIATORE - PARTE DI %s
 )HCL5";
 inline constexpr char kLocale_ja_JP[] = R"HCL6(# Hunting Companion localization — ja-JP
 # Companion-owned interface phrases follow this locale.
@@ -1875,6 +2193,59 @@ Nothing can be crafted right now=今すぐ製作できるものはありませ�
 Nothing to show here=表示する項目はありません
 Rifle=ライフル
 Any weapon=どの武器でも可
+
+# Search
+Search=検索
+SEARCH=検索
+Type an animal, part or item name=動物・素材・アイテム名を入力
+No matches=該当なし
+Matches item, part and animal names in this language and in English.=この言語と英語で、アイテム・素材・動物の名前を検索します。
+
+# Colours and HUD layout
+Text colour=文字の色
+Heading colour=見出しの色
+HUD label colour=HUDラベルの色
+HUD layout=HUDの配置
+Default=デフォルト
+White=白
+Cream=クリーム
+Gold=金
+Red=赤
+Orange=オレンジ
+Green=緑
+Blue=青
+Purple=紫
+Grey=灰色
+HUD LAYOUT=HUDの配置
+Move and resize the HUD icons=HUDアイコンの移動とサイズ変更
+All icons=すべてのアイコン
+Weapon and ammo icons=武器・弾薬アイコン
+Pearson and Trapper icons=ピアソン・罠猟師アイコン
+Reset layout=配置をリセット
+SIZE %d%%=サイズ %d%%
+The icons on the right are a preview. Select a group to move it.=右側のアイコンはプレビューです。移動するグループを選択してください。
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=矢印：移動   SHIFT：速く   PAGE UP/DOWN：サイズ
+ENTER Save   BACKSPACE Cancel=ENTER：保存   BACKSPACE：キャンセル
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=SPACE：検索   ENTER：決定   BACKSPACE：戻る
+ENTER Done   BACKSPACE Delete=ENTER：完了   BACKSPACE：削除
+SPACE Search=SPACE：検索
+ENTER Done=ENTER：完了
+Press SPACE, then type an animal, part or item name=SPACEを押して、動物・素材・アイテム名を入力
+Yellow=黄
+Pink=ピンク
+Teal=ティール
+Light blue=水色
+Brown=茶
+Crimson=深紅
+Lime=ライム
+Lavender=ラベンダー
+Sand=砂色
+Silver=銀
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=罠師のレシピ - %sの一部
 )HCL6";
 inline constexpr char kLocale_ko_KR[] = R"HCL7(# Hunting Companion localization — ko-KR
 # Companion-owned interface phrases follow this locale.
@@ -2160,6 +2531,59 @@ Nothing can be crafted right now=지금 제작 가능한 항목이 없습니다
 Nothing to show here=표시할 항목이 없습니다
 Rifle=라이플
 Any weapon=아무 무기
+
+# Search
+Search=검색
+SEARCH=검색
+Type an animal, part or item name=동물, 부위 또는 아이템 이름 입력
+No matches=검색 결과 없음
+Matches item, part and animal names in this language and in English.=이 언어와 영어로 아이템, 부위, 동물 이름을 검색합니다.
+
+# Colours and HUD layout
+Text colour=텍스트 색상
+Heading colour=제목 색상
+HUD label colour=HUD 라벨 색상
+HUD layout=HUD 배치
+Default=기본값
+White=흰색
+Cream=크림색
+Gold=금색
+Red=빨간색
+Orange=주황색
+Green=초록색
+Blue=파란색
+Purple=보라색
+Grey=회색
+HUD LAYOUT=HUD 배치
+Move and resize the HUD icons=HUD 아이콘 이동 및 크기 조절
+All icons=모든 아이콘
+Weapon and ammo icons=무기 및 탄약 아이콘
+Pearson and Trapper icons=피어슨 및 덫사냥꾼 아이콘
+Reset layout=배치 초기화
+SIZE %d%%=크기 %d%%
+The icons on the right are a preview. Select a group to move it.=오른쪽 아이콘은 미리보기입니다. 이동할 그룹을 선택하세요.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=화살표 - 이동   SHIFT - 빠르게   PAGE UP/DOWN - 크기
+ENTER Save   BACKSPACE Cancel=ENTER - 저장   BACKSPACE - 취소
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=SPACE - 검색   ENTER - 선택   BACKSPACE - 뒤로
+ENTER Done   BACKSPACE Delete=ENTER - 완료   BACKSPACE - 지우기
+SPACE Search=SPACE - 검색
+ENTER Done=ENTER - 완료
+Press SPACE, then type an animal, part or item name=SPACE를 누른 후 동물, 부위 또는 아이템 이름 입력
+Yellow=노란색
+Pink=분홍색
+Teal=청록색
+Light blue=하늘색
+Brown=갈색
+Crimson=진홍색
+Lime=라임색
+Lavender=라벤더색
+Sand=모래색
+Silver=은색
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=덫 사냥꾼 제작법 - %s 세트의 일부
 )HCL7";
 inline constexpr char kLocale_pl_PL[] = R"HCL8(# Hunting Companion localization — pl-PL
 # Companion-owned interface phrases follow this locale.
@@ -2445,6 +2869,59 @@ Nothing can be crafted right now=Obecnie nie możesz niczego wytworzyć
 Nothing to show here=Brak pozycji do wyświetlenia
 Rifle=Karabin
 Any weapon=Dowolna broń
+
+# Search
+Search=Szukaj
+SEARCH=SZUKAJ
+Type an animal, part or item name=Wpisz zwierzę, część lub przedmiot
+No matches=Brak wyników
+Matches item, part and animal names in this language and in English.=Szuka nazw przedmiotów, części i zwierząt w tym języku i po angielsku.
+
+# Colours and HUD layout
+Text colour=Kolor tekstu
+Heading colour=Kolor nagłówków
+HUD label colour=Kolor podpisów HUD
+HUD layout=Układ HUD
+Default=Domyślny
+White=Biały
+Cream=Kremowy
+Gold=Złoty
+Red=Czerwony
+Orange=Pomarańczowy
+Green=Zielony
+Blue=Niebieski
+Purple=Fioletowy
+Grey=Szary
+HUD LAYOUT=UKŁAD HUD
+Move and resize the HUD icons=Przesuwaj i zmieniaj rozmiar ikon HUD
+All icons=Wszystkie ikony
+Weapon and ammo icons=Ikony broni i amunicji
+Pearson and Trapper icons=Ikony Pearsona i trapera
+Reset layout=Przywróć układ
+SIZE %d%%=ROZMIAR %d%%
+The icons on the right are a preview. Select a group to move it.=Ikony po prawej to podgląd. Wybierz grupę, aby ją przesunąć.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=STRZAŁKI - Przesuń   SHIFT - Szybciej   PAGE UP/DOWN - Rozmiar
+ENTER Save   BACKSPACE Cancel=ENTER - Zapisz   BACKSPACE - Anuluj
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=SPACJA - Szukaj   ENTER - Wybierz   BACKSPACE - Wstecz
+ENTER Done   BACKSPACE Delete=ENTER - Gotowe   BACKSPACE - Usuń
+SPACE Search=SPACJA - Szukaj
+ENTER Done=ENTER - Gotowe
+Press SPACE, then type an animal, part or item name=Naciśnij SPACJĘ i wpisz zwierzę, część lub przedmiot
+Yellow=Żółty
+Pink=Różowy
+Teal=Morski
+Light blue=Jasnoniebieski
+Brown=Brązowy
+Crimson=Karmazynowy
+Lime=Limonkowy
+Lavender=Lawendowy
+Sand=Piaskowy
+Silver=Srebrny
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=PRZEPIS TRAPERA - CZĘŚĆ ZESTAWU %s
 )HCL8";
 inline constexpr char kLocale_pt_BR[] = R"HCL9(# Hunting Companion localization — pt-BR
 # Companion-owned interface phrases follow this locale.
@@ -2731,6 +3208,59 @@ Nothing can be crafted right now=No momento não há receitas disponíveis
 Nothing to show here=Nada para mostrar aqui
 Rifle=Rifle
 Any weapon=Qualquer arma
+
+# Search
+Search=Buscar
+SEARCH=BUSCAR
+Type an animal, part or item name=Digite um animal, uma parte ou um item
+No matches=Nenhum resultado
+Matches item, part and animal names in this language and in English.=Procura nomes de itens, partes e animais neste idioma e em inglês.
+
+# Colours and HUD layout
+Text colour=Cor do texto
+Heading colour=Cor dos títulos
+HUD label colour=Cor dos rótulos do HUD
+HUD layout=Layout do HUD
+Default=Padrão
+White=Branco
+Cream=Creme
+Gold=Dourado
+Red=Vermelho
+Orange=Laranja
+Green=Verde
+Blue=Azul
+Purple=Roxo
+Grey=Cinza
+HUD LAYOUT=LAYOUT DO HUD
+Move and resize the HUD icons=Mover e redimensionar os ícones do HUD
+All icons=Todos os ícones
+Weapon and ammo icons=Ícones de armas e munição
+Pearson and Trapper icons=Ícones de Pearson e do caçador
+Reset layout=Redefinir layout
+SIZE %d%%=TAMANHO %d%%
+The icons on the right are a preview. Select a group to move it.=Os ícones à direita são uma prévia. Escolha um grupo para movê-lo.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=SETAS - Mover   SHIFT - Mais rápido   PAGE UP/DOWN - Tamanho
+ENTER Save   BACKSPACE Cancel=ENTER - Salvar   BACKSPACE - Cancelar
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=ESPAÇO - Buscar   ENTER - Selecionar   BACKSPACE - Voltar
+ENTER Done   BACKSPACE Delete=ENTER - Pronto   BACKSPACE - Apagar
+SPACE Search=ESPAÇO - Buscar
+ENTER Done=ENTER - Pronto
+Press SPACE, then type an animal, part or item name=Pressione ESPAÇO e digite um animal, uma parte ou um item
+Yellow=Amarelo
+Pink=Rosa
+Teal=Verde-azulado
+Light blue=Azul-claro
+Brown=Marrom
+Crimson=Carmesim
+Lime=Lima
+Lavender=Lavanda
+Sand=Areia
+Silver=Prata
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=RECEITA DO CAÇADOR - PARTE DE %s
 )HCL9";
 inline constexpr char kLocale_ru_RU[] = R"HCL10(# Hunting Companion localization — ru-RU
 # Companion-owned interface phrases follow this locale.
@@ -3017,6 +3547,59 @@ Nothing can be crafted right now=Сейчас нечего изготовить
 Nothing to show here=Здесь пока пусто
 Rifle=Винтовка
 Any weapon=Любое оружие
+
+# Search
+Search=Поиск
+SEARCH=ПОИСК
+Type an animal, part or item name=Введите животное, часть или предмет
+No matches=Ничего не найдено
+Matches item, part and animal names in this language and in English.=Ищет названия предметов, частей и животных на этом языке и на английском.
+
+# Colours and HUD layout
+Text colour=Цвет текста
+Heading colour=Цвет заголовков
+HUD label colour=Цвет подписей HUD
+HUD layout=Расположение HUD
+Default=По умолчанию
+White=Белый
+Cream=Кремовый
+Gold=Золотой
+Red=Красный
+Orange=Оранжевый
+Green=Зелёный
+Blue=Синий
+Purple=Фиолетовый
+Grey=Серый
+HUD LAYOUT=РАСПОЛОЖЕНИЕ HUD
+Move and resize the HUD icons=Перемещение и размер значков HUD
+All icons=Все значки
+Weapon and ammo icons=Значки оружия и боеприпасов
+Pearson and Trapper icons=Значки Пирсона и траппера
+Reset layout=Сбросить расположение
+SIZE %d%%=РАЗМЕР %d%%
+The icons on the right are a preview. Select a group to move it.=Значки справа — предпросмотр. Выберите группу, чтобы её переместить.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=СТРЕЛКИ - Двигать   SHIFT - Быстрее   PAGE UP/DOWN - Размер
+ENTER Save   BACKSPACE Cancel=ENTER - Сохранить   BACKSPACE - Отмена
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=ПРОБЕЛ - Поиск   ENTER - Выбрать   BACKSPACE - Назад
+ENTER Done   BACKSPACE Delete=ENTER - Готово   BACKSPACE - Стереть
+SPACE Search=ПРОБЕЛ - Поиск
+ENTER Done=ENTER - Готово
+Press SPACE, then type an animal, part or item name=Нажмите ПРОБЕЛ и введите животное, часть или предмет
+Yellow=Жёлтый
+Pink=Розовый
+Teal=Бирюзовый
+Light blue=Голубой
+Brown=Коричневый
+Crimson=Малиновый
+Lime=Лаймовый
+Lavender=Лавандовый
+Sand=Песочный
+Silver=Серебряный
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=РЕЦЕПТ ОХОТНИКА - ЧАСТЬ КОМПЛЕКТА %s
 )HCL10";
 inline constexpr char kLocale_zh_CN[] = R"HCL11(# Hunting Companion localization — zh-CN
 # Companion-owned interface phrases follow this locale.
@@ -3303,6 +3886,59 @@ Nothing can be crafted right now=现在没有可制作的物品
 Nothing to show here=没有可显示的项目
 Rifle=步枪
 Any weapon=任意武器
+
+# Search
+Search=搜索
+SEARCH=搜索
+Type an animal, part or item name=输入动物、部位或物品名称
+No matches=无匹配结果
+Matches item, part and animal names in this language and in English.=以此语言和英语搜索物品、部位和动物名称。
+
+# Colours and HUD layout
+Text colour=文字颜色
+Heading colour=标题颜色
+HUD label colour=HUD 标签颜色
+HUD layout=HUD 布局
+Default=默认
+White=白色
+Cream=奶油色
+Gold=金色
+Red=红色
+Orange=橙色
+Green=绿色
+Blue=蓝色
+Purple=紫色
+Grey=灰色
+HUD LAYOUT=HUD 布局
+Move and resize the HUD icons=移动和调整 HUD 图标大小
+All icons=所有图标
+Weapon and ammo icons=武器和弹药图标
+Pearson and Trapper icons=皮尔森和猎人图标
+Reset layout=重置布局
+SIZE %d%%=大小 %d%%
+The icons on the right are a preview. Select a group to move it.=右侧图标为预览。选择一组以移动。
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=方向键 - 移动   SHIFT - 加快   PAGE UP/DOWN - 大小
+ENTER Save   BACKSPACE Cancel=ENTER - 保存   BACKSPACE - 取消
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=空格 - 搜索   ENTER - 选择   BACKSPACE - 返回
+ENTER Done   BACKSPACE Delete=ENTER - 完成   BACKSPACE - 删除
+SPACE Search=空格 - 搜索
+ENTER Done=ENTER - 完成
+Press SPACE, then type an animal, part or item name=按空格键，然后输入动物、部位或物品名称
+Yellow=黄色
+Pink=粉色
+Teal=青色
+Light blue=浅蓝色
+Brown=棕色
+Crimson=深红色
+Lime=青柠色
+Lavender=薰衣草色
+Sand=沙色
+Silver=银色
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=捕兽人配方 - %s 的一部分
 )HCL11";
 inline constexpr char kLocale_zh_TW[] = R"HCL12(# Hunting Companion localization — zh-TW
 # Companion-owned interface phrases follow this locale.
@@ -3589,6 +4225,59 @@ Nothing can be crafted right now=目前沒有可製作的物品
 Nothing to show here=沒有可顯示的項目
 Rifle=步槍
 Any weapon=任意武器
+
+# Search
+Search=搜尋
+SEARCH=搜尋
+Type an animal, part or item name=輸入動物、部位或物品名稱
+No matches=沒有符合的結果
+Matches item, part and animal names in this language and in English.=以此語言和英語搜尋物品、部位和動物名稱。
+
+# Colours and HUD layout
+Text colour=文字顏色
+Heading colour=標題顏色
+HUD label colour=HUD 標籤顏色
+HUD layout=HUD 配置
+Default=預設
+White=白色
+Cream=奶油色
+Gold=金色
+Red=紅色
+Orange=橙色
+Green=綠色
+Blue=藍色
+Purple=紫色
+Grey=灰色
+HUD LAYOUT=HUD 配置
+Move and resize the HUD icons=移動和調整 HUD 圖示大小
+All icons=所有圖示
+Weapon and ammo icons=武器和彈藥圖示
+Pearson and Trapper icons=皮爾森和陷阱獵人圖示
+Reset layout=重設配置
+SIZE %d%%=大小 %d%%
+The icons on the right are a preview. Select a group to move it.=右側圖示為預覽。選擇一組以移動。
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=方向鍵 - 移動   SHIFT - 加快   PAGE UP/DOWN - 大小
+ENTER Save   BACKSPACE Cancel=ENTER - 儲存   BACKSPACE - 取消
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=空白鍵 - 搜尋   ENTER - 選取   BACKSPACE - 返回
+ENTER Done   BACKSPACE Delete=ENTER - 完成   BACKSPACE - 刪除
+SPACE Search=空白鍵 - 搜尋
+ENTER Done=ENTER - 完成
+Press SPACE, then type an animal, part or item name=按空白鍵，然後輸入動物、部位或物品名稱
+Yellow=黃色
+Pink=粉紅色
+Teal=青色
+Light blue=淺藍色
+Brown=棕色
+Crimson=深紅色
+Lime=萊姆色
+Lavender=薰衣草色
+Sand=沙色
+Silver=銀色
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=捕獸人配方 - %s 的一部分
 )HCL12";
 inline constexpr LocaleBlob kLocales[] = {
     {"de-DE", kLocale_de_DE},

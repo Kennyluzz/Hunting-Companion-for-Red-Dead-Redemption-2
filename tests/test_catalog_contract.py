@@ -15,7 +15,7 @@ required = [
     "constexpr CategoryDefinition kPearsonCategories",
     "scan_vendor_catalog(pearson, kShopPearson, kCostCraftingPearson",
     "vendor_material_count(inventoryId, &rootGuid",
-    '"Pearson", "Trapper", "Crafting Uses", "Challenges", "Settings", "Close"',
+    '"Pearson", "Trapper", "Search", "Crafting Uses", "Challenges", "Settings", "Close"',
     'draw_vendor_icon("blip_shop_butcher"',
 ]
 for token in required:

@@ -283,3 +283,56 @@ Nothing can be crafted right now=今すぐ製作できるものはありませ�
 Nothing to show here=表示する項目はありません
 Rifle=ライフル
 Any weapon=どの武器でも可
+
+# Search
+Search=検索
+SEARCH=検索
+Type an animal, part or item name=動物・素材・アイテム名を入力
+No matches=該当なし
+Matches item, part and animal names in this language and in English.=この言語と英語で、アイテム・素材・動物の名前を検索します。
+
+# Colours and HUD layout
+Text colour=文字の色
+Heading colour=見出しの色
+HUD label colour=HUDラベルの色
+HUD layout=HUDの配置
+Default=デフォルト
+White=白
+Cream=クリーム
+Gold=金
+Red=赤
+Orange=オレンジ
+Green=緑
+Blue=青
+Purple=紫
+Grey=灰色
+HUD LAYOUT=HUDの配置
+Move and resize the HUD icons=HUDアイコンの移動とサイズ変更
+All icons=すべてのアイコン
+Weapon and ammo icons=武器・弾薬アイコン
+Pearson and Trapper icons=ピアソン・罠猟師アイコン
+Reset layout=配置をリセット
+SIZE %d%%=サイズ %d%%
+The icons on the right are a preview. Select a group to move it.=右側のアイコンはプレビューです。移動するグループを選択してください。
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=矢印：移動   SHIFT：速く   PAGE UP/DOWN：サイズ
+ENTER Save   BACKSPACE Cancel=ENTER：保存   BACKSPACE：キャンセル
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=SPACE：検索   ENTER：決定   BACKSPACE：戻る
+ENTER Done   BACKSPACE Delete=ENTER：完了   BACKSPACE：削除
+SPACE Search=SPACE：検索
+ENTER Done=ENTER：完了
+Press SPACE, then type an animal, part or item name=SPACEを押して、動物・素材・アイテム名を入力
+Yellow=黄
+Pink=ピンク
+Teal=ティール
+Light blue=水色
+Brown=茶
+Crimson=深紅
+Lime=ライム
+Lavender=ラベンダー
+Sand=砂色
+Silver=銀
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=罠師のレシピ - %sの一部

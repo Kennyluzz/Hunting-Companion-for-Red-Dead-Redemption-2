@@ -283,3 +283,56 @@ Nothing can be crafted right now=Сейчас нечего изготовить
 Nothing to show here=Здесь пока пусто
 Rifle=Винтовка
 Any weapon=Любое оружие
+
+# Search
+Search=Поиск
+SEARCH=ПОИСК
+Type an animal, part or item name=Введите животное, часть или предмет
+No matches=Ничего не найдено
+Matches item, part and animal names in this language and in English.=Ищет названия предметов, частей и животных на этом языке и на английском.
+
+# Colours and HUD layout
+Text colour=Цвет текста
+Heading colour=Цвет заголовков
+HUD label colour=Цвет подписей HUD
+HUD layout=Расположение HUD
+Default=По умолчанию
+White=Белый
+Cream=Кремовый
+Gold=Золотой
+Red=Красный
+Orange=Оранжевый
+Green=Зелёный
+Blue=Синий
+Purple=Фиолетовый
+Grey=Серый
+HUD LAYOUT=РАСПОЛОЖЕНИЕ HUD
+Move and resize the HUD icons=Перемещение и размер значков HUD
+All icons=Все значки
+Weapon and ammo icons=Значки оружия и боеприпасов
+Pearson and Trapper icons=Значки Пирсона и траппера
+Reset layout=Сбросить расположение
+SIZE %d%%=РАЗМЕР %d%%
+The icons on the right are a preview. Select a group to move it.=Значки справа — предпросмотр. Выберите группу, чтобы её переместить.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=СТРЕЛКИ - Двигать   SHIFT - Быстрее   PAGE UP/DOWN - Размер
+ENTER Save   BACKSPACE Cancel=ENTER - Сохранить   BACKSPACE - Отмена
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=ПРОБЕЛ - Поиск   ENTER - Выбрать   BACKSPACE - Назад
+ENTER Done   BACKSPACE Delete=ENTER - Готово   BACKSPACE - Стереть
+SPACE Search=ПРОБЕЛ - Поиск
+ENTER Done=ENTER - Готово
+Press SPACE, then type an animal, part or item name=Нажмите ПРОБЕЛ и введите животное, часть или предмет
+Yellow=Жёлтый
+Pink=Розовый
+Teal=Бирюзовый
+Light blue=Голубой
+Brown=Коричневый
+Crimson=Малиновый
+Lime=Лаймовый
+Lavender=Лавандовый
+Sand=Песочный
+Silver=Серебряный
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=РЕЦЕПТ ОХОТНИКА - ЧАСТЬ КОМПЛЕКТА %s

@@ -283,3 +283,56 @@ Nothing can be crafted right now=Ahora mismo no hay recetas disponibles
 Nothing to show here=No hay nada que mostrar
 Rifle=Fusil
 Any weapon=Cualquier arma
+
+# Search
+Search=Buscar
+SEARCH=BUSCAR
+Type an animal, part or item name=Escribe un animal, una parte o un objeto
+No matches=Sin resultados
+Matches item, part and animal names in this language and in English.=Busca nombres de objetos, partes y animales en este idioma y en inglés.
+
+# Colours and HUD layout
+Text colour=Color del texto
+Heading colour=Color de los títulos
+HUD label colour=Color de las etiquetas del HUD
+HUD layout=Disposición del HUD
+Default=Predeterminado
+White=Blanco
+Cream=Crema
+Gold=Dorado
+Red=Rojo
+Orange=Naranja
+Green=Verde
+Blue=Azul
+Purple=Morado
+Grey=Gris
+HUD LAYOUT=DISPOSICIÓN DEL HUD
+Move and resize the HUD icons=Mover y cambiar el tamaño de los iconos del HUD
+All icons=Todos los iconos
+Weapon and ammo icons=Iconos de armas y munición
+Pearson and Trapper icons=Iconos de Pearson y el trampero
+Reset layout=Restablecer disposición
+SIZE %d%%=TAMAÑO %d%%
+The icons on the right are a preview. Select a group to move it.=Los iconos de la derecha son una vista previa. Elige un grupo para moverlo.
+ARROWS Move   SHIFT Faster   PAGE UP/DOWN Size=FLECHAS - Mover   MAYÚS - Más rápido   RE PÁG/AV PÁG - Tamaño
+ENTER Save   BACKSPACE Cancel=ENTER - Guardar   RETROCESO - Cancelar
+
+# Search box and more colours
+SPACE Search   ENTER Select   BACKSPACE Back=ESPACIO - Buscar   ENTER - Seleccionar   RETROCESO - Volver
+ENTER Done   BACKSPACE Delete=ENTER - Listo   RETROCESO - Borrar
+SPACE Search=ESPACIO - Buscar
+ENTER Done=ENTER - Listo
+Press SPACE, then type an animal, part or item name=Pulsa ESPACIO y escribe un animal, una parte o un objeto
+Yellow=Amarillo
+Pink=Rosa
+Teal=Verde azulado
+Light blue=Azul claro
+Brown=Marrón
+Crimson=Carmesí
+Lime=Lima
+Lavender=Lavanda
+Sand=Arena
+Silver=Plata
+
+# Garment-set pieces
+TRAPPER RECIPE - PART OF %s=RECETA DEL TRAMPERO - PARTE DE %s

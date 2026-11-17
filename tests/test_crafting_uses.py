@@ -38,14 +38,22 @@ required = (
     "kFindAllAttachedCarriableEntities, horse, itemSet",
     "kGetCarcassFromPelt, entity",
     "kDestroyItemset, itemSet",
-    "if (perfectOnly && qualityKnown && quality != 2) continue;",
-    "if (!carcassFound || species == nullptr) return;",
-    "if (isPelt ? (carcassMaterial || !perfectOnly) : !carcassMaterial) continue;",
+    "if (perfectOnly && ((qualityKnown && quality != 2) || !cleanKill)) continue;",
+    "if (!carcassFound) return false;",
+    "kGetCarriedPeltSkins, horse, skins.data()",
+    "find_pelt_identity(entity)",
+    "remember_carried_pelts();",
+    'joaat("AT_BUFFALO_TATANKA")',
+    "if (name == nullptr || std::strstr(name, \"Legendary\") == nullptr) continue;",
+    "for (const auto& carcass : hunting_companion::satchel::kCarcassItems) {",
+    "if (std::strstr(name, \"Perfect\") != nullptr && carcass.quality != 2) continue;",
+    "if (isPelt ? (carcassMaterial || !perfectOnly) : (!carcassMaterial && skinned)) continue;",
+    "kIsAnimalSkinned, carcass",
     "if (legendaryOnly) continue;",
     'model == joaat("a_c_chipmunk_01")',
     "now - g_currentHaul.lastRefreshTick < 500u",
     "void refresh_current_haul_if_due()",
-    "if (g_menu.page != MenuPage::Closed) refresh_current_haul_if_due();",
+    "if (g_menu.page != MenuPage::Closed) {\n            refresh_current_haul_if_due();",
     "bool root_item_disabled(int index) noexcept",
     "case MenuPage::CraftingUses:",
     "case MenuPage::CraftingUseDetail:",
@@ -85,3 +93,24 @@ print("PASS: read-only player/horse haul scan, submenu gating, recipe filtering,
 
 if "g_craftingUseCount == 0);" not in SOURCE:
     raise AssertionError("Crafting Uses row must be disabled when no recipe matches the haul")
+
+# Satchel carcass items are the game's own IDs (checked against the English
+# string table when generated); spot-check the naming and the perfect squirrel.
+def joaat(text):
+    value = 0
+    for byte in text.lower().encode():
+        value = (value + byte) & 0xFFFFFFFF
+        value = (value + (value << 10)) & 0xFFFFFFFF
+        value ^= value >> 6
+    value = (value + (value << 3)) & 0xFFFFFFFF
+    value ^= value >> 11
+    return (value + (value << 15)) & 0xFFFFFFFF
+
+SATCHEL = (ROOT / "src" / "embedded_satchel_carcasses.hpp").read_text(encoding="utf-8")
+for item, species, quality in (("PROVISION_ANIMAL_CARCASS_SQUIRREL_PERFECT", "Squirrel", 2),
+                               ("PROVISION_ANIMAL_CARCASS_MUSKRAT_HIGH_QUALITY", "Muskrat", 1),
+                               ("PROVISION_ANIMAL_CARCASS_RABBIT_POOR", "Rabbit", 0)):
+    row = f'{{0x{joaat(item):08X}u, "{species}", {quality}}}'
+    if row not in SATCHEL:
+        raise AssertionError(f"Satchel carcass table is missing {item}")
+print("PASS: satchel carcass items count for their pelts and feathers.")

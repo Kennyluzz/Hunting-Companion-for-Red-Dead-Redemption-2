@@ -46,6 +46,8 @@ python tools/package_release.py build/HuntingCompanion.asi
 | `src/official_strings.*` | The game's own item and challenge names, per language |
 | `src/native_fonts.cpp` | Loads the game's own font libraries (Japanese, Korean, Chinese, Latin, Cyrillic) on demand |
 | `src/font_catalog.hpp` | Reads the game's `fontmap.xml` and builds each language's font list |
+| `src/text_input.*` | Typed text for the search box (any keyboard layout, Windows IME) |
+| `src/search_text.hpp` | Case- and accent-insensitive matching for the search box |
 | `src/embedded_*.hpp` | Generated files; do not edit by hand (see below) |
 | `HuntingCompanion-Languages/` | One `.lang` file per language |
 | `data/` | Source data for the generators |
@@ -62,6 +64,7 @@ Rerun the generator after changing its input:
 | `HuntingCompanion-Languages/*.lang` | `python tools/embed_languages.py` | `src/embedded_languages.hpp` |
 | The game's English string table (`.xml`, or a `.zip` holding it) | `python tools/build_compendium_advice.py <file>` | `data/compendium_advice.json` |
 | `data/compendium_advice.json`, `data/weapon_icons.json` | `python tools/embed_hunting_recommendations.py` | `src/embedded_hunting_recommendations.hpp` |
+| The game's English string table (`.xml`, or a `.zip` holding it) | `python tools/build_satchel_carcasses.py <file>` | `src/embedded_satchel_carcasses.hpp` |
 
 ## Tests
 
@@ -74,6 +77,8 @@ python tests/test_hunting_recommendations.py
 python tests/test_crafting_uses.py
 python tests/test_native_fonts_integration.py
 python tests/test_localization.py
+python tests/test_search.py
+python tests/test_hud_layout.py
 g++ -std=c++17 -I src src/official_strings.cpp tests/test_official_strings.cpp -o test_official_strings && ./test_official_strings
 ```
 
@@ -98,11 +103,27 @@ They check data and wiring only. Anything visible has to be tested in the game.
   from the game's own `fontmap.xml`, read through the game's file system. While
   it loads the menu keeps its current language; if it cannot be loaded, a CJK
   language falls back to English and a Latin/Cyrillic one to the game's basic font.
+- **Search.** While the search page is open, the game window is subclassed so
+  typed characters (any keyboard layout, and the Windows IME for Japanese, Korean
+  and Chinese) reach the search box, and the game's controls are disabled for
+  those frames. While the box takes typing, key presses stop at the box and
+  `GetAsyncKeyState`/`GetKeyState` (hooked the first time the box opens) report
+  keyboard keys as up to every other module, so other mods' hotkeys do not fire
+  on typed letters. Otherwise every window message and key query passes straight
+  through.
+- **Haul.** Crafting Uses counts what you carry, your satchel and your saddle
+  horse: pelts stacked on the horse are read by inventory item
+  (`_GET_CARRIED_PELT_SKINS`), and a carried pelt is identified through the animal
+  it came from and remembered, so it still counts after the game removes that
+  animal.
 - **Hooks.** One game function is hooked from a worker thread at load (found by
   byte pattern; skipped if the pattern is not unique) so the mod learns where the
-  game keeps its font library. Nothing else in the game is changed.
+  game keeps its font library. The only other hooks are the two Windows key-state
+  functions described under Search, active only while the search box is open.
+  Nothing else in the game is changed.
 - **Diagnostics.** `FontLog=1` under `[Fonts]` in `HuntingCompanion.ini` writes
-  `HuntingCompanion.fonts.log` to the game folder.
+  `HuntingCompanion.fonts.log` to the game folder (font loading, unknown Compendium
+  labels, and what the haul scan sees while the menu is open).
 
 ## Credits
 
