@@ -121,7 +121,6 @@ constexpr std::uint64_t kIsEntityAPed = 0xCF8176912DDA4EA5ull;
 constexpr std::uint64_t kGetIsCarriablePelt = 0x255B6DB4E3AD3C3Eull;
 constexpr std::uint64_t kGetCarcassFromPelt = 0x2A77EF9BEC8518F4ull;
 constexpr std::uint64_t kGetPedQuality = 0x7BCC6087D130312Aull;
-constexpr std::uint64_t kIsAnimalSkinned = 0x88A5564B19C15391ull;
 // The animal type (eAnimalType hash); legendary animals have their own.
 constexpr std::uint64_t kGetPedAnimalType = 0x964000D355219FC0ull;
 // How cleanly the animal was killed (0 = poor, 1 = good, 2 = perfect).
@@ -1585,6 +1584,53 @@ struct PeltIdentity {
 std::array<PeltIdentity, 32> g_peltIdentities{};
 std::size_t g_nextPeltIdentity{};
 
+// Animals known to have been skinned: a pelt that was seen leads back to the
+// animal it came from. Such a carcass (carried to a butcher, say) counts only
+// as a carcass, not for the pelt it no longer has.
+std::array<int, 64> g_skinnedCarcasses{};
+std::size_t g_nextSkinnedCarcass{};
+
+bool known_skinned(int carcass) noexcept {
+    for (int known : g_skinnedCarcasses) {
+        if (known != 0 && known == carcass) return true;
+    }
+    return false;
+}
+
+void remember_skinned(int carcass) noexcept {
+    if (carcass == 0 || known_skinned(carcass)) return;
+    g_skinnedCarcasses[g_nextSkinnedCarcass] = carcass;
+    g_nextSkinnedCarcass = (g_nextSkinnedCarcass + 1) % g_skinnedCarcasses.size();
+}
+
+// Every skinning (and plucking) is a loot of the animal, and the game reports
+// it with EVENT_LOOT_COMPLETE: looter, looted entity, success. Read every
+// frame, it marks the animal as skinned however its pelt left it (onto the
+// shoulder, or straight into the satchel for small animals). Events last one
+// frame, so this must run every frame; it only reads them.
+constexpr std::uint64_t kGetNumberOfEvents = 0x5CE8DE5909565748ull;
+constexpr std::uint64_t kGetEventAtIndex = 0xA85E614430EFF816ull;
+constexpr std::uint64_t kGetEventData = 0x57EC5FA4D4D6AFCAull;
+
+void note_skinning_events() noexcept {
+    constexpr int kEventGroup = 0;  // the game's script events
+    const int count = std::clamp(invoke_native<int>(kGetNumberOfEvents, kEventGroup), 0, 256);
+    if (count == 0) return;
+    const int playerPed = invoke_native<int>(kPlayerPedId);
+    for (int index = 0; index < count; ++index) {
+        if (invoke_native<std::uint32_t>(kGetEventAtIndex, kEventGroup, index) != joaat("EVENT_LOOT_COMPLETE"))
+            continue;
+        std::array<std::uint64_t, 3 + 5> data{};  // three 8-byte fields, with room to spare
+        if (invoke_native<int>(kGetEventData, kEventGroup, index, data.data(), 3) == 0) continue;
+        const int looter = static_cast<int>(data[0]);
+        const int looted = static_cast<int>(data[1]);
+        if (looter != playerPed || data[2] == 0 || looted == 0) continue;
+        if (invoke_native<int>(kIsEntityAPed, looted) == 0) continue;
+        remember_skinned(looted);
+        hunting_companion::native_fonts::diagnostic("Skinned or plucked: entity %d", looted);
+    }
+}
+
 const PeltIdentity* find_pelt_identity(int entity) noexcept {
     for (const PeltIdentity& identity : g_peltIdentities) {
         if (identity.entity == entity && identity.count > 0) return &identity;
@@ -1631,6 +1677,11 @@ bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t
     const bool carcassFound = carcass != 0 && invoke_native<int>(kDoesEntityExist, carcass) != 0 &&
                               invoke_native<int>(kIsEntityAPed, carcass) != 0;
     if (!carcassFound) return false;
+    if (isPelt) remember_skinned(carcass);
+    // A whole animal that has been skinned or plucked has nothing left to give:
+    // not its pelt or feathers, and not the intact carcass Pearson takes either
+    // (a skinned carcass is a different item).
+    if (!isPelt && known_skinned(carcass)) return true;
     const std::uint32_t model = invoke_native<std::uint32_t>(kGetEntityModel, carcass);
     const char* species = find_animal_species(model);
     // _GET_PED_QUALITY reports the ordinary skinning grade (0=poor, 1=good, 2=perfect).
@@ -1642,10 +1693,6 @@ bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t
     // the ordinary materials of its species. The two legendary bison are told
     // apart by their animal type.
     if (is_legendary_animal(carcass)) {
-        // No "already skinned" check here: in game, a whole legendary animal on
-        // the shoulder or the horse did not count, which only that check could
-        // cause (its pelt did count), so the game seems to report legendary
-        // animals as skinned. A skinned legendary carcass is not worth carrying.
         const bool tatanka = invoke_native<std::uint32_t>(kGetPedAnimalType, carcass) == joaat("AT_BUFFALO_TATANKA");
         for (const auto& sourceEntry : kMaterialSources) {
             if (std::strcmp(sourceEntry.species, species) != 0) continue;
@@ -1664,7 +1711,6 @@ bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t
 
     // The quality value does not identify a legendary animal, so it is never used to infer one.
     const bool qualityKnown = quality >= 0 && quality <= 2;
-    const bool skinned = !isPelt && invoke_native<int>(kIsAnimalSkinned, carcass) != 0;
     // A perfect pelt or carcass also needs a clean kill: a three-star animal shot
     // messily gives a lesser pelt, also once it has been skinned.
     const int cleanliness = invoke_native<int>(kGetPedDamageCleanliness, carcass);
@@ -1683,8 +1729,10 @@ bool identify_entity_materials(int entity, bool isPelt, std::array<std::uint32_t
         if (legendaryOnly) continue;
         // A carried pelt is its pelt/hide/skin material. A whole animal is its
         // carcass and also everything skinning it will give (pelt, feathers,
-        // antlers), unless it has been skinned already.
-        if (isPelt ? (carcassMaterial || !perfectOnly) : (!carcassMaterial && skinned)) continue;
+        // antlers); a skinned one was turned away above. The game's own "is
+        // animal skinned" query is not used: in game it reported intact animals
+        // (a three-star deer, a legendary ram) as skinned.
+        if (isPelt && (carcassMaterial || !perfectOnly)) continue;
         if (foundCount < found.size()) found[foundCount++] = sourceEntry.hash;
     }
     if (isPelt) remember_pelt_identity(entity, found.data(), foundCount);
@@ -5871,6 +5919,7 @@ void ScriptMain() {
 
     DWORD nextPeltCheck = 0;
     for (;;) {
+        note_skinning_events();
         if (g_menu.page != MenuPage::Closed) {
             refresh_current_haul_if_due();
         } else if (static_cast<LONG>(GetTickCount() - nextPeltCheck) >= 0) {
