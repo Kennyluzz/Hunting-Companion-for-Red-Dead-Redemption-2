@@ -4,6 +4,7 @@
 #include <imm.h>
 
 #include "MinHook.h"
+#include "native_fonts.hpp"
 
 #include <cstdint>
 #include <cstring>
@@ -212,8 +213,13 @@ void install_key_state_hooks() noexcept {
     const auto* nt = reinterpret_cast<const IMAGE_NT_HEADERS*>(reinterpret_cast<const char*>(self) + dos->e_lfanew);
     g_moduleStart = reinterpret_cast<std::uintptr_t>(self);
     g_moduleEnd = g_moduleStart + nt->OptionalHeader.SizeOfImage;
+    using hunting_companion::native_fonts::diagnostic;
     const MH_STATUS init = MH_Initialize();
-    if (init != MH_OK && init != MH_ERROR_ALREADY_INITIALIZED) return;
+    if (init != MH_OK && init != MH_ERROR_ALREADY_INITIALIZED) {
+        diagnostic("Search box: key-state hooks not installed (%s); other mods may see typed keys",
+                   MH_StatusToString(init));
+        return;
+    }
     // If a hook cannot be made (another tool holds the function in a way MinHook
     // cannot patch), typing still works; only that kind of mod keeps seeing keys.
     LPVOID target = nullptr;
@@ -226,6 +232,10 @@ void install_key_state_hooks() noexcept {
                            reinterpret_cast<LPVOID*>(&g_originalGetKeyState), &target) == MH_OK &&
         MH_EnableHook(target) == MH_OK)
         g_keyStateTarget = target;
+    // A failed hook only means that kind of mod can still see typed keys.
+    diagnostic("Search box: GetAsyncKeyState hook %s, GetKeyState hook %s",
+               g_asyncKeyStateTarget != nullptr ? "installed" : "NOT installed",
+               g_keyStateTarget != nullptr ? "installed" : "NOT installed");
 }
 
 bool install() noexcept {
@@ -235,12 +245,21 @@ bool install() noexcept {
     g_contextSwapped = false;
     HWND window = nullptr;
     EnumWindows(find_game_window, reinterpret_cast<LPARAM>(&window));
-    if (window == nullptr) return false;
+    if (window == nullptr) {
+        static bool reported = false;  // retried every frame; logged once
+        if (!reported) hunting_companion::native_fonts::diagnostic("Search box: the game window was not found; typing is unavailable");
+        reported = true;
+        return false;
+    }
     g_imeMessage = RegisterWindowMessageW(L"HuntingCompanion.TextInput");
     g_previous = reinterpret_cast<WNDPROC>(GetWindowLongPtrW(window, GWLP_WNDPROC));
     const LONG_PTR previous = SetWindowLongPtrW(window, GWLP_WNDPROC,
                                                 reinterpret_cast<LONG_PTR>(&window_proc));
-    if (previous == 0) return false;
+    if (previous == 0) {
+        hunting_companion::native_fonts::diagnostic("Search box: could not attach to the game window (error %lu)",
+                                                    static_cast<unsigned long>(GetLastError()));
+        return false;
+    }
     g_previous = reinterpret_cast<WNDPROC>(previous);
     g_window = window;
     return true;
