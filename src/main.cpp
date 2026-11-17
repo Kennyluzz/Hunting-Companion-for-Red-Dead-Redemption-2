@@ -11,6 +11,7 @@
 #include "font_catalog.hpp"
 #include "embedded_challenge_objective_hashes.hpp"
 #include "embedded_hunting_recommendations.hpp"
+#include "embedded_satchel_carcasses.hpp"
 #include "search_text.hpp"
 #include "text_input.hpp"
 
@@ -1724,6 +1725,25 @@ void update_current_haul() noexcept {
         if (!is_animal_part_material(material.hash)) continue;
         const int count = player_owned_count(inventoryId, material.hash);
         if (count > 0) add_current_haul_count(material.hash, count, 0);
+    }
+
+    // Small animals put away whole are satchel carcass items ("Perfect Squirrel
+    // Carcass"). Like a carried animal, each counts for what breaking it down
+    // gives: its pelt (perfect only from a perfect carcass) and feathers. A
+    // carcass material itself (Perfect Wolf Carcass) is the item and was
+    // counted above.
+    for (const auto& carcass : hunting_companion::satchel::kCarcassItems) {
+        const int count = player_owned_count(inventoryId, carcass.item);
+        if (count <= 0) continue;
+        haul_trace(" satchel:%s q%d x%d", carcass.species, carcass.quality, count);
+        for (const auto& sourceEntry : kMaterialSources) {
+            if (std::strcmp(sourceEntry.species, carcass.species) != 0) continue;
+            const char* name = find_material_name(sourceEntry.hash);
+            if (name == nullptr || std::strstr(name, "Legendary") != nullptr ||
+                std::strstr(name, "Carcass") != nullptr) continue;
+            if (std::strstr(name, "Perfect") != nullptr && carcass.quality != 2) continue;
+            add_current_haul_count(sourceEntry.hash, count, 0);
+        }
     }
 
     // Read the player's carriable slots (0-4). Slots 5-7 are the saddle

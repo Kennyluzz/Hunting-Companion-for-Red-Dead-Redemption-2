@@ -64,6 +64,7 @@ Rerun the generator after changing its input:
 | `HuntingCompanion-Languages/*.lang` | `python tools/embed_languages.py` | `src/embedded_languages.hpp` |
 | The game's English string table (`.xml`, or a `.zip` holding it) | `python tools/build_compendium_advice.py <file>` | `data/compendium_advice.json` |
 | `data/compendium_advice.json`, `data/weapon_icons.json` | `python tools/embed_hunting_recommendations.py` | `src/embedded_hunting_recommendations.hpp` |
+| The game's English string table (`.xml`, or a `.zip` holding it) | `python tools/build_satchel_carcasses.py <file>` | `src/embedded_satchel_carcasses.hpp` |
 
 ## Tests
 

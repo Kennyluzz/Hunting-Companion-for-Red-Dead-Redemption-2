@@ -36,6 +36,7 @@ add_library(HuntingCompanion SHARED
     src/embedded_official_strings.hpp
     src/embedded_challenge_objective_hashes.hpp
     src/embedded_hunting_recommendations.hpp
+    src/embedded_satchel_carcasses.hpp
     ${HC_THIRD_PARTY_SOURCES})
 
 target_compile_features(HuntingCompanion PRIVATE cxx_std_17)

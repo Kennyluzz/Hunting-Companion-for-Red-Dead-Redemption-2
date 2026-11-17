@@ -60,6 +60,9 @@
   its pelt is for. A perfect pelt or carcass is only counted from a three-star
   animal killed cleanly, and a legendary animal never counts for the ordinary
   materials of its species.
+- **Animals in the satchel count too.** A small animal put away whole (for example
+  a Perfect Squirrel Carcass) counts for the pelt and feathers breaking it down
+  gives, like an animal you carry; a perfect pelt only from a perfect carcass.
 - **Pelts on the horse count again.** Pelts stacked on the saddle horse are read by
   inventory item, and a pelt you carried keeps its identity after the game removes
   the animal it came from, so it no longer drops out of Crafting Uses once it is on
@@ -76,6 +79,8 @@
 
 ### For developers
 
+- New `tools/build_satchel_carcasses.py` builds the satchel carcass items
+  (`src/embedded_satchel_carcasses.hpp`) from the game's English string table.
 - New `src/text_input.*` (typed text through the game window and the Windows IME)
   and `src/search_text.hpp` (case- and accent-insensitive matching), with host
   tests `tests/test_search.py` and `tests/test_hud_layout.py`.
