@@ -43,3 +43,19 @@ if "Unknown recipe" in SOURCE:
     raise AssertionError("Generic unknown recipe fallback remains")
 
 print("Pearson retention and unknown-recipe exclusion checks passed.")
+
+# Epilogue: playing as John, Pearson has left the gang.
+EPILOGUE = (
+    'invoke_native<int>(kMissionDataWasCompleted, joaat("NTV3")) != 0',
+    "g_pearsonGone = myLastBoyDone || playingJohn;",
+    "if (index == kRootPearson) return g_pearsonGone;",
+    "const bool needsPearson = !g_pearsonGone && species != nullptr &&",
+    "i < g_tracker.pearson.recipeCount && !g_pearsonGone;",
+    "for (int vendorIndex = g_pearsonGone ? 1 : 0; vendorIndex < 2; ++vendorIndex) {",
+    "g_pearsonGone = g_pearsonSetting == 0;",
+    'WritePrivateProfileStringA("General", "PearsonAvailable", value, g_iniPath);',
+)
+for token in EPILOGUE:
+    if token not in SOURCE:
+        raise AssertionError(f"Epilogue handling missing: {token}")
+print("Pearson switched off after My Last Boy (NTV3) or while playing as John.")

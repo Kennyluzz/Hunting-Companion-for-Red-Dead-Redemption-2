@@ -340,6 +340,9 @@ Silver=Silber
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=FALLENSTELLER-REZEPT - TEIL VON %s
+
+# Pearson setting
+AUTO=AUTO
 )HCL0";
 inline constexpr char kLocale_en_US[] = R"HCL1(# Hunting Companion localization — en-US
 # Companion-owned interface phrases follow this locale.
@@ -551,6 +554,9 @@ Silver=Silver
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=TRAPPER RECIPE - PART OF %s
+
+# Pearson setting
+AUTO=AUTO
 )HCL1";
 inline constexpr char kLocale_es_ES[] = R"HCL2(# Hunting Companion localization — es-ES
 # Companion-owned interface phrases follow this locale.
@@ -890,6 +896,9 @@ Silver=Plata
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=RECETA DEL TRAMPERO - PARTE DE %s
+
+# Pearson setting
+AUTO=AUTO
 )HCL2";
 inline constexpr char kLocale_es_MX[] = R"HCL3(# Hunting Companion localization — es-MX
 # Companion-owned interface phrases follow this locale.
@@ -1229,6 +1238,9 @@ Silver=Plata
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=RECETA DEL TRAMPERO - PARTE DE %s
+
+# Pearson setting
+AUTO=AUTO
 )HCL3";
 inline constexpr char kLocale_fr_FR[] = R"HCL4(# Hunting Companion localization — fr-FR
 # Companion-owned interface phrases follow this locale.
@@ -1568,6 +1580,9 @@ Silver=Argent
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=RECETTE DU TRAPPEUR - FAIT PARTIE DE %s
+
+# Pearson setting
+AUTO=AUTO
 )HCL4";
 inline constexpr char kLocale_it_IT[] = R"HCL5(# Hunting Companion localization — it-IT
 # Companion-owned interface phrases follow this locale.
@@ -1907,6 +1922,9 @@ Silver=Argento
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=RICETTA DEL CACCIATORE - PARTE DI %s
+
+# Pearson setting
+AUTO=AUTO
 )HCL5";
 inline constexpr char kLocale_ja_JP[] = R"HCL6(# Hunting Companion localization — ja-JP
 # Companion-owned interface phrases follow this locale.
@@ -2246,6 +2264,9 @@ Silver=銀
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=罠師のレシピ - %sの一部
+
+# Pearson setting
+AUTO=自動
 )HCL6";
 inline constexpr char kLocale_ko_KR[] = R"HCL7(# Hunting Companion localization — ko-KR
 # Companion-owned interface phrases follow this locale.
@@ -2584,6 +2605,9 @@ Silver=은색
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=덫 사냥꾼 제작법 - %s 세트의 일부
+
+# Pearson setting
+AUTO=자동
 )HCL7";
 inline constexpr char kLocale_pl_PL[] = R"HCL8(# Hunting Companion localization — pl-PL
 # Companion-owned interface phrases follow this locale.
@@ -2922,6 +2946,9 @@ Silver=Srebrny
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=PRZEPIS TRAPERA - CZĘŚĆ ZESTAWU %s
+
+# Pearson setting
+AUTO=AUTO
 )HCL8";
 inline constexpr char kLocale_pt_BR[] = R"HCL9(# Hunting Companion localization — pt-BR
 # Companion-owned interface phrases follow this locale.
@@ -3261,6 +3288,9 @@ Silver=Prata
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=RECEITA DO CAÇADOR - PARTE DE %s
+
+# Pearson setting
+AUTO=AUTO
 )HCL9";
 inline constexpr char kLocale_ru_RU[] = R"HCL10(# Hunting Companion localization — ru-RU
 # Companion-owned interface phrases follow this locale.
@@ -3600,6 +3630,9 @@ Silver=Серебряный
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=РЕЦЕПТ ОХОТНИКА - ЧАСТЬ КОМПЛЕКТА %s
+
+# Pearson setting
+AUTO=АВТО
 )HCL10";
 inline constexpr char kLocale_zh_CN[] = R"HCL11(# Hunting Companion localization — zh-CN
 # Companion-owned interface phrases follow this locale.
@@ -3939,6 +3972,9 @@ Silver=银色
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=捕兽人配方 - %s 的一部分
+
+# Pearson setting
+AUTO=自动
 )HCL11";
 inline constexpr char kLocale_zh_TW[] = R"HCL12(# Hunting Companion localization — zh-TW
 # Companion-owned interface phrases follow this locale.
@@ -4278,6 +4314,9 @@ Silver=銀色
 
 # Garment-set pieces
 TRAPPER RECIPE - PART OF %s=捕獸人配方 - %s 的一部分
+
+# Pearson setting
+AUTO=自動
 )HCL12";
 inline constexpr LocaleBlob kLocales[] = {
     {"de-DE", kLocale_de_DE},

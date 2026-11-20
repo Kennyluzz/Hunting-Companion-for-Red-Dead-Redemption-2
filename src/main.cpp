@@ -415,6 +415,16 @@ struct Guid {
 };
 static_assert(sizeof(Guid) == 32, "RDR2 inventory GUID must be 32 bytes");
 
+// The player's inventory. It is read from the player's character, so Arthur
+// and John each use their own; with a mod that turns the player into another
+// character, that character may have no inventory of its own, and the
+// player's inventory (ID 1 in Story Mode) is used instead.
+constexpr int kStoryPlayerInventory = 1;
+int player_inventory_id(int playerPed) noexcept {
+    const int inventoryId = invoke_native<int>(kInventoryGetInventoryIdFromPed, playerPed);
+    return inventoryId >= 0 ? inventoryId : kStoryPlayerInventory;
+}
+
 bool get_guid_from_item(int inventoryId, Guid* parent, std::uint32_t itemHash,
                         std::uint32_t slotHash, Guid* outGuid) noexcept {
     *outGuid = {};
@@ -837,6 +847,43 @@ struct TrackerState {
     bool ready{};
 };
 TrackerState g_tracker{};
+
+// Pearson leaves the gang in chapter 6, once "My Last Boy" is completed, and
+// is gone for the rest of the story: his recipes can no longer be made, so his
+// menu page, his HUD icon and his recipes in Search and Crafting Uses are
+// switched off. The game is asked whether that mission is completed (its code
+// is NTV3, which the game's own text labels "My Last Boy"); playing as John
+// (player_three) also counts, as a fallback. Checked once a second, so a save
+// from any point in the story is handled.
+constexpr std::uint64_t kMissionDataWasCompleted = 0xE54DC27571D5EDC4ull;
+bool g_pearsonGone = false;
+// Settings > Pearson: -1 = automatic, 1 = always available, 0 = gone (for
+// example with a mod that changes the story or the player character).
+int g_pearsonSetting = -1;
+
+void update_story_state() noexcept {
+    if (g_pearsonSetting >= 0) {
+        g_pearsonGone = g_pearsonSetting == 0;
+        return;
+    }
+    static DWORD nextCheck = 0;
+    static int lastLogged = -1;
+    const DWORD now = GetTickCount();
+    if (static_cast<LONG>(now - nextCheck) < 0) return;
+    nextCheck = now + 1000;
+    const int playerPed = invoke_native<int>(kPlayerPedId);
+    if (playerPed == 0) return;
+    const bool myLastBoyDone = invoke_native<int>(kMissionDataWasCompleted, joaat("NTV3")) != 0;
+    const bool playingJohn = invoke_native<std::uint32_t>(kGetEntityModel, playerPed) == joaat("player_three");
+    g_pearsonGone = myLastBoyDone || playingJohn;
+    const int state = (myLastBoyDone ? 1 : 0) | (playingJohn ? 2 : 0);
+    if (state != lastLogged) {
+        lastLogged = state;
+        hunting_companion::native_fonts::diagnostic("Story: My Last Boy %s, playing as %s",
+                                                    myLastBoyDone ? "completed" : "not completed",
+                                                    playingJohn ? "John" : "Arthur");
+    }
+}
 
 // Zeroes a large all-zero-by-default aggregate in place. `value = T{}` would
 // build a temporary of the same size on the stack first.
@@ -1268,7 +1315,7 @@ bool build_tracker_state() noexcept {
         set_scan_stage(ScanStage::Failed);
         return false;
     }
-    const int inventoryId = invoke_native<int>(kInventoryGetInventoryIdFromPed, playerPed);
+    const int inventoryId = player_inventory_id(playerPed);
     set_scan_progress(2);
     if (inventoryId < 0) {
         InterlockedExchange(&g_scanError, 4);
@@ -1782,8 +1829,7 @@ void update_current_haul() noexcept {
     g_haulTraceLength = 0;
     const int playerPed = invoke_native<int>(kPlayerPedId);
     if (playerPed == 0) return;
-    const int inventoryId = invoke_native<int>(kInventoryGetInventoryIdFromPed, playerPed);
-    if (inventoryId < 0) return;
+    const int inventoryId = player_inventory_id(playerPed);
     g_currentHaul.inventoryId = inventoryId;
     g_currentHaul.ready = true;
 
@@ -2531,7 +2577,7 @@ void draw_hud_preview() noexcept {
         }
         if (sample != nullptr) draw_hunting_recommendation_icons(*sample, layout);
     }
-    if (blip_texture_dictionary_ready()) draw_vendor_icons(layout, true, true);
+    if (blip_texture_dictionary_ready()) draw_vendor_icons(layout, !g_pearsonGone, true);
 }
 
 void update_hud() noexcept {
@@ -2560,7 +2606,8 @@ void update_hud() noexcept {
     const bool legendary = is_legendary_animal(focusedEntity);
     if (species == nullptr && recommendation == nullptr && !legendary) return;
 
-    const bool needsPearson = species != nullptr && species_needed(g_tracker.pearson.demand, species, legendary);
+    const bool needsPearson = !g_pearsonGone && species != nullptr &&
+                              species_needed(g_tracker.pearson.demand, species, legendary);
     const bool needsTrapper = species != nullptr && species_needed(g_tracker.trapper.demand, species, legendary);
 
     HudIconLayout layout{};
@@ -2605,8 +2652,9 @@ constexpr int kSetTextColour = 6;
 constexpr int kSetHeadingColour = 7;
 constexpr int kSetHudLabelColour = 8;
 constexpr int kSetHudLayout = 9;
-constexpr int kSetBack = 10;
-constexpr int kSettingsCount = 11;
+constexpr int kSetPearson = 10;
+constexpr int kSetBack = 11;
+constexpr int kSettingsCount = 12;
 constexpr int kSettingsVisibleRows = 7;  // the language details sit below them
 // Rows of the HUD layout page; the first three are kHudAll, kHudWeapons, kHudVendors.
 constexpr int kLayoutReset = 3;
@@ -2784,6 +2832,10 @@ void load_configuration() noexcept {
     g_textColour = load_colour("TextColour");
     g_headingColour = load_colour("HeadingColour");
     g_hudLabelColour = load_colour("HudLabelColour");
+    {
+        const int pearson = static_cast<int>(GetPrivateProfileIntA("General", "PearsonAvailable", -1, g_iniPath));
+        g_pearsonSetting = pearson >= -1 && pearson <= 1 ? pearson : -1;
+    }
     apply_heading_colour();
     load_hud_layout();
     // MenuFont (0-4, one of the fallback fonts) is the default for languages
@@ -2811,6 +2863,12 @@ void load_configuration() noexcept {
     char languageValue[16]{};
     std::snprintf(languageValue, sizeof(languageValue), "%d", g_uiLanguageOverride);
     WritePrivateProfileStringA("General", "UILanguage", languageValue, g_iniPath);
+    // A generated ini also gets the [Fonts] FontLog switch, so it can simply be
+    // set to 1 when a log is needed for a bug report.
+    char fontLog[8]{};
+    if (GetPrivateProfileStringA("Fonts", "FontLog", "", fontLog, sizeof(fontLog), g_iniPath) == 0 &&
+        GetPrivateProfileStringA("General", "FontLog", "", fontLog, sizeof(fontLog), g_iniPath) == 0)
+        WritePrivateProfileStringA("Fonts", "FontLog", "0", g_iniPath);
 }
 
 void save_menu_hotkey() noexcept {
@@ -2938,7 +2996,9 @@ hunting_companion::native_fonts::Settings make_font_settings() noexcept {
     initialise_ini_path();
     hunting_companion::native_fonts::Settings settings;
     if (g_iniPath[0] != '\0') {
-        settings.fileLog = GetPrivateProfileIntA("Fonts", "FontLog", 0, g_iniPath) != 0;
+        // FontLog belongs under [Fonts]; under [General] it is accepted too.
+        settings.fileLog = GetPrivateProfileIntA("Fonts", "FontLog", 0, g_iniPath) != 0 ||
+                           GetPrivateProfileIntA("General", "FontLog", 0, g_iniPath) != 0;
         settings.logDirectory = g_moduleDirectory;
         settings.iniPath = g_iniPath;
     }
@@ -3611,7 +3671,7 @@ void build_crafting_uses_list() noexcept {
         return;
     }
 
-    for (std::size_t i = 0; i < g_tracker.pearson.recipeCount; ++i) {
+    for (std::size_t i = 0; i < g_tracker.pearson.recipeCount && !g_pearsonGone; ++i) {
         append_crafting_use_entry(false, static_cast<int>(i), nullptr);
     }
 
@@ -3751,7 +3811,7 @@ void build_search_results() noexcept {
     const std::size_t queryLength =
         hunting_companion::search_text::fold_utf8(g_searchQuery, query, kMaxSearchCodepoints);
     if (queryLength > 0 && g_tracker.ready) {
-        for (int vendorIndex = 0; vendorIndex < 2; ++vendorIndex) {
+        for (int vendorIndex = g_pearsonGone ? 1 : 0; vendorIndex < 2; ++vendorIndex) {
             const bool trapper = vendorIndex == 1;
             const VendorState& vendor = trapper ? g_tracker.trapper : g_tracker.pearson;
             for (std::size_t i = 0; i < vendor.recipeCount; ++i) {
@@ -4181,6 +4241,9 @@ void update_menu_input() noexcept {
         adjust_hud_placement();
         return;
     }
+    if (g_menu.page == MenuPage::Root && root_item_disabled(kRootPearson) &&
+        g_menu.selection == kRootPearson)
+        g_menu.selection = kRootTrapper;
     if (g_menu.page == MenuPage::Root && root_item_disabled(kRootCraftingUses) &&
         g_menu.selection == kRootCraftingUses)
         g_menu.selection = kRootChallenges;
@@ -4297,6 +4360,27 @@ void update_menu_input() noexcept {
         if (key_pressed(VK_LEFT)) { change_ui_language(-1); return; }
         if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_ui_language(1); return; }
     }
+    if (g_menu.page == MenuPage::Settings && g_menu.selection == kSetPearson) {
+        int direction = 0;
+        if (key_pressed(VK_LEFT)) direction = -1;
+        else if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) direction = 1;
+        if (direction != 0) {
+            // Auto -> Available -> Unavailable -> Auto
+            static constexpr int kOrder[] = {-1, 1, 0};
+            int position = 0;
+            while (position < 3 && kOrder[position] != g_pearsonSetting) ++position;
+            g_pearsonSetting = kOrder[(position + direction + 3) % 3];
+            if (g_iniPath[0] != '\0') {
+                char value[8]{};
+                std::snprintf(value, sizeof(value), "%d", g_pearsonSetting);
+                WritePrivateProfileStringA("General", "PearsonAvailable", value, g_iniPath);
+            }
+            update_story_state();  // a fixed choice applies at once
+            InterlockedExchange(&g_haulDirty, 1);  // Crafting Uses follows at once
+            g_searchDirty = true;
+            return;
+        }
+    }
     if (g_menu.page == MenuPage::Settings &&
         (g_menu.selection == kSetTextColour || g_menu.selection == kSetHeadingColour ||
          g_menu.selection == kSetHudLabelColour)) {
@@ -4316,7 +4400,8 @@ void update_menu_input() noexcept {
     if (!key_pressed(VK_RETURN)) return;
     switch (g_menu.page) {
         case MenuPage::Root:
-            if (g_menu.selection == kRootPearson || g_menu.selection == kRootTrapper) {
+            if ((g_menu.selection == kRootPearson && !root_item_disabled(kRootPearson)) ||
+                g_menu.selection == kRootTrapper) {
                 g_menu.trapper = (g_menu.selection == kRootTrapper);
                 g_menu.rootReturnSelection = g_menu.selection;
                 build_menu_categories();
@@ -5005,12 +5090,14 @@ const char* root_label(int index, char*, std::size_t) noexcept {
     return (index >= 0 && index < kRootCount) ? labels[index] : "";
 }
 bool root_item_disabled(int index) noexcept {
+    if (index == kRootPearson) return g_pearsonGone;
     // Satchel materials alone (antlers, claws...) count as haul, so gate on
     // the recipe list itself: no matching uncrafted recipe means nothing to open.
     return index == kRootCraftingUses && (!g_currentHaul.ready || !current_haul_has_any() ||
                                           g_craftingUseCount == 0);
 }
 const char* root_row_status(int index, char*, std::size_t) noexcept {
+    if (index == kRootPearson) return g_pearsonGone ? "UNAVAILABLE" : "";
     if (index != kRootCraftingUses) return "";
     return root_item_disabled(index) ? "NO HAUL" : "AVAILABLE";
 }
@@ -5208,6 +5295,11 @@ void draw_settings_page() noexcept {
             case kSetHudLayout:
                 label = "HUD layout";
                 status = "CHANGE";
+                break;
+            case kSetPearson:
+                label = "Pearson";
+                status = g_pearsonSetting < 0 ? "AUTO" :
+                         (g_pearsonSetting == 1 ? "AVAILABLE" : "UNAVAILABLE");
                 break;
             default:
                 label = "Back";
@@ -5919,6 +6011,7 @@ void ScriptMain() {
 
     DWORD nextPeltCheck = 0;
     for (;;) {
+        update_story_state();
         note_skinning_events();
         if (g_menu.page != MenuPage::Closed) {
             refresh_current_haul_if_due();
