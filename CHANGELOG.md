@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.40.1
+
+- Some changes to how the mod works later in the story.
+
 ## 1.40.0
 
 ### Search

@@ -43,3 +43,20 @@ if "Unknown recipe" in SOURCE:
     raise AssertionError("Generic unknown recipe fallback remains")
 
 print("Pearson retention and unknown-recipe exclusion checks passed.")
+
+# STORY SPOILER: Pearson leaves after "My Last Boy" (NTV3); playing as John also counts.
+# Player-facing texts stay spoiler-free.
+PEARSON_STORY = (
+    "invoke_native<int>(kMissionDataWasCompleted, kPearsonEndMission) != 0",
+    "g_pearsonUnavailable = missionDone || playingJohn;",
+    "if (index == kRootPearson) return g_pearsonUnavailable;",
+    "const bool needsPearson = !g_pearsonUnavailable && species != nullptr &&",
+    "i < g_tracker.pearson.recipeCount && !g_pearsonUnavailable;",
+    "for (int vendorIndex = g_pearsonUnavailable ? 1 : 0; vendorIndex < 2; ++vendorIndex) {",
+    "g_pearsonUnavailable = g_pearsonSetting == 0;",
+    'WritePrivateProfileStringA("General", "PearsonAvailable", value, g_iniPath);',
+)
+for token in PEARSON_STORY:
+    if token not in SOURCE:
+        raise AssertionError(f"Pearson story handling missing: {token}")
+print("Pearson switched off by the story check.")
