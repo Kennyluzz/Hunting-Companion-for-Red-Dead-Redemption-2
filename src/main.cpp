@@ -1859,6 +1859,27 @@ void remember_carried_pelts() noexcept {
 
 char g_lastHaulTrace[sizeof(g_haulTrace)]{};
 
+// Whole animals held as inventory items (the game's PROVISION_ANIMAL_CARCASS_*
+// IDs), in the satchel or in the horse's own inventory: each counts for what
+// breaking it down gives, its pelt (perfect only from a perfect carcass) and
+// feathers. A carcass material itself (Perfect Wolf Carcass) is the item and is
+// counted with the other materials.
+void add_carcass_items(int inventory, int source, const char* where) noexcept {
+    for (const auto& carcass : hunting_companion::satchel::kCarcassItems) {
+        const int count = player_owned_count(inventory, carcass.item);
+        if (count <= 0) continue;
+        haul_trace(" %s:%s q%d x%d", where, carcass.species, carcass.quality, count);
+        for (const auto& sourceEntry : kMaterialSources) {
+            if (std::strcmp(sourceEntry.species, carcass.species) != 0) continue;
+            const char* name = find_material_name(sourceEntry.hash);
+            if (name == nullptr || std::strstr(name, "Legendary") != nullptr ||
+                std::strstr(name, "Carcass") != nullptr) continue;
+            if (std::strstr(name, "Perfect") != nullptr && carcass.quality != 2) continue;
+            add_current_haul_count(sourceEntry.hash, count, source);
+        }
+    }
+}
+
 void update_current_haul() noexcept {
     g_currentHaul = {};
     g_haulTrace[0] = '\0';
@@ -1881,19 +1902,7 @@ void update_current_haul() noexcept {
     // gives: its pelt (perfect only from a perfect carcass) and feathers. A
     // carcass material itself (Perfect Wolf Carcass) is the item and was
     // counted above.
-    for (const auto& carcass : hunting_companion::satchel::kCarcassItems) {
-        const int count = player_owned_count(inventoryId, carcass.item);
-        if (count <= 0) continue;
-        haul_trace(" satchel:%s q%d x%d", carcass.species, carcass.quality, count);
-        for (const auto& sourceEntry : kMaterialSources) {
-            if (std::strcmp(sourceEntry.species, carcass.species) != 0) continue;
-            const char* name = find_material_name(sourceEntry.hash);
-            if (name == nullptr || std::strstr(name, "Legendary") != nullptr ||
-                std::strstr(name, "Carcass") != nullptr) continue;
-            if (std::strstr(name, "Perfect") != nullptr && carcass.quality != 2) continue;
-            add_current_haul_count(sourceEntry.hash, count, 0);
-        }
-    }
+    add_carcass_items(inventoryId, 0, "satchel");
 
     // Read the player's carriable slots (0-4). Slots 5-7 are the saddle
     // horse's left, right and rear attachment points.
@@ -1969,6 +1978,7 @@ void update_current_haul() noexcept {
                 haul_trace(" %08Xx%d", material.hash, count);
                 add_current_haul_count(material.hash, count, 5);
             }
+            add_carcass_items(horseInventory, 5, "cargo");
         }
         // A pelt can show up as an attached entity and in more than one of these
         // lists at once, so take the largest of the counts instead of adding them.
