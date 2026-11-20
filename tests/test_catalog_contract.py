@@ -44,10 +44,11 @@ if "Unknown recipe" in SOURCE:
 
 print("Pearson retention and unknown-recipe exclusion checks passed.")
 
-# Pearson's crafting ends at a point in the story (details kept out of texts).
+# STORY SPOILER: Pearson leaves after "My Last Boy" (NTV3); playing as John also counts.
+# Player-facing texts stay spoiler-free.
 PEARSON_STORY = (
     "invoke_native<int>(kMissionDataWasCompleted, kPearsonEndMission) != 0",
-    "g_pearsonUnavailable = missionDone || laterCharacter;",
+    "g_pearsonUnavailable = missionDone || playingJohn;",
     "if (index == kRootPearson) return g_pearsonUnavailable;",
     "const bool needsPearson = !g_pearsonUnavailable && species != nullptr &&",
     "i < g_tracker.pearson.recipeCount && !g_pearsonUnavailable;",

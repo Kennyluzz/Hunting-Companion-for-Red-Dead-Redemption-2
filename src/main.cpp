@@ -415,8 +415,8 @@ struct Guid {
 };
 static_assert(sizeof(Guid) == 32, "RDR2 inventory GUID must be 32 bytes");
 
-// The player's inventory. It is read from the player's character, so each
-// playable character uses their own; with a mod that turns the player into another
+// The player's inventory. It is read from the player's character, so Arthur
+// and John each use their own; with a mod that turns the player into another
 // character, that character may have no inventory of its own, and the
 // player's inventory (ID 1 in Story Mode) is used instead.
 constexpr int kStoryPlayerInventory = 1;
@@ -848,13 +848,15 @@ struct TrackerState {
 };
 TrackerState g_tracker{};
 
-// Pearson's crafting is not available for the whole story. When it ends, his
+// STORY SPOILER (developer notes; kept out of everything players read).
+// Pearson leaves the gang in chapter 6, once the mission "My Last Boy" is
+// completed, and does not craft for the rest of the story. From then on his
 // menu page, his HUD icon and his recipes in Search and Crafting Uses are
-// switched off. The game is asked whether the story mission after which that
-// happens is completed (MISSIONDATA_WAS_COMPLETED); a later player character
-// (model player_three) also counts. Checked once a second, so a save from any
-// point in the story is handled. Story details are deliberately left out of
-// the mod's texts.
+// switched off. The game is asked whether that mission is completed
+// (MISSIONDATA_WAS_COMPLETED with its code NTV3, which the game's own text
+// labels "My Last Boy"); playing as John in the epilogue (model player_three)
+// also counts, as a fallback. Checked once a second, so a save from any point
+// in the story is handled. Player-facing texts only say "Unavailable".
 constexpr std::uint64_t kMissionDataWasCompleted = 0xE54DC27571D5EDC4ull;
 constexpr std::uint32_t kPearsonEndMission = joaat("NTV3");
 bool g_pearsonUnavailable = false;
@@ -874,15 +876,15 @@ void update_story_state() noexcept {
     nextCheck = now + 1000;
     const int playerPed = invoke_native<int>(kPlayerPedId);
     if (playerPed == 0) return;
-    const bool missionDone = invoke_native<int>(kMissionDataWasCompleted, kPearsonEndMission) != 0;
-    const bool laterCharacter = invoke_native<std::uint32_t>(kGetEntityModel, playerPed) == joaat("player_three");
-    g_pearsonUnavailable = missionDone || laterCharacter;
-    const int state = (missionDone ? 1 : 0) | (laterCharacter ? 2 : 0);
+    const bool missionDone = invoke_native<int>(kMissionDataWasCompleted, kPearsonEndMission) != 0;  // My Last Boy
+    const bool playingJohn = invoke_native<std::uint32_t>(kGetEntityModel, playerPed) == joaat("player_three");
+    g_pearsonUnavailable = missionDone || playingJohn;
+    const int state = (missionDone ? 1 : 0) | (playingJohn ? 2 : 0);
     if (state != lastLogged) {
         lastLogged = state;
         hunting_companion::native_fonts::diagnostic("Pearson: %s (story check %d/%d)",
                                                     g_pearsonUnavailable ? "unavailable" : "available",
-                                                    missionDone ? 1 : 0, laterCharacter ? 1 : 0);
+                                                    missionDone ? 1 : 0, playingJohn ? 1 : 0);
     }
 }
 
