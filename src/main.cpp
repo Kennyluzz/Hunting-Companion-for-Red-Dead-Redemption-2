@@ -1706,7 +1706,7 @@ void remember_pelt_identity(int entity, const std::uint32_t* materials, std::siz
 }
 
 // Diagnostics (FontLog=1): what the haul scan saw, written when it changes.
-char g_haulTrace[512]{};
+char g_haulTrace[1024]{};
 std::size_t g_haulTraceLength{};
 void haul_trace(const char* format, ...) noexcept {
     if (g_haulTraceLength >= sizeof(g_haulTrace) - 1) return;
@@ -1889,7 +1889,8 @@ void update_current_haul() noexcept {
         if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) continue;
         const bool isPelt = invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
         const bool isPed = invoke_native<int>(kIsEntityAPed, entity) != 0;
-        haul_trace(" carry%d:%08X", slot, invoke_native<std::uint32_t>(kGetEntityModel, entity));
+        haul_trace(" carry%d:%08X name %08X", slot, invoke_native<std::uint32_t>(kGetEntityModel, entity),
+                   invoke_native<std::uint32_t>(kGetCarriableFromEntity, entity));
         if (isPelt || isPed) add_entity_animal_materials(entity, 1, isPelt);
     }
 
@@ -1908,7 +1909,8 @@ void update_current_haul() noexcept {
                 if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) continue;
                 const bool isPelt = invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
                 const bool isPed = invoke_native<int>(kIsEntityAPed, entity) != 0;
-                haul_trace(" horse:%08X", invoke_native<std::uint32_t>(kGetEntityModel, entity));
+                haul_trace(" horse:%08X name %08X", invoke_native<std::uint32_t>(kGetEntityModel, entity),
+                           invoke_native<std::uint32_t>(kGetCarriableFromEntity, entity));
                 if (isPelt || isPed) add_entity_animal_materials(entity, 2, isPelt);
             }
             invoke_native<void>(kDestroyItemset, itemSet);
