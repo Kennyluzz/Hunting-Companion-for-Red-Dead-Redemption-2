@@ -120,6 +120,9 @@ constexpr std::uint64_t kDoesEntityExist = 0xD42BD6EB2E0F1677ull;
 constexpr std::uint64_t kIsEntityAPed = 0xCF8176912DDA4EA5ull;
 constexpr std::uint64_t kGetIsCarriablePelt = 0x255B6DB4E3AD3C3Eull;
 constexpr std::uint64_t kGetCarcassFromPelt = 0x2A77EF9BEC8518F4ull;
+// The name the game shows for a carried entity (its prompt name); for a pelt,
+// its inventory item ("Perfect Elk Pelt").
+constexpr std::uint64_t kGetCarriableFromEntity = 0x31FEF6A20F00B963ull;
 constexpr std::uint64_t kGetPedQuality = 0x7BCC6087D130312Aull;
 // The animal type (eAnimalType hash); legendary animals have their own.
 constexpr std::uint64_t kGetPedAnimalType = 0x964000D355219FC0ull;
@@ -1798,10 +1801,24 @@ void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcep
     if (!identify_entity_materials(entity, isPelt, found, foundCount)) {
         // The animal is gone: use what this pelt was identified as earlier.
         const PeltIdentity* identity = isPelt ? find_pelt_identity(entity) : nullptr;
-        haul_trace(" [%c gone%s]", isPelt ? 'P' : 'A', identity != nullptr ? ", remembered" : "");
-        if (identity == nullptr) return;
-        for (std::size_t i = 0; i < identity->count; ++i) found[i] = identity->materials[i];
-        foundCount = identity->count;
+        if (identity != nullptr) {
+            haul_trace(" [%c gone, remembered]", isPelt ? 'P' : 'A');
+            for (std::size_t i = 0; i < identity->count; ++i) found[i] = identity->materials[i];
+            foundCount = identity->count;
+        } else if (isPelt) {
+            // Never seen with its animal (for example a pelt already on the horse
+            // when a save was loaded): the pelt's own name is its item ("Perfect
+            // Elk Pelt"), which the game reports for the carried entity.
+            const std::uint32_t item = invoke_native<std::uint32_t>(kGetCarriableFromEntity, entity);
+            haul_trace(" [P gone, name %08X%s]", item, is_animal_part_material(item) ? "*" : "");
+            if (!is_animal_part_material(item)) return;
+            found[0] = item;
+            foundCount = 1;
+            remember_pelt_identity(entity, found.data(), foundCount);
+        } else {
+            haul_trace(" [A gone]");
+            return;
+        }
     }
     for (std::size_t i = 0; i < foundCount; ++i) add_current_haul_count(found[i], 1, source);
 }
