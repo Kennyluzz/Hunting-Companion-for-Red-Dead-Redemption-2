@@ -1798,6 +1798,20 @@ void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcep
         invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
     std::array<std::uint32_t, 4> found{};
     std::size_t foundCount = 0;
+    if (isPelt) {
+        // A pelt's own name is its exact item ("Perfect Elk Pelt"), so it needs
+        // no guessing from its animal and survives saving and loading. Only when
+        // the name is not a recipe material (for example a lesser pelt) does the
+        // mod fall back to tracing the pelt to its animal below.
+        const std::uint32_t item = invoke_native<std::uint32_t>(kGetCarriableFromEntity, entity);
+        if (is_animal_part_material(item)) {
+            haul_trace(" [P name %08X*]", item);
+            const int carcass = invoke_native<int>(kGetCarcassFromPelt, entity);
+            if (carcass != 0 && invoke_native<int>(kDoesEntityExist, carcass) != 0) remember_skinned(carcass);
+            add_current_haul_count(item, 1, source);
+            return;
+        }
+    }
     if (!identify_entity_materials(entity, isPelt, found, foundCount)) {
         // The animal is gone: use what this pelt was identified as earlier.
         const PeltIdentity* identity = isPelt ? find_pelt_identity(entity) : nullptr;
