@@ -1562,6 +1562,7 @@ struct CurrentHaulMaterial {
     int horseCount{};
     int stowedPeltCount{};  // scratch: pelts in the horse's stowed-pelt list
     int peltSkinCount{};    // scratch: pelts stacked on the horse, by inventory item
+    int horseCargoCount{};  // scratch: the horse's own inventory (the Horse Cargo tab)
 };
 struct CurrentHaulState {
     std::array<CurrentHaulMaterial, kMaxMaterials> materials{};
@@ -1599,7 +1600,8 @@ void add_current_haul_count(std::uint32_t hash, int amount, int source) noexcept
     int* destination = source == 0 ? &material.inventoryCount :
                        source == 1 ? &material.carriedCount :
                        source == 2 ? &material.horseCount :
-                       source == 3 ? &material.stowedPeltCount : &material.peltSkinCount;
+                       source == 3 ? &material.stowedPeltCount :
+                       source == 4 ? &material.peltSkinCount : &material.horseCargoCount;
     *destination = std::min(1000000, *destination + amount);
 }
 
@@ -1954,13 +1956,29 @@ void update_current_haul() noexcept {
             haul_trace(" %08X%s", pelt, is_animal_part_material(pelt) ? "*" : "");
             add_current_haul_count(pelt, 1, 3);
         }
-        // A pelt can show up as an attached entity and in either list at once,
-        // so take the largest of the counts instead of adding them.
+        // The satchel's Horse Cargo tab lists what the horse holds by item. If the
+        // horse has an inventory of its own, read it the same way as the
+        // satchel: item by item, nothing to work out.
+        const int horseInventory = invoke_native<int>(kInventoryGetInventoryIdFromPed, horse);
+        haul_trace(" cargo inv %d:", horseInventory);
+        if (horseInventory >= 0 && horseInventory != inventoryId) {
+            for (const auto& material : kMaterialNames) {
+                if (!is_animal_part_material(material.hash)) continue;
+                const int count = player_owned_count(horseInventory, material.hash);
+                if (count <= 0) continue;
+                haul_trace(" %08Xx%d", material.hash, count);
+                add_current_haul_count(material.hash, count, 5);
+            }
+        }
+        // A pelt can show up as an attached entity and in more than one of these
+        // lists at once, so take the largest of the counts instead of adding them.
         for (std::size_t i = 0; i < g_currentHaul.count; ++i) {
             CurrentHaulMaterial& material = g_currentHaul.materials[i];
-            material.horseCount = std::max({material.horseCount, material.stowedPeltCount, material.peltSkinCount});
+            material.horseCount = std::max({material.horseCount, material.stowedPeltCount, material.peltSkinCount,
+                                            material.horseCargoCount});
             material.stowedPeltCount = 0;
             material.peltSkinCount = 0;
+            material.horseCargoCount = 0;
         }
     }
     if (std::strcmp(g_haulTrace, g_lastHaulTrace) != 0) {
