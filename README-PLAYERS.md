@@ -16,8 +16,7 @@ ammunition give the cleanest kill, and what you can craft with what you are carr
   animals, whose pelts cannot be damaged, show "Any weapon". Toggle the icons in
   Settings or with a hotkey.
 - **Pearson and Trapper:** recipes, required materials, what you own, donation
-  stock, and a "craftable now" filter. Pearson is switched off once his crafting
-  is no longer available in the story; Settings can override that.
+  stock, and a "craftable now" filter.
 - **Search:** press Space, type an animal, a part or an item (for example
   "alligator") and the list narrows with every letter to the Pearson and Trapper recipes it is used in.
   Works in the menu's language and in English, without caring about capitals or

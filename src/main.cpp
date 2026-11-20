@@ -415,8 +415,8 @@ struct Guid {
 };
 static_assert(sizeof(Guid) == 32, "RDR2 inventory GUID must be 32 bytes");
 
-// The player's inventory. It is read from the player's character, so Arthur
-// and John each use their own; with a mod that turns the player into another
+// The player's inventory. It is read from the player's character, so each
+// playable character uses their own; with a mod that turns the player into another
 // character, that character may have no inventory of its own, and the
 // player's inventory (ID 1 in Story Mode) is used instead.
 constexpr int kStoryPlayerInventory = 1;
@@ -848,22 +848,23 @@ struct TrackerState {
 };
 TrackerState g_tracker{};
 
-// Pearson leaves the gang in chapter 6, once "My Last Boy" is completed, and
-// is gone for the rest of the story: his recipes can no longer be made, so his
+// Pearson's crafting is not available for the whole story. When it ends, his
 // menu page, his HUD icon and his recipes in Search and Crafting Uses are
-// switched off. The game is asked whether that mission is completed (its code
-// is NTV3, which the game's own text labels "My Last Boy"); playing as John
-// (player_three) also counts, as a fallback. Checked once a second, so a save
-// from any point in the story is handled.
+// switched off. The game is asked whether the story mission after which that
+// happens is completed (MISSIONDATA_WAS_COMPLETED); a later player character
+// (model player_three) also counts. Checked once a second, so a save from any
+// point in the story is handled. Story details are deliberately left out of
+// the mod's texts.
 constexpr std::uint64_t kMissionDataWasCompleted = 0xE54DC27571D5EDC4ull;
-bool g_pearsonGone = false;
-// Settings > Pearson: -1 = automatic, 1 = always available, 0 = gone (for
-// example with a mod that changes the story or the player character).
+constexpr std::uint32_t kPearsonEndMission = joaat("NTV3");
+bool g_pearsonUnavailable = false;
+// Settings > Pearson: -1 = automatic, 1 = always available, 0 = unavailable
+// (for example with a mod that changes the story or the player character).
 int g_pearsonSetting = -1;
 
 void update_story_state() noexcept {
     if (g_pearsonSetting >= 0) {
-        g_pearsonGone = g_pearsonSetting == 0;
+        g_pearsonUnavailable = g_pearsonSetting == 0;
         return;
     }
     static DWORD nextCheck = 0;
@@ -873,15 +874,15 @@ void update_story_state() noexcept {
     nextCheck = now + 1000;
     const int playerPed = invoke_native<int>(kPlayerPedId);
     if (playerPed == 0) return;
-    const bool myLastBoyDone = invoke_native<int>(kMissionDataWasCompleted, joaat("NTV3")) != 0;
-    const bool playingJohn = invoke_native<std::uint32_t>(kGetEntityModel, playerPed) == joaat("player_three");
-    g_pearsonGone = myLastBoyDone || playingJohn;
-    const int state = (myLastBoyDone ? 1 : 0) | (playingJohn ? 2 : 0);
+    const bool missionDone = invoke_native<int>(kMissionDataWasCompleted, kPearsonEndMission) != 0;
+    const bool laterCharacter = invoke_native<std::uint32_t>(kGetEntityModel, playerPed) == joaat("player_three");
+    g_pearsonUnavailable = missionDone || laterCharacter;
+    const int state = (missionDone ? 1 : 0) | (laterCharacter ? 2 : 0);
     if (state != lastLogged) {
         lastLogged = state;
-        hunting_companion::native_fonts::diagnostic("Story: My Last Boy %s, playing as %s",
-                                                    myLastBoyDone ? "completed" : "not completed",
-                                                    playingJohn ? "John" : "Arthur");
+        hunting_companion::native_fonts::diagnostic("Pearson: %s (story check %d/%d)",
+                                                    g_pearsonUnavailable ? "unavailable" : "available",
+                                                    missionDone ? 1 : 0, laterCharacter ? 1 : 0);
     }
 }
 
@@ -2577,7 +2578,7 @@ void draw_hud_preview() noexcept {
         }
         if (sample != nullptr) draw_hunting_recommendation_icons(*sample, layout);
     }
-    if (blip_texture_dictionary_ready()) draw_vendor_icons(layout, !g_pearsonGone, true);
+    if (blip_texture_dictionary_ready()) draw_vendor_icons(layout, !g_pearsonUnavailable, true);
 }
 
 void update_hud() noexcept {
@@ -2606,7 +2607,7 @@ void update_hud() noexcept {
     const bool legendary = is_legendary_animal(focusedEntity);
     if (species == nullptr && recommendation == nullptr && !legendary) return;
 
-    const bool needsPearson = !g_pearsonGone && species != nullptr &&
+    const bool needsPearson = !g_pearsonUnavailable && species != nullptr &&
                               species_needed(g_tracker.pearson.demand, species, legendary);
     const bool needsTrapper = species != nullptr && species_needed(g_tracker.trapper.demand, species, legendary);
 
@@ -3671,7 +3672,7 @@ void build_crafting_uses_list() noexcept {
         return;
     }
 
-    for (std::size_t i = 0; i < g_tracker.pearson.recipeCount && !g_pearsonGone; ++i) {
+    for (std::size_t i = 0; i < g_tracker.pearson.recipeCount && !g_pearsonUnavailable; ++i) {
         append_crafting_use_entry(false, static_cast<int>(i), nullptr);
     }
 
@@ -3811,7 +3812,7 @@ void build_search_results() noexcept {
     const std::size_t queryLength =
         hunting_companion::search_text::fold_utf8(g_searchQuery, query, kMaxSearchCodepoints);
     if (queryLength > 0 && g_tracker.ready) {
-        for (int vendorIndex = g_pearsonGone ? 1 : 0; vendorIndex < 2; ++vendorIndex) {
+        for (int vendorIndex = g_pearsonUnavailable ? 1 : 0; vendorIndex < 2; ++vendorIndex) {
             const bool trapper = vendorIndex == 1;
             const VendorState& vendor = trapper ? g_tracker.trapper : g_tracker.pearson;
             for (std::size_t i = 0; i < vendor.recipeCount; ++i) {
@@ -5090,14 +5091,14 @@ const char* root_label(int index, char*, std::size_t) noexcept {
     return (index >= 0 && index < kRootCount) ? labels[index] : "";
 }
 bool root_item_disabled(int index) noexcept {
-    if (index == kRootPearson) return g_pearsonGone;
+    if (index == kRootPearson) return g_pearsonUnavailable;
     // Satchel materials alone (antlers, claws...) count as haul, so gate on
     // the recipe list itself: no matching uncrafted recipe means nothing to open.
     return index == kRootCraftingUses && (!g_currentHaul.ready || !current_haul_has_any() ||
                                           g_craftingUseCount == 0);
 }
 const char* root_row_status(int index, char*, std::size_t) noexcept {
-    if (index == kRootPearson) return g_pearsonGone ? "UNAVAILABLE" : "";
+    if (index == kRootPearson) return g_pearsonUnavailable ? "UNAVAILABLE" : "";
     if (index != kRootCraftingUses) return "";
     return root_item_disabled(index) ? "NO HAUL" : "AVAILABLE";
 }

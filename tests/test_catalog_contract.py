@@ -44,18 +44,18 @@ if "Unknown recipe" in SOURCE:
 
 print("Pearson retention and unknown-recipe exclusion checks passed.")
 
-# Epilogue: playing as John, Pearson has left the gang.
-EPILOGUE = (
-    'invoke_native<int>(kMissionDataWasCompleted, joaat("NTV3")) != 0',
-    "g_pearsonGone = myLastBoyDone || playingJohn;",
-    "if (index == kRootPearson) return g_pearsonGone;",
-    "const bool needsPearson = !g_pearsonGone && species != nullptr &&",
-    "i < g_tracker.pearson.recipeCount && !g_pearsonGone;",
-    "for (int vendorIndex = g_pearsonGone ? 1 : 0; vendorIndex < 2; ++vendorIndex) {",
-    "g_pearsonGone = g_pearsonSetting == 0;",
+# Pearson's crafting ends at a point in the story (details kept out of texts).
+PEARSON_STORY = (
+    "invoke_native<int>(kMissionDataWasCompleted, kPearsonEndMission) != 0",
+    "g_pearsonUnavailable = missionDone || laterCharacter;",
+    "if (index == kRootPearson) return g_pearsonUnavailable;",
+    "const bool needsPearson = !g_pearsonUnavailable && species != nullptr &&",
+    "i < g_tracker.pearson.recipeCount && !g_pearsonUnavailable;",
+    "for (int vendorIndex = g_pearsonUnavailable ? 1 : 0; vendorIndex < 2; ++vendorIndex) {",
+    "g_pearsonUnavailable = g_pearsonSetting == 0;",
     'WritePrivateProfileStringA("General", "PearsonAvailable", value, g_iniPath);',
 )
-for token in EPILOGUE:
+for token in PEARSON_STORY:
     if token not in SOURCE:
-        raise AssertionError(f"Epilogue handling missing: {token}")
-print("Pearson switched off after My Last Boy (NTV3) or while playing as John.")
+        raise AssertionError(f"Pearson story handling missing: {token}")
+print("Pearson switched off by the story check.")
