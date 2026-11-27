@@ -872,28 +872,30 @@ bool g_pearsonUnavailable = false;
 // (for example with a mod that changes the story or the player character).
 int g_pearsonSetting = -1;
 
+bool g_playingJohn = false;
+
 void update_story_state() noexcept {
-    if (g_pearsonSetting >= 0) {
-        g_pearsonUnavailable = g_pearsonSetting == 0;
-        return;
-    }
     static DWORD nextCheck = 0;
     static int lastLogged = -1;
     const DWORD now = GetTickCount();
-    if (static_cast<LONG>(now - nextCheck) < 0) return;
-    nextCheck = now + 1000;
-    const int playerPed = invoke_native<int>(kPlayerPedId);
-    if (playerPed == 0) return;
-    const bool missionDone = invoke_native<int>(kMissionDataWasCompleted, kPearsonEndMission) != 0;  // My Last Boy
-    const bool playingJohn = invoke_native<std::uint32_t>(kGetEntityModel, playerPed) == joaat("player_three");
-    g_pearsonUnavailable = missionDone || playingJohn;
-    const int state = (missionDone ? 1 : 0) | (playingJohn ? 2 : 0);
-    if (state != lastLogged) {
-        lastLogged = state;
-        hunting_companion::native_fonts::diagnostic("Pearson: %s (story check %d/%d)",
-                                                    g_pearsonUnavailable ? "unavailable" : "available",
-                                                    missionDone ? 1 : 0, playingJohn ? 1 : 0);
+    const bool due = static_cast<LONG>(now - nextCheck) >= 0;
+    if (due) {
+        nextCheck = now + 1000;
+        const int playerPed = invoke_native<int>(kPlayerPedId);
+        if (playerPed != 0) {
+            g_playingJohn = invoke_native<std::uint32_t>(kGetEntityModel, playerPed) == joaat("player_three");
+            const bool missionDone = invoke_native<int>(kMissionDataWasCompleted, kPearsonEndMission) != 0;  // My Last Boy
+            if (g_pearsonSetting < 0) g_pearsonUnavailable = missionDone || g_playingJohn;
+            const int state = (missionDone ? 1 : 0) | (g_playingJohn ? 2 : 0);
+            if (state != lastLogged) {
+                lastLogged = state;
+                hunting_companion::native_fonts::diagnostic("Pearson: %s (story check %d/%d)",
+                                                            g_pearsonUnavailable ? "unavailable" : "available",
+                                                            missionDone ? 1 : 0, g_playingJohn ? 1 : 0);
+            }
+        }
     }
+    if (g_pearsonSetting >= 0) g_pearsonUnavailable = g_pearsonSetting == 0;
 }
 
 // Zeroes a large all-zero-by-default aggregate in place. `value = T{}` would
@@ -1581,6 +1583,8 @@ struct CurrentHaulState {
     bool ready{};
 };
 CurrentHaulState g_currentHaul{};
+bool g_pearsonHasTools = true;   // until the first haul scan says otherwise
+bool g_pearsonToolsLogged = false;
 volatile LONG g_haulDirty = 1;
 
 const char* find_animal_species(std::uint32_t modelHash) noexcept {
@@ -1897,6 +1901,18 @@ void update_current_haul() noexcept {
     if (playerPed == 0) return;
     const int inventoryId = player_inventory_id(playerPed);
     g_currentHaul.inventoryId = inventoryId;
+    // Pearson can only craft once the Leather Working Tools have been bought at
+    // the camp ledger. Camp upgrades are items in the player's inventory; this
+    // one's ID is LEATHER_UPGRADE (the game's own text labels it "Leather
+    // Working Tools").
+    {
+        const bool tools = player_owned_count(inventoryId, joaat("LEATHER_UPGRADE")) > 0;
+        if (tools != g_pearsonHasTools || !g_pearsonToolsLogged) {
+            hunting_companion::native_fonts::diagnostic("Leather Working Tools: %s", tools ? "owned" : "not owned");
+            g_pearsonToolsLogged = true;
+        }
+        g_pearsonHasTools = tools;
+    }
     g_currentHaul.ready = true;
 
     // Player inventory covers satchel animal parts, feathers, antlers and pelts.
@@ -3228,6 +3244,8 @@ bool key_repeated(unsigned key) noexcept {
 
 bool recipe_craftable_now(const VendorState& vendor, const RecipeEntry& recipe) noexcept;
 
+bool recipe_hidden(bool trapper, const RecipeEntry& recipe) noexcept;
+
 void build_menu_categories() noexcept {
     g_menuCategoryCount = 0;
     VendorState& vendor = active_vendor();
@@ -3235,7 +3253,7 @@ void build_menu_categories() noexcept {
         int count = 0;
         for (std::size_t i = 0; i < vendor.recipeCount; ++i) {
             const RecipeEntry& recipe = vendor.recipes[i];
-            if (recipe.categoryHash == hash &&
+            if (recipe.categoryHash == hash && !recipe_hidden(g_menu.trapper, recipe) &&
                 (!g_menu.craftableNow || recipe_craftable_now(vendor, recipe))) ++count;
         }
         if (count > 0 && g_menuCategoryCount < g_menuCategories.size()) {
@@ -3258,7 +3276,7 @@ void build_menu_categories() noexcept {
             int count = 0;
             for (std::size_t j = 0; j < vendor.recipeCount; ++j) {
                 const RecipeEntry& recipe = vendor.recipes[j];
-                if (recipe.categoryHash == hash &&
+                if (recipe.categoryHash == hash && !recipe_hidden(g_menu.trapper, recipe) &&
                     (!g_menu.craftableNow || recipe_craftable_now(vendor, recipe))) ++count;
             }
             if (count > 0) {
@@ -3273,6 +3291,7 @@ void build_menu_recipe_list() noexcept {
     VendorState& vendor = active_vendor();
     for (std::size_t i = 0; i < vendor.recipeCount; ++i) {
         if (vendor.recipes[i].categoryHash == g_menu.categoryHash &&
+            !recipe_hidden(g_menu.trapper, vendor.recipes[i]) &&
             (!g_menu.craftableNow || recipe_craftable_now(vendor, vendor.recipes[i])) &&
             g_menuRecipeCount < g_menuRecipeIndices.size()) {
             g_menuRecipeIndices[g_menuRecipeCount++] = static_cast<int>(i);
@@ -3459,6 +3478,47 @@ const GarmentSetDefinition* garment_set_of_piece(const char* pieceName) noexcept
 const char* garment_set_display_name(const char* setName) noexcept {
     const RecipeEntry* setEntry = find_trapper_recipe_by_name(setName);
     return setEntry != nullptr ? recipe_display_name(*setEntry) : setName;
+}
+
+// STORY SPOILER (developer notes): these animals live only in New Austin,
+// which only John can reach (in the epilogue): the legendary cougar, pronghorn
+// and Tatanka bison, the Gila monster and the collared peccary (javelina).
+// While playing as anyone else, recipes that need their pelts, and garment sets
+// that include such a piece (for example The Death Roll, The Rattler, The
+// Dreamcatcher), cannot be completed and are left out of every list. Nothing
+// player-facing says why. Animals that also live elsewhere (armadillo, iguana)
+// are not listed.
+constexpr std::uint32_t kLateStoryMaterials[] = {
+    0x5B21B527u,  // Legendary Cougar Pelt
+    0xF9DB919Du,  // Legendary Pronghorn Hide
+    0xC5206B67u,  // Legendary Tatanka Bison Pelt
+    0x1BA02C14u,  // Perfect Gila Monster Skin
+    0x7508CA92u,  // Perfect Collared Peccary Pig Pelt
+};
+
+bool recipe_needs_late_story_material(const RecipeEntry& recipe) noexcept {
+    for (std::size_t i = 0; i < recipe.costCount; ++i) {
+        for (std::uint32_t late : kLateStoryMaterials) {
+            if (recipe.costs[i].hash == late) return true;
+        }
+    }
+    return false;
+}
+
+const RecipeEntry* find_trapper_recipe_by_name(const char* name) noexcept;
+
+bool recipe_hidden(bool trapper, const RecipeEntry& recipe) noexcept {
+    if (g_playingJohn || !trapper) return false;
+    if (recipe_needs_late_story_material(recipe)) return true;
+    if (recipe.categoryHash == kTrapperGarmentSetsCategoryHash) {
+        if (const GarmentSetDefinition* set = find_garment_set_definition(recipe.name)) {
+            for (std::size_t piece = 0; piece < set->componentCount; ++piece) {
+                const RecipeEntry* component = find_trapper_recipe_by_name(set->components[piece]);
+                if (component != nullptr && recipe_needs_late_story_material(*component)) return true;
+            }
+        }
+    }
+    return false;
 }
 
 int find_trapper_recipe_index_by_name(const char* name) noexcept {
@@ -3697,7 +3757,7 @@ void append_crafting_use_entry(bool trapper, int recipeIndex, const char* setNam
     if (!vendor.demand.ready || recipeIndex < 0 ||
         static_cast<std::size_t>(recipeIndex) >= vendor.recipeCount) return;
     const RecipeEntry& recipe = vendor.recipes[static_cast<std::size_t>(recipeIndex)];
-    if (!recipe_uses_current_haul(recipe)) return;
+    if (!recipe_uses_current_haul(recipe) || recipe_hidden(trapper, recipe)) return;
     for (std::size_t i = 0; i < g_craftingUseCount; ++i) {
         if (g_craftingUseEntries[i].trapper == trapper &&
             g_craftingUseEntries[i].recipeIndex == recipeIndex) return;
@@ -3899,7 +3959,8 @@ void build_search_results() noexcept {
             const VendorState& vendor = trapper ? g_tracker.trapper : g_tracker.pearson;
             for (std::size_t i = 0; i < vendor.recipeCount; ++i) {
                 if (g_searchResultCount >= g_searchResults.size()) break;
-                if (!recipe_matches_search(vendor.recipes[i], query, queryLength)) continue;
+                if (recipe_hidden(trapper, vendor.recipes[i]) ||
+                    !recipe_matches_search(vendor.recipes[i], query, queryLength)) continue;
                 // A garment-set piece shows its set's name, as in Crafting Uses.
                 const GarmentSetDefinition* set = trapper ? garment_set_of_piece(vendor.recipes[i].name) : nullptr;
                 g_searchResults[g_searchResultCount++] =
@@ -3974,6 +4035,15 @@ bool key_types_text(unsigned key) noexcept {
            (key >= VK_NUMPAD0 && key <= VK_DIVIDE && key != VK_SEPARATOR) ||
            (key >= VK_OEM_1 && key <= VK_OEM_3) || (key >= VK_OEM_4 && key <= VK_OEM_8) ||
            key == VK_OEM_102;
+}
+
+// Before the Leather Working Tools are bought, Pearson cannot craft yet, so a
+// Pearson recipe whose parts are all there says so instead of "ready".
+const char* crafting_use_status_label(bool trapper, CraftingUseReadiness readiness) noexcept {
+    const bool partsReady = readiness == CraftingUseReadiness::ReadyAfterDonation ||
+                            readiness == CraftingUseReadiness::AnimalPartsReady;
+    if (!trapper && partsReady && !g_pearsonHasTools) return "NEEDS LEATHER WORKING TOOLS";
+    return crafting_use_readiness_label(readiness);
 }
 
 void toggle_craftable_filter() noexcept {
@@ -5200,7 +5270,7 @@ const char* crafting_use_row_label(int index, char* buffer, std::size_t size) no
 const char* crafting_use_row_status(int index, char*, std::size_t) noexcept {
     if (index < 0 || static_cast<std::size_t>(index) >= g_craftingUseCount) return "";
     const CraftingUseEntry& entry = g_craftingUseEntries[static_cast<std::size_t>(index)];
-    return crafting_use_readiness_label(static_cast<CraftingUseReadiness>(entry.readiness));
+    return crafting_use_status_label(entry.trapper, static_cast<CraftingUseReadiness>(entry.readiness));
 }
 
 const char* challenge_row_label(int index, char*, std::size_t) noexcept {
@@ -5906,9 +5976,10 @@ void draw_crafting_use_detail() noexcept {
     }
     draw_menu_header(recipe_display_name(*recipe), subtitle, false);
 
-    const char* readinessText = crafting_use_readiness_label(readiness);
+    const char* readinessText = crafting_use_status_label(entry.trapper, readiness);
     const bool ready = readiness == CraftingUseReadiness::ReadyAfterDonation;
-    const bool partsReady = ready || readiness == CraftingUseReadiness::AnimalPartsReady;
+    const bool partsReady = (ready || readiness == CraftingUseReadiness::AnimalPartsReady) &&
+                            (entry.trapper || g_pearsonHasTools);
     draw_wrapped_text(readinessText, 0.071f, 0.208f, 30, 2, 0.030f, 14.0f,
                       partsReady ? 130 : 218, partsReady ? 205 : 184, partsReady ? 145 : 120);
     draw_wrapped_text("HELD / NEEDED (YOUR HAUL + VENDOR STOCK)", 0.071f, 0.275f, 44, 2, 0.022f,
