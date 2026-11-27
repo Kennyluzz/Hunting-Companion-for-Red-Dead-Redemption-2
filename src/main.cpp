@@ -4089,13 +4089,28 @@ bool key_types_text(unsigned key) noexcept {
            key == VK_OEM_102;
 }
 
+// Rockstar's own interface lines, by label ID, in the menu's language
+// (embedded for all 13 languages by tools/build_official_strings.py).
+constexpr std::uint32_t kLeatherWorkingToolsLabel = 0x77DDA3E6u;  // "Leather Working Tools"
+constexpr std::uint32_t kCannotCraftYetLabel = 0x4F1661D8u;       // "Pearson cannot craft this yet."
+constexpr std::uint32_t kPurchaseAtLedgerLabel = 0xBEA51F04u;     // "Purchase leather working tools at the ledger."
+
 // Before the Leather Working Tools are bought, Pearson cannot craft yet, so a
-// Pearson recipe whose parts are all there says so instead of "ready".
-const char* crafting_use_status_label(bool trapper, CraftingUseReadiness readiness) noexcept {
+// Pearson recipe whose parts are all there says so instead of "ready", naming
+// the tools as the game does.
+bool pearson_tools_block(bool trapper, CraftingUseReadiness readiness) noexcept {
     const bool partsReady = readiness == CraftingUseReadiness::ReadyAfterDonation ||
                             readiness == CraftingUseReadiness::AnimalPartsReady;
-    if (!trapper && partsReady && !g_pearsonHasTools) return "NEEDS LEATHER WORKING TOOLS";
-    return crafting_use_readiness_label(readiness);
+    return !trapper && partsReady && !g_pearsonHasTools;
+}
+
+const char* crafting_use_status_label(bool trapper, CraftingUseReadiness readiness,
+                                      char* buffer, std::size_t size) noexcept {
+    if (!pearson_tools_block(trapper, readiness)) return crafting_use_readiness_label(readiness);
+    const char* tools = hunting_companion::official_item_string(kLeatherWorkingToolsLabel);
+    std::snprintf(buffer, size, hunting_companion::ui_text("NEEDS: %s"),
+                  tools != nullptr ? tools : "Leather Working Tools");
+    return buffer;
 }
 
 void toggle_craftable_filter() noexcept {
@@ -5327,26 +5342,15 @@ bool pearson_needs_tools(bool trapper, const RecipeEntry* recipe) noexcept {
     return !trapper && !g_pearsonHasTools && !g_pearsonUnavailable && recipe != nullptr && !recipe->owned;
 }
 
-// The note on a Pearson recipe page while the tools are missing. When the menu
-// is in the game's language it uses the game's own lines ("Pearson cannot craft
-// this yet." and "Purchase leather working tools at the ledger."); otherwise the
-// mod's translation.
+// The note on a Pearson recipe page while the tools are missing: the game's
+// own two lines, "Pearson cannot craft this yet. Purchase leather working
+// tools at the ledger.", in the menu's language.
 void draw_pearson_tools_note(float y) noexcept {
-    constexpr std::uint32_t kCannotCraftYet = 0x4F1661D8u;
-    constexpr std::uint32_t kPurchaseAtLedger = 0xBEA51F04u;
+    const char* first = hunting_companion::official_item_string(kCannotCraftYetLabel);
+    const char* second = hunting_companion::official_item_string(kPurchaseAtLedgerLabel);
     char note[320]{};
-    if (hunting_companion::active_ui_language() == g_detectedGameLanguage) {
-        char first[160]{};
-        const char* text = invoke_native<const char*>(kGetStringFromHashKey, kCannotCraftYet);
-        if (text != nullptr) std::snprintf(first, sizeof(first), "%s", text);
-        text = invoke_native<const char*>(kGetStringFromHashKey, kPurchaseAtLedger);
-        if (first[0] != '\0' && text != nullptr && text[0] != '\0' && std::strchr(first, '~') == nullptr &&
-            std::strchr(text, '~') == nullptr)
-            std::snprintf(note, sizeof(note), "* %s %s", first, text);
-    }
-    if (note[0] == '\0')
-        std::snprintf(note, sizeof(note), "%s",
-                      hunting_companion::ui_text("* Pearson needs the Leather Working Tools from the camp ledger first."));
+    std::snprintf(note, sizeof(note), "* %s %s", first != nullptr ? first : "Pearson cannot craft this yet.",
+                  second != nullptr ? second : "Purchase leather working tools at the ledger.");
     draw_wrapped_text_raw(note, 0.071f, y, 48, 2, 0.018f, 12.0f, 232, 176, 112);
 }
 
@@ -5361,9 +5365,11 @@ const char* with_tools_mark(bool trapper, const RecipeEntry* recipe, const char*
 const char* crafting_use_row_status(int index, char* buffer, std::size_t size) noexcept {
     if (index < 0 || static_cast<std::size_t>(index) >= g_craftingUseCount) return "";
     const CraftingUseEntry& entry = g_craftingUseEntries[static_cast<std::size_t>(index)];
-    const char* status = crafting_use_status_label(entry.trapper, static_cast<CraftingUseReadiness>(entry.readiness));
-    if (std::strcmp(status, "NEEDS LEATHER WORKING TOOLS") == 0) return status;  // says it in full
-    return with_tools_mark(entry.trapper, crafting_use_recipe(entry), status, buffer, size);
+    const auto readiness = static_cast<CraftingUseReadiness>(entry.readiness);
+    if (pearson_tools_block(entry.trapper, readiness))  // says it in full
+        return crafting_use_status_label(entry.trapper, readiness, buffer, size);
+    return with_tools_mark(entry.trapper, crafting_use_recipe(entry), crafting_use_readiness_label(readiness),
+                           buffer, size);
 }
 
 const char* challenge_row_label(int index, char*, std::size_t) noexcept {
@@ -6077,7 +6083,9 @@ void draw_crafting_use_detail() noexcept {
     }
     draw_menu_header(recipe_display_name(*recipe), subtitle, false);
 
-    const char* readinessText = crafting_use_status_label(entry.trapper, readiness);
+    char readinessBuffer[160]{};
+    const char* readinessText = crafting_use_status_label(entry.trapper, readiness, readinessBuffer,
+                                                          sizeof(readinessBuffer));
     const bool ready = readiness == CraftingUseReadiness::ReadyAfterDonation;
     const bool partsReady = (ready || readiness == CraftingUseReadiness::AnimalPartsReady) &&
                             (entry.trapper || g_pearsonHasTools);

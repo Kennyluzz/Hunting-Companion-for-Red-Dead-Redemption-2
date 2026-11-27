@@ -18,8 +18,10 @@
   from the start.
 - **Pearson's tools.** Until the Leather Working Tools are bought at the camp
   ledger, every Pearson recipe still to make has a "*" after its status, and its
-  page explains it; one whose materials are all there says "Needs Leather Working
-  Tools" instead of "Ready after donation".
+  page explains it in the game's own words ("Pearson cannot craft this yet.
+  Purchase leather working tools at the ledger."); one whose materials are all there
+  says "Needs: Leather Working Tools" instead of "Ready after donation". All in
+  Rockstar's wording, in every language.
 - Recipes that cannot be completed at your point in the story are left out until
   they can be.
 - **The ini updates itself.** An older `HuntingCompanion.ini` is rewritten in the

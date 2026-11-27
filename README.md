@@ -64,6 +64,7 @@ Rerun the generator after changing its input:
 | `HuntingCompanion-Languages/*.lang` | `python tools/embed_languages.py` | `src/embedded_languages.hpp` |
 | The game's English string table (`.xml`, or a `.zip` holding it) | `python tools/build_compendium_advice.py <file>` | `data/compendium_advice.json` |
 | `data/compendium_advice.json`, `data/weapon_icons.json` | `python tools/embed_hunting_recommendations.py` | `src/embedded_hunting_recommendations.hpp` |
+| The 13 official language files (`RDR2 Official Language - <Language> *.zip`, or the `<Language> Translation.xml` inside) and `data/official_ui_strings.json` | `python tools/build_official_strings.py --input-dir <folder>` | `src/embedded_official_strings.hpp` |
 | `HuntingCompanion.ini` (bump `IniVersion` when its layout changes) | `python tools/embed_ini.py` | `src/embedded_ini_template.hpp` |
 | The game's English string table (`.xml`, or a `.zip` holding it) | `python tools/build_satchel_carcasses.py <file>` | `src/embedded_satchel_carcasses.hpp` |
 

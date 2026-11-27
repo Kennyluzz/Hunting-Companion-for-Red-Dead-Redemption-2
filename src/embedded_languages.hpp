@@ -348,7 +348,7 @@ AUTO=AUTO
 Icons on low-star animals=Symbole bei Tieren mit wenigen Sternen
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=LEDERWERKZEUG BENÖTIGT
+NEEDS: %s=BENÖTIGT: %s
 
 # Individual HUD icons
 Weapon icon=Waffensymbol
@@ -358,7 +358,6 @@ Trapper icon=Fallensteller-Symbol
 
 # Early story
 AVAILABLE LATER=SPÄTER VERFÜGBAR
-* Pearson needs the Leather Working Tools from the camp ledger first.=* Pearson braucht zuerst das Lederwerkzeug aus dem Lagerbuch.
 )HCL0";
 inline constexpr char kLocale_en_US[] = R"HCL1(# Hunting Companion localization — en-US
 # Companion-owned interface phrases follow this locale.
@@ -578,7 +577,7 @@ AUTO=AUTO
 Icons on low-star animals=Icons on low-star animals
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=NEEDS LEATHER WORKING TOOLS
+NEEDS: %s=NEEDS: %s
 
 # Individual HUD icons
 Weapon icon=Weapon icon
@@ -588,7 +587,6 @@ Trapper icon=Trapper icon
 
 # Early story
 AVAILABLE LATER=AVAILABLE LATER
-* Pearson needs the Leather Working Tools from the camp ledger first.=* Pearson needs the Leather Working Tools from the camp ledger first.
 )HCL1";
 inline constexpr char kLocale_es_ES[] = R"HCL2(# Hunting Companion localization — es-ES
 # Companion-owned interface phrases follow this locale.
@@ -936,7 +934,7 @@ AUTO=AUTO
 Icons on low-star animals=Iconos en animales de pocas estrellas
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=FALTAN HERRAMIENTAS DE CUERO
+NEEDS: %s=NECESITA: %s
 
 # Individual HUD icons
 Weapon icon=Icono del arma
@@ -946,7 +944,6 @@ Trapper icon=Icono del trampero
 
 # Early story
 AVAILABLE LATER=DISPONIBLE MÁS ADELANTE
-* Pearson needs the Leather Working Tools from the camp ledger first.=* Pearson necesita primero las herramientas de cuero del libro de cuentas del campamento.
 )HCL2";
 inline constexpr char kLocale_es_MX[] = R"HCL3(# Hunting Companion localization — es-MX
 # Companion-owned interface phrases follow this locale.
@@ -1294,7 +1291,7 @@ AUTO=AUTO
 Icons on low-star animals=Íconos en animales de pocas estrellas
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=FALTAN HERRAMIENTAS DE CUERO
+NEEDS: %s=NECESITA: %s
 
 # Individual HUD icons
 Weapon icon=Ícono del arma
@@ -1304,7 +1301,6 @@ Trapper icon=Ícono del trampero
 
 # Early story
 AVAILABLE LATER=DISPONIBLE MÁS ADELANTE
-* Pearson needs the Leather Working Tools from the camp ledger first.=* Pearson necesita primero las herramientas de cuero del libro de cuentas del campamento.
 )HCL3";
 inline constexpr char kLocale_fr_FR[] = R"HCL4(# Hunting Companion localization — fr-FR
 # Companion-owned interface phrases follow this locale.
@@ -1652,7 +1648,7 @@ AUTO=AUTO
 Icons on low-star animals=Icônes sur les animaux à peu d'étoiles
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=OUTILS DE MAROQUINERIE REQUIS
+NEEDS: %s=REQUIS : %s
 
 # Individual HUD icons
 Weapon icon=Icône de l'arme
@@ -1662,7 +1658,6 @@ Trapper icon=Icône du trappeur
 
 # Early story
 AVAILABLE LATER=DISPONIBLE PLUS TARD
-* Pearson needs the Leather Working Tools from the camp ledger first.=* Pearson a d'abord besoin des outils de maroquinerie du registre du camp.
 )HCL4";
 inline constexpr char kLocale_it_IT[] = R"HCL5(# Hunting Companion localization — it-IT
 # Companion-owned interface phrases follow this locale.
@@ -2010,7 +2005,7 @@ AUTO=AUTO
 Icons on low-star animals=Icone sugli animali con poche stelle
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=SERVONO ATTREZZI PER IL CUOIO
+NEEDS: %s=SERVE: %s
 
 # Individual HUD icons
 Weapon icon=Icona dell'arma
@@ -2020,7 +2015,6 @@ Trapper icon=Icona del cacciatore di pelli
 
 # Early story
 AVAILABLE LATER=DISPONIBILE PIÙ AVANTI
-* Pearson needs the Leather Working Tools from the camp ledger first.=* Pearson ha prima bisogno degli attrezzi per il cuoio dal registro del campo.
 )HCL5";
 inline constexpr char kLocale_ja_JP[] = R"HCL6(# Hunting Companion localization — ja-JP
 # Companion-owned interface phrases follow this locale.
@@ -2368,7 +2362,7 @@ AUTO=自動
 Icons on low-star animals=星の少ない動物のアイコン
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=革細工道具が必要
+NEEDS: %s=必要：%s
 
 # Individual HUD icons
 Weapon icon=武器アイコン
@@ -2378,7 +2372,6 @@ Trapper icon=罠猟師のアイコン
 
 # Early story
 AVAILABLE LATER=後で利用可能
-* Pearson needs the Leather Working Tools from the camp ledger first.=* ピアソンには、まずキャンプの帳簿で革細工道具を買う必要があります。
 )HCL6";
 inline constexpr char kLocale_ko_KR[] = R"HCL7(# Hunting Companion localization — ko-KR
 # Companion-owned interface phrases follow this locale.
@@ -2725,7 +2718,7 @@ AUTO=자동
 Icons on low-star animals=별이 적은 동물의 아이콘
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=가죽 세공 도구 필요
+NEEDS: %s=필요: %s
 
 # Individual HUD icons
 Weapon icon=무기 아이콘
@@ -2735,7 +2728,6 @@ Trapper icon=덫사냥꾼 아이콘
 
 # Early story
 AVAILABLE LATER=나중에 이용 가능
-* Pearson needs the Leather Working Tools from the camp ledger first.=* 피어슨에게는 먼저 캠프 장부에서 가죽 세공 도구가 필요합니다.
 )HCL7";
 inline constexpr char kLocale_pl_PL[] = R"HCL8(# Hunting Companion localization — pl-PL
 # Companion-owned interface phrases follow this locale.
@@ -3082,7 +3074,7 @@ AUTO=AUTO
 Icons on low-star animals=Ikony przy zwierzętach z mniejszą liczbą gwiazdek
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=POTRZEBNE NARZĘDZIA KALETNICZE
+NEEDS: %s=WYMAGA: %s
 
 # Individual HUD icons
 Weapon icon=Ikona broni
@@ -3092,7 +3084,6 @@ Trapper icon=Ikona trapera
 
 # Early story
 AVAILABLE LATER=DOSTĘPNE PÓŹNIEJ
-* Pearson needs the Leather Working Tools from the camp ledger first.=* Pearson potrzebuje najpierw narzędzi kaletniczych z księgi obozowej.
 )HCL8";
 inline constexpr char kLocale_pt_BR[] = R"HCL9(# Hunting Companion localization — pt-BR
 # Companion-owned interface phrases follow this locale.
@@ -3440,7 +3431,7 @@ AUTO=AUTO
 Icons on low-star animals=Ícones em animais de poucas estrelas
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=FALTAM FERRAMENTAS DE COURO
+NEEDS: %s=PRECISA: %s
 
 # Individual HUD icons
 Weapon icon=Ícone da arma
@@ -3450,7 +3441,6 @@ Trapper icon=Ícone do caçador
 
 # Early story
 AVAILABLE LATER=DISPONÍVEL MAIS TARDE
-* Pearson needs the Leather Working Tools from the camp ledger first.=* Pearson precisa antes das ferramentas de couro do livro-caixa do acampamento.
 )HCL9";
 inline constexpr char kLocale_ru_RU[] = R"HCL10(# Hunting Companion localization — ru-RU
 # Companion-owned interface phrases follow this locale.
@@ -3798,7 +3788,7 @@ AUTO=АВТО
 Icons on low-star animals=Значки на животных с малым числом звёзд
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=НУЖНЫ ИНСТРУМЕНТЫ ДЛЯ КОЖИ
+NEEDS: %s=НУЖНО: %s
 
 # Individual HUD icons
 Weapon icon=Значок оружия
@@ -3808,7 +3798,6 @@ Trapper icon=Значок траппера
 
 # Early story
 AVAILABLE LATER=ДОСТУПНО ПОЗЖЕ
-* Pearson needs the Leather Working Tools from the camp ledger first.=* Пирсону сначала нужны инструменты для кожи из лагерной книги.
 )HCL10";
 inline constexpr char kLocale_zh_CN[] = R"HCL11(# Hunting Companion localization — zh-CN
 # Companion-owned interface phrases follow this locale.
@@ -4156,7 +4145,7 @@ AUTO=自动
 Icons on low-star animals=低星级动物的图标
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=需要皮革加工工具
+NEEDS: %s=需要：%s
 
 # Individual HUD icons
 Weapon icon=武器图标
@@ -4166,7 +4155,6 @@ Trapper icon=猎人图标
 
 # Early story
 AVAILABLE LATER=稍后开放
-* Pearson needs the Leather Working Tools from the camp ledger first.=* 皮尔森需要先通过营地账本购买皮革加工工具。
 )HCL11";
 inline constexpr char kLocale_zh_TW[] = R"HCL12(# Hunting Companion localization — zh-TW
 # Companion-owned interface phrases follow this locale.
@@ -4514,7 +4502,7 @@ AUTO=自動
 Icons on low-star animals=低星級動物的圖示
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=需要皮革加工工具
+NEEDS: %s=需要：%s
 
 # Individual HUD icons
 Weapon icon=武器圖示
@@ -4524,7 +4512,6 @@ Trapper icon=陷阱獵人圖示
 
 # Early story
 AVAILABLE LATER=稍後開放
-* Pearson needs the Leather Working Tools from the camp ledger first.=* 皮爾森需要先透過營地帳本購買皮革加工工具。
 )HCL12";
 inline constexpr LocaleBlob kLocales[] = {
     {"de-DE", kLocale_de_DE},

@@ -69,14 +69,14 @@ if "embedded_official::kLocales" not in OFFICIAL_CPP:
     raise AssertionError("Runtime official string lookup is not using embedded tables")
 
 CHALLENGE_MANIFEST = json.loads((ROOT / "data" / "challenge_translation_manifest.json").read_text(encoding="utf-8"))
-if MANIFEST.get("uniqueHashes") != 358 or MANIFEST.get("entriesPerLocale") != 358:
-    raise AssertionError("Expected 358 official Rockstar hashes (290 catalogue + 68 challenge labels) per locale")
+if MANIFEST.get("uniqueHashes") != 361 or MANIFEST.get("entriesPerLocale") != 361:
+    raise AssertionError("Expected 361 official Rockstar hashes (290 catalogue + 68 challenge labels + 3 interface lines) per locale")
 if (len(MANIFEST.get("locales", [])) != 13 or len(MANIFEST.get("items", [])) != 290 or
         len(MANIFEST.get("challengeObjectives", [])) != 68):
     raise AssertionError("Official hash manifest is incomplete")
 if MANIFEST.get("recipeMaterialHashes") != 290 or MANIFEST.get("challengeObjectiveHashes") != 68:
     raise AssertionError("Official hash manifest category counts are incorrect")
-if "kEntryCountPerLocale = 358u" not in OFFICIAL_HEADER:
+if "kEntryCountPerLocale = 361u" not in OFFICIAL_HEADER or "kInterfaceEntryCount = 3u" not in OFFICIAL_HEADER:
     raise AssertionError("Generated official table count does not match manifest")
 if "kChallengeEntryCount = 68u" not in OFFICIAL_HEADER:
     raise AssertionError("Generated challenge label count does not match manifest")
@@ -105,8 +105,8 @@ for locale in MANIFEST["locales"]:
     if match is None:
         raise AssertionError(f"Embedded official table missing for {locale}")
     ids = [int(value, 16) for value in re.findall(r"\{0x([0-9A-Fa-f]{8})u,", match.group(1))]
-    if len(ids) != 358 or ids != sorted(set(ids)):
-        raise AssertionError(f"{locale}: expected 358 unique sorted official IDs, got {len(ids)}")
+    if len(ids) != 361 or ids != sorted(set(ids)):
+        raise AssertionError(f"{locale}: expected 361 unique sorted official IDs, got {len(ids)}")
 
 
 def parse(path: Path):
@@ -180,4 +180,4 @@ for locale in LOCALES:
     if accidental_manual:
         raise AssertionError(f"{locale}: Rockstar-backed objectives must use official hashes, not manual phrase translations: {accidental_manual[:5]}")
 
-print("Localization and embedded official-string audits passed: 290 catalogue + 68 official challenge hashes, 14 custom challenge translations, 13 locales.")
+print("Localization and embedded official-string audits passed: 290 catalogue + 68 official challenge hashes + 3 interface lines, 14 custom challenge translations, 13 locales.")

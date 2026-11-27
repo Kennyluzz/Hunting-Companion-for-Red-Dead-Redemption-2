@@ -343,7 +343,7 @@ AUTO=AUTO
 Icons on low-star animals=Ikony przy zwierzętach z mniejszą liczbą gwiazdek
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=POTRZEBNE NARZĘDZIA KALETNICZE
+NEEDS: %s=WYMAGA: %s
 
 # Individual HUD icons
 Weapon icon=Ikona broni
@@ -353,4 +353,3 @@ Trapper icon=Ikona trapera
 
 # Early story
 AVAILABLE LATER=DOSTĘPNE PÓŹNIEJ
-* Pearson needs the Leather Working Tools from the camp ledger first.=* Pearson potrzebuje najpierw narzędzi kaletniczych z księgi obozowej.

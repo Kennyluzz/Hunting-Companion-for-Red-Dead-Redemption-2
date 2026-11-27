@@ -344,7 +344,7 @@ AUTO=自動
 Icons on low-star animals=低星級動物的圖示
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=需要皮革加工工具
+NEEDS: %s=需要：%s
 
 # Individual HUD icons
 Weapon icon=武器圖示
@@ -354,4 +354,3 @@ Trapper icon=陷阱獵人圖示
 
 # Early story
 AVAILABLE LATER=稍後開放
-* Pearson needs the Leather Working Tools from the camp ledger first.=* 皮爾森需要先透過營地帳本購買皮革加工工具。

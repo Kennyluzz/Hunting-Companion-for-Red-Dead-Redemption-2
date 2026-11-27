@@ -19,6 +19,7 @@ OUT = ROOT / "src" / "embedded_official_strings.hpp"
 CHALLENGE_IDS_OUT = ROOT / "src" / "embedded_challenge_objective_hashes.hpp"
 MANIFEST = ROOT / "data" / "official_string_manifest.json"
 CHALLENGE_MANIFEST = ROOT / "data" / "challenge_translation_manifest.json"
+UI_STRINGS = ROOT / "data" / "official_ui_strings.json"
 LOCALE_FILES = {
     "en-US": "English", "fr-FR": "French", "de-DE": "German", "it-IT": "Italian",
     "es-ES": "Spanish (Spain)", "pt-BR": "Portuguese (Brazil)", "pl-PL": "Polish",
@@ -28,19 +29,31 @@ LOCALE_FILES = {
 
 
 def archive_for(folder: Path, language: str) -> Path:
+    # Either the pack's ZIP ("RDR2 Official Language - English 1.0.zip") or the
+    # XML inside it ("English Translation.xml").
     candidates = sorted(folder.glob(f"RDR2 Official Language - {language} *.zip"))
+    candidates += sorted(folder.glob(f"{language} Translation.xml"))
+    candidates += sorted(folder.glob(f"{language}_Translation.xml"))
     if len(candidates) != 1:
-        raise RuntimeError(f"{language}: expected exactly one language ZIP in {folder}, found {len(candidates)}")
+        raise RuntimeError(f"{language}: expected exactly one language ZIP or XML in {folder}, found {len(candidates)}")
     return candidates[0]
 
 
 def rows_from_zip(path: Path) -> dict[int, str]:
+    if path.suffix.lower() == ".xml":
+        with path.open("rb") as stream:
+            return rows_from_stream(stream)
     with zipfile.ZipFile(path) as zf:
         xml_names = [n for n in zf.namelist() if Path(n).name.lower().endswith(".xml")]
         if len(xml_names) != 1:
             raise RuntimeError(f"{path.name}: expected one XML, found {len(xml_names)}")
-        out: dict[int, str] = {}
         with zf.open(xml_names[0]) as stream:
+            return rows_from_stream(stream)
+
+
+def rows_from_stream(stream) -> dict[int, str]:
+        out: dict[int, str] = {}
+        if True:
             for _, el in ET.iterparse(stream, events=("end",)):
                 if el.tag.lower() == "string":
                     raw_id = el.attrib.get("id", "")
@@ -106,7 +119,9 @@ def parse_all_ids(source: str) -> tuple[list[tuple[int, str, str]], dict[str, st
     overlap = occupied & {h for h, _, _ in challenge_pairs}
     if overlap:
         raise RuntimeError(f"Challenge IDs unexpectedly overlap catalogue labels: {[hex(x) for x in sorted(overlap)[:5]]}")
-    all_pairs = sorted(items + challenge_pairs, key=lambda row: row[0])
+    ui_pairs = [(int(row["id"], 16), "ui", row["english"])
+                for row in json.loads(UI_STRINGS.read_text(encoding="utf-8"))["strings"]]
+    all_pairs = sorted(items + challenge_pairs + ui_pairs, key=lambda row: row[0])
     if len(all_pairs) != len({row[0] for row in all_pairs}):
         raise RuntimeError("Duplicate official label hashes found")
     return all_pairs, ids
@@ -169,8 +184,12 @@ def main():
 
     # Recipe/material hashes must all match exactly; the challenge strings deliberately
     # use concise source descriptions that can differ from Rockstar's official label copy.
-    expected_catalogue = sum(kind != "challenge" for _, kind, _ in manifest_pairs)
-    actual_catalogue = sum(kind != "challenge" for _, kind, _, _ in valid)
+    expected_catalogue = sum(kind in ("recipe", "material") for _, kind, _ in manifest_pairs)
+    actual_catalogue = sum(kind in ("recipe", "material") for _, kind, _, _ in valid)
+    expected_ui = sum(kind == "ui" for _, kind, _ in manifest_pairs)
+    actual_ui = sum(kind == "ui" for _, kind, _, _ in valid)
+    if actual_ui != expected_ui:
+        raise RuntimeError(f"Only {actual_ui}/{expected_ui} interface lines match their English text")
     if actual_catalogue < 280 or actual_catalogue != expected_catalogue:
         raise RuntimeError(f"Only {actual_catalogue}/{expected_catalogue} recipe/material IDs verified in English")
     expected_challenges = len(challenge_ids)
@@ -214,6 +233,7 @@ def main():
         f"inline constexpr std::size_t kEntryCountPerLocale = {len(ids)}u;",
         f"inline constexpr std::size_t kRecipeMaterialEntryCount = {actual_catalogue}u;",
         f"inline constexpr std::size_t kChallengeEntryCount = {actual_challenges}u;",
+        f"inline constexpr std::size_t kInterfaceEntryCount = {actual_ui}u;",
         "} // namespace hunting_companion::embedded_official",
         "",
     ]
@@ -222,8 +242,10 @@ def main():
 
     valid_catalogue = [
         {"id": f"0x{h:08X}", "kind": kind, "english": source_name}
-        for h, kind, source_name, _ in valid if kind != "challenge"
+        for h, kind, source_name, _ in valid if kind in ("recipe", "material")
     ]
+    valid_ui = [{"id": f"0x{h:08X}", "english": source_name}
+                for h, kind, source_name, _ in valid if kind == "ui"]
     valid_challenges = [
         {"id": f"0x{h:08X}", "objective": source_name, "officialEnglishLabel": official_english}
         for h, kind, source_name, official_english in valid if kind == "challenge"
@@ -236,10 +258,12 @@ def main():
         "entriesPerLocale": len(ids),
         "recipeMaterialHashes": len(valid_catalogue),
         "challengeObjectiveHashes": len(valid_challenges),
+        "interfaceHashes": len(valid_ui),
         "verifiedAgainstEnglish": len(valid),
         "excludedUnlabelledEntries": skipped,
         "items": valid_catalogue,
         "challengeObjectives": valid_challenges,
+        "interfaceLines": valid_ui,
         "bytesByLocale": {loc: sum(len(v.encode("utf-8")) for v in table.values())
                            for loc, table in all_rows.items()},
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

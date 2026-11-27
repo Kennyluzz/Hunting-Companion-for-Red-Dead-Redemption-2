@@ -343,7 +343,7 @@ AUTO=자동
 Icons on low-star animals=별이 적은 동물의 아이콘
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=가죽 세공 도구 필요
+NEEDS: %s=필요: %s
 
 # Individual HUD icons
 Weapon icon=무기 아이콘
@@ -353,4 +353,3 @@ Trapper icon=덫사냥꾼 아이콘
 
 # Early story
 AVAILABLE LATER=나중에 이용 가능
-* Pearson needs the Leather Working Tools from the camp ledger first.=* 피어슨에게는 먼저 캠프 장부에서 가죽 세공 도구가 필요합니다.

@@ -344,7 +344,7 @@ AUTO=AUTO
 Icons on low-star animals=Iconos en animales de pocas estrellas
 
 # Pearson's tools
-NEEDS LEATHER WORKING TOOLS=FALTAN HERRAMIENTAS DE CUERO
+NEEDS: %s=NECESITA: %s
 
 # Individual HUD icons
 Weapon icon=Icono del arma
@@ -354,4 +354,3 @@ Trapper icon=Icono del trampero
 
 # Early story
 AVAILABLE LATER=DISPONIBLE MÁS ADELANTE
-* Pearson needs the Leather Working Tools from the camp ledger first.=* Pearson necesita primero las herramientas de cuero del libro de cuentas del campamento.
