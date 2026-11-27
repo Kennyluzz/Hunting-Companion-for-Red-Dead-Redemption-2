@@ -339,3 +339,6 @@ TRAPPER RECIPE - PART OF %s=RECEITA DO CAÇADOR - PARTE DE %s
 
 # Pearson setting
 AUTO=AUTO
+
+# Low-star animals
+Icons on low-star animals=Ícones em animais de poucas estrelas

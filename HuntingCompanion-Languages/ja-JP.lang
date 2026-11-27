@@ -339,3 +339,6 @@ TRAPPER RECIPE - PART OF %s=罠師のレシピ - %sの一部
 
 # Pearson setting
 AUTO=自動
+
+# Low-star animals
+Icons on low-star animals=星の少ない動物のアイコン

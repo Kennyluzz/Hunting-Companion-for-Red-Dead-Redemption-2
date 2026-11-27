@@ -338,3 +338,6 @@ TRAPPER RECIPE - PART OF %s=PRZEPIS TRAPERA - CZĘŚĆ ZESTAWU %s
 
 # Pearson setting
 AUTO=AUTO
+
+# Low-star animals
+Icons on low-star animals=Ikony przy zwierzętach z mniejszą liczbą gwiazdek

@@ -339,3 +339,6 @@ TRAPPER RECIPE - PART OF %s=FALLENSTELLER-REZEPT - TEIL VON %s
 
 # Pearson setting
 AUTO=AUTO
+
+# Low-star animals
+Icons on low-star animals=Symbole bei Tieren mit wenigen Sternen

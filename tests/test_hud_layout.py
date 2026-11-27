@@ -23,6 +23,9 @@ required = (
     'WritePrivateProfileStringA("General", "TextColour", value, g_iniPath);',
     "apply_text_colour(&red, &green, &blue);",
     "hud_label_colour(&red, &green, &blue);",
+    # Optional: icons on low-star animals only for what they can give.
+    "const bool lowStar = !g_lowStarIcons && !legendary && quality >= 0 && quality < 2;",
+    "if (lowStar && !needsPearson && !needsTrapper) return;",
     # Settings wraps only on a new key press.
     "move_settings_selection(1, key_pressed(VK_DOWN));",
     "move_settings_selection(-1, key_pressed(VK_UP));",

@@ -339,3 +339,6 @@ TRAPPER RECIPE - PART OF %s=捕獸人配方 - %s 的一部分
 
 # Pearson setting
 AUTO=自動
+
+# Low-star animals
+Icons on low-star animals=低星級動物的圖示

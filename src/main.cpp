@@ -59,7 +59,12 @@ FunctionPointer resolve_export(HMODULE module, const char* decoratedName) noexce
 }
 
 bool resolve_script_hook() noexcept {
-    const HMODULE hook = GetModuleHandleW(L"ScriptHookRDR2.dll");
+    // ASI loaders load plugins in name order. Plugins built with the ScriptHook
+    // SDK import ScriptHookRDR2.dll, so Windows loads it with the first of them;
+    // this one finds ScriptHook at run time instead, so it must load the DLL
+    // itself when it comes first (alone, or before Rampage and the like).
+    HMODULE hook = GetModuleHandleW(L"ScriptHookRDR2.dll");
+    if (hook == nullptr) hook = LoadLibraryW(L"ScriptHookRDR2.dll");
     if (hook == nullptr) return false;
     g_api.registerScript = resolve_export<ScriptRegisterFn>(hook, "?scriptRegister@@YAXPEAUHINSTANCE__@@P6AXXZ@Z");
     g_api.registerAdditionalThread = resolve_export<ScriptRegisterFn>(hook, "?scriptRegisterAdditionalThread@@YAXPEAUHINSTANCE__@@P6AXXZ@Z");
@@ -120,6 +125,9 @@ constexpr std::uint64_t kDoesEntityExist = 0xD42BD6EB2E0F1677ull;
 constexpr std::uint64_t kIsEntityAPed = 0xCF8176912DDA4EA5ull;
 constexpr std::uint64_t kGetIsCarriablePelt = 0x255B6DB4E3AD3C3Eull;
 constexpr std::uint64_t kGetCarcassFromPelt = 0x2A77EF9BEC8518F4ull;
+// The name the game shows for a carried entity (its prompt name); for a pelt,
+// its inventory item ("Perfect Elk Pelt").
+constexpr std::uint64_t kGetCarriableFromEntity = 0x31FEF6A20F00B963ull;
 constexpr std::uint64_t kGetPedQuality = 0x7BCC6087D130312Aull;
 // The animal type (eAnimalType hash); legendary animals have their own.
 constexpr std::uint64_t kGetPedAnimalType = 0x964000D355219FC0ull;
@@ -1473,7 +1481,8 @@ const char* source_species(std::uint32_t materialHash) noexcept {
 // True when the vendor still needs a material this animal can give: a
 // legendary animal gives only its legendary pelt, any other animal only the
 // ordinary materials of its species.
-bool species_needed(const VendorDemand& vendor, const char* species, bool legendary) noexcept {
+bool species_needed(const VendorDemand& vendor, const char* species, bool legendary,
+                    bool canGivePerfect = true) noexcept {
     if (!vendor.ready || species == nullptr) return false;
     for (std::size_t i = 0; i < vendor.count; ++i) {
         const auto& material = vendor.materials[i];
@@ -1482,7 +1491,10 @@ bool species_needed(const VendorDemand& vendor, const char* species, bool legend
         if (source == nullptr || std::strcmp(source, species) != 0) continue;
         const char* name = find_material_name(material.hash);
         const bool legendaryMaterial = name != nullptr && std::strstr(name, "Legendary") != nullptr;
-        if (legendaryMaterial == legendary) return true;
+        if (legendaryMaterial != legendary) continue;
+        // A one- or two-star animal cannot give a perfect pelt or carcass.
+        if (!canGivePerfect && name != nullptr && std::strstr(name, "Perfect") != nullptr) continue;
+        return true;
     }
     return false;
 }
@@ -1559,6 +1571,7 @@ struct CurrentHaulMaterial {
     int horseCount{};
     int stowedPeltCount{};  // scratch: pelts in the horse's stowed-pelt list
     int peltSkinCount{};    // scratch: pelts stacked on the horse, by inventory item
+    int horseCargoCount{};  // scratch: the horse's own inventory (the Horse Cargo tab)
 };
 struct CurrentHaulState {
     std::array<CurrentHaulMaterial, kMaxMaterials> materials{};
@@ -1596,7 +1609,8 @@ void add_current_haul_count(std::uint32_t hash, int amount, int source) noexcept
     int* destination = source == 0 ? &material.inventoryCount :
                        source == 1 ? &material.carriedCount :
                        source == 2 ? &material.horseCount :
-                       source == 3 ? &material.stowedPeltCount : &material.peltSkinCount;
+                       source == 3 ? &material.stowedPeltCount :
+                       source == 4 ? &material.peltSkinCount : &material.horseCargoCount;
     *destination = std::min(1000000, *destination + amount);
 }
 
@@ -1703,7 +1717,7 @@ void remember_pelt_identity(int entity, const std::uint32_t* materials, std::siz
 }
 
 // Diagnostics (FontLog=1): what the haul scan saw, written when it changes.
-char g_haulTrace[512]{};
+char g_haulTrace[1024]{};
 std::size_t g_haulTraceLength{};
 void haul_trace(const char* format, ...) noexcept {
     if (g_haulTraceLength >= sizeof(g_haulTrace) - 1) return;
@@ -1795,13 +1809,41 @@ void add_entity_animal_materials(int entity, int source, bool knownPelt) noexcep
         invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
     std::array<std::uint32_t, 4> found{};
     std::size_t foundCount = 0;
+    if (isPelt) {
+        // A pelt's own name is its exact item ("Perfect Elk Pelt"), so it needs
+        // no guessing from its animal and survives saving and loading. Only when
+        // the name is not a recipe material (for example a lesser pelt) does the
+        // mod fall back to tracing the pelt to its animal below.
+        const std::uint32_t item = invoke_native<std::uint32_t>(kGetCarriableFromEntity, entity);
+        if (is_animal_part_material(item)) {
+            haul_trace(" [P name %08X*]", item);
+            const int carcass = invoke_native<int>(kGetCarcassFromPelt, entity);
+            if (carcass != 0 && invoke_native<int>(kDoesEntityExist, carcass) != 0) remember_skinned(carcass);
+            add_current_haul_count(item, 1, source);
+            return;
+        }
+    }
     if (!identify_entity_materials(entity, isPelt, found, foundCount)) {
         // The animal is gone: use what this pelt was identified as earlier.
         const PeltIdentity* identity = isPelt ? find_pelt_identity(entity) : nullptr;
-        haul_trace(" [%c gone%s]", isPelt ? 'P' : 'A', identity != nullptr ? ", remembered" : "");
-        if (identity == nullptr) return;
-        for (std::size_t i = 0; i < identity->count; ++i) found[i] = identity->materials[i];
-        foundCount = identity->count;
+        if (identity != nullptr) {
+            haul_trace(" [%c gone, remembered]", isPelt ? 'P' : 'A');
+            for (std::size_t i = 0; i < identity->count; ++i) found[i] = identity->materials[i];
+            foundCount = identity->count;
+        } else if (isPelt) {
+            // Never seen with its animal (for example a pelt already on the horse
+            // when a save was loaded): the pelt's own name is its item ("Perfect
+            // Elk Pelt"), which the game reports for the carried entity.
+            const std::uint32_t item = invoke_native<std::uint32_t>(kGetCarriableFromEntity, entity);
+            haul_trace(" [P gone, name %08X%s]", item, is_animal_part_material(item) ? "*" : "");
+            if (!is_animal_part_material(item)) return;
+            found[0] = item;
+            foundCount = 1;
+            remember_pelt_identity(entity, found.data(), foundCount);
+        } else {
+            haul_trace(" [A gone]");
+            return;
+        }
     }
     for (std::size_t i = 0; i < foundCount; ++i) add_current_haul_count(found[i], 1, source);
 }
@@ -1826,6 +1868,27 @@ void remember_carried_pelts() noexcept {
 
 char g_lastHaulTrace[sizeof(g_haulTrace)]{};
 
+// Whole animals held as inventory items (the game's PROVISION_ANIMAL_CARCASS_*
+// IDs), in the satchel or in the horse's own inventory: each counts for what
+// breaking it down gives, its pelt (perfect only from a perfect carcass) and
+// feathers. A carcass material itself (Perfect Wolf Carcass) is the item and is
+// counted with the other materials.
+void add_carcass_items(int inventory, int source, const char* where) noexcept {
+    for (const auto& carcass : hunting_companion::satchel::kCarcassItems) {
+        const int count = player_owned_count(inventory, carcass.item);
+        if (count <= 0) continue;
+        haul_trace(" %s:%s q%d x%d", where, carcass.species, carcass.quality, count);
+        for (const auto& sourceEntry : kMaterialSources) {
+            if (std::strcmp(sourceEntry.species, carcass.species) != 0) continue;
+            const char* name = find_material_name(sourceEntry.hash);
+            if (name == nullptr || std::strstr(name, "Legendary") != nullptr ||
+                std::strstr(name, "Carcass") != nullptr) continue;
+            if (std::strstr(name, "Perfect") != nullptr && carcass.quality != 2) continue;
+            add_current_haul_count(sourceEntry.hash, count, source);
+        }
+    }
+}
+
 void update_current_haul() noexcept {
     g_currentHaul = {};
     g_haulTrace[0] = '\0';
@@ -1848,19 +1911,7 @@ void update_current_haul() noexcept {
     // gives: its pelt (perfect only from a perfect carcass) and feathers. A
     // carcass material itself (Perfect Wolf Carcass) is the item and was
     // counted above.
-    for (const auto& carcass : hunting_companion::satchel::kCarcassItems) {
-        const int count = player_owned_count(inventoryId, carcass.item);
-        if (count <= 0) continue;
-        haul_trace(" satchel:%s q%d x%d", carcass.species, carcass.quality, count);
-        for (const auto& sourceEntry : kMaterialSources) {
-            if (std::strcmp(sourceEntry.species, carcass.species) != 0) continue;
-            const char* name = find_material_name(sourceEntry.hash);
-            if (name == nullptr || std::strstr(name, "Legendary") != nullptr ||
-                std::strstr(name, "Carcass") != nullptr) continue;
-            if (std::strstr(name, "Perfect") != nullptr && carcass.quality != 2) continue;
-            add_current_haul_count(sourceEntry.hash, count, 0);
-        }
-    }
+    add_carcass_items(inventoryId, 0, "satchel");
 
     // Read the player's carriable slots (0-4). Slots 5-7 are the saddle
     // horse's left, right and rear attachment points.
@@ -1872,7 +1923,8 @@ void update_current_haul() noexcept {
         if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) continue;
         const bool isPelt = invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
         const bool isPed = invoke_native<int>(kIsEntityAPed, entity) != 0;
-        haul_trace(" carry%d:%08X", slot, invoke_native<std::uint32_t>(kGetEntityModel, entity));
+        haul_trace(" carry%d:%08X name %08X", slot, invoke_native<std::uint32_t>(kGetEntityModel, entity),
+                   invoke_native<std::uint32_t>(kGetCarriableFromEntity, entity));
         if (isPelt || isPed) add_entity_animal_materials(entity, 1, isPelt);
     }
 
@@ -1891,7 +1943,8 @@ void update_current_haul() noexcept {
                 if (entity == 0 || invoke_native<int>(kDoesEntityExist, entity) == 0) continue;
                 const bool isPelt = invoke_native<int>(kGetIsCarriablePelt, entity) != 0;
                 const bool isPed = invoke_native<int>(kIsEntityAPed, entity) != 0;
-                haul_trace(" horse:%08X", invoke_native<std::uint32_t>(kGetEntityModel, entity));
+                haul_trace(" horse:%08X name %08X", invoke_native<std::uint32_t>(kGetEntityModel, entity),
+                           invoke_native<std::uint32_t>(kGetCarriableFromEntity, entity));
                 if (isPelt || isPed) add_entity_animal_materials(entity, 2, isPelt);
             }
             invoke_native<void>(kDestroyItemset, itemSet);
@@ -1921,13 +1974,30 @@ void update_current_haul() noexcept {
             haul_trace(" %08X%s", pelt, is_animal_part_material(pelt) ? "*" : "");
             add_current_haul_count(pelt, 1, 3);
         }
-        // A pelt can show up as an attached entity and in either list at once,
-        // so take the largest of the counts instead of adding them.
+        // The satchel's Horse Cargo tab lists what the horse holds by item. If the
+        // horse has an inventory of its own, read it the same way as the
+        // satchel: item by item, nothing to work out.
+        const int horseInventory = invoke_native<int>(kInventoryGetInventoryIdFromPed, horse);
+        haul_trace(" cargo inv %d:", horseInventory);
+        if (horseInventory >= 0 && horseInventory != inventoryId) {
+            for (const auto& material : kMaterialNames) {
+                if (!is_animal_part_material(material.hash)) continue;
+                const int count = player_owned_count(horseInventory, material.hash);
+                if (count <= 0) continue;
+                haul_trace(" %08Xx%d", material.hash, count);
+                add_current_haul_count(material.hash, count, 5);
+            }
+            add_carcass_items(horseInventory, 5, "cargo");
+        }
+        // A pelt can show up as an attached entity and in more than one of these
+        // lists at once, so take the largest of the counts instead of adding them.
         for (std::size_t i = 0; i < g_currentHaul.count; ++i) {
             CurrentHaulMaterial& material = g_currentHaul.materials[i];
-            material.horseCount = std::max({material.horseCount, material.stowedPeltCount, material.peltSkinCount});
+            material.horseCount = std::max({material.horseCount, material.stowedPeltCount, material.peltSkinCount,
+                                            material.horseCargoCount});
             material.stowedPeltCount = 0;
             material.peltSkinCount = 0;
+            material.horseCargoCount = 0;
         }
     }
     if (std::strcmp(g_haulTrace, g_lastHaulTrace) != 0) {
@@ -2361,6 +2431,7 @@ bool wrap_to_width(const char* text, float size, float correction, float maxWidt
 }
 
 bool g_showWeaponIcons = true;       // toggled from Settings or the icons hotkey
+bool g_lowStarIcons = true;          // [General] LowStarIcons: 0 = icons only for what a low-star animal can give
 bool g_legendaryIcon = true;         // [General] LegendaryIcon: 0 = "Any weapon" text only
 
 void draw_text_impl(const char* text, float x, float y, float referencePixelHeight,
@@ -2609,9 +2680,16 @@ void update_hud() noexcept {
     const bool legendary = is_legendary_animal(focusedEntity);
     if (species == nullptr && recommendation == nullptr && !legendary) return;
 
+    // With "Icons on low-star animals" hidden, a one- or two-star animal only
+    // shows icons for what it can actually give (feathers, antlers), and no
+    // weapon advice when that is nothing. Legendary animals are unaffected.
+    const int quality = invoke_native<int>(kGetPedQuality, focusedEntity);
+    const bool lowStar = !g_lowStarIcons && !legendary && quality >= 0 && quality < 2;
     const bool needsPearson = !g_pearsonUnavailable && species != nullptr &&
-                              species_needed(g_tracker.pearson.demand, species, legendary);
-    const bool needsTrapper = species != nullptr && species_needed(g_tracker.trapper.demand, species, legendary);
+                              species_needed(g_tracker.pearson.demand, species, legendary, !lowStar);
+    const bool needsTrapper = species != nullptr &&
+                              species_needed(g_tracker.trapper.demand, species, legendary, !lowStar);
+    if (lowStar && !needsPearson && !needsTrapper) return;
 
     HudIconLayout layout{};
     if (!get_hud_icon_layout(&layout)) return;
@@ -2655,9 +2733,10 @@ constexpr int kSetTextColour = 6;
 constexpr int kSetHeadingColour = 7;
 constexpr int kSetHudLabelColour = 8;
 constexpr int kSetHudLayout = 9;
-constexpr int kSetPearson = 10;
-constexpr int kSetBack = 11;
-constexpr int kSettingsCount = 12;
+constexpr int kSetLowStarIcons = 10;
+constexpr int kSetPearson = 11;
+constexpr int kSetBack = 12;
+constexpr int kSettingsCount = 13;
 constexpr int kSettingsVisibleRows = 7;  // the language details sit below them
 // Rows of the HUD layout page; the first three are kHudAll, kHudWeapons, kHudVendors.
 constexpr int kLayoutReset = 3;
@@ -2832,6 +2911,7 @@ void load_configuration() noexcept {
     g_iconsHotkey = (iconsKey > 0 && iconsKey < 256) ? iconsKey : kDefaultIconsKey;
     g_showWeaponIcons = GetPrivateProfileIntA("General", "ShowWeaponIcons", 1, g_iniPath) != 0;
     g_legendaryIcon = GetPrivateProfileIntA("General", "LegendaryIcon", 1, g_iniPath) != 0;
+    g_lowStarIcons = GetPrivateProfileIntA("General", "LowStarIcons", 1, g_iniPath) != 0;
     g_textColour = load_colour("TextColour");
     g_headingColour = load_colour("HeadingColour");
     g_hudLabelColour = load_colour("HudLabelColour");
@@ -4363,6 +4443,14 @@ void update_menu_input() noexcept {
         if (key_pressed(VK_LEFT)) { change_ui_language(-1); return; }
         if (key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) { change_ui_language(1); return; }
     }
+    if (g_menu.page == MenuPage::Settings && g_menu.selection == kSetLowStarIcons) {
+        if (key_pressed(VK_LEFT) || key_pressed(VK_RIGHT) || key_pressed(VK_RETURN)) {
+            g_lowStarIcons = !g_lowStarIcons;
+            if (g_iniPath[0] != '\0')
+                WritePrivateProfileStringA("General", "LowStarIcons", g_lowStarIcons ? "1" : "0", g_iniPath);
+            return;
+        }
+    }
     if (g_menu.page == MenuPage::Settings && g_menu.selection == kSetPearson) {
         int direction = 0;
         if (key_pressed(VK_LEFT)) direction = -1;
@@ -5298,6 +5386,10 @@ void draw_settings_page() noexcept {
             case kSetHudLayout:
                 label = "HUD layout";
                 status = "CHANGE";
+                break;
+            case kSetLowStarIcons:
+                label = "Icons on low-star animals";
+                status = g_lowStarIcons ? "SHOWN" : "HIDDEN";
                 break;
             case kSetPearson:
                 label = "Pearson";

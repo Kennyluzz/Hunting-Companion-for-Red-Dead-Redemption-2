@@ -339,3 +339,6 @@ TRAPPER RECIPE - PART OF %s=РЕЦЕПТ ОХОТНИКА - ЧАСТЬ КОМП�
 
 # Pearson setting
 AUTO=АВТО
+
+# Low-star animals
+Icons on low-star animals=Значки на животных с малым числом звёзд
