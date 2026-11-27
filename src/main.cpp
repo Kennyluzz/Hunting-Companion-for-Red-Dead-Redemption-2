@@ -5116,7 +5116,7 @@ void draw_wrapped_centered_text(const char* text, float centerX, float y,
 // Shared horizontal bounds for rank bars on category and reinforced-item
 // detail pages. Rows have no plates, so the bar ends where the
 // divider lines end, well inside the panel's rough painted edge.
-constexpr float kMenuContentLeft = 0.071f;
+constexpr float kMenuContentLeft = 0.0365f;
 constexpr float kMenuRewardRowRight = 0.212f + 0.345f * 0.5f;
 constexpr float kMenuProgressBarWidth = kMenuRewardRowRight - kMenuContentLeft;
 
@@ -5167,7 +5167,7 @@ void draw_menu_row(const char* label, const char* status, int row,
     const int labelGreen = selected ? 255 : (disabled ? 104 : (accent ? theme::kGoldGreen : theme::kTextGreen));
     const int labelBlue = selected ? 255 : (disabled ? 104 : (accent ? theme::kGoldBlue : theme::kTextBlue));
 
-    constexpr float kLabelLeft = 0.063f;
+    constexpr float kLabelLeft = kMenuContentLeft;
     constexpr float kRowRight = kPanelCenter + kPanelWidth * 0.5f - 0.007f;
     constexpr float kStatusGap = 0.010f;
     constexpr float kStatusSize = 13.0f;
@@ -5232,12 +5232,12 @@ void draw_menu_header(const char* title, const char* subtitle,
         draw_sprite(theme::kGeneric, theme::kInkPanel, 0.212f, 0.50f, 0.412f, 0.965f, 0, 0, 0, 238);
         draw_sprite(theme::kGeneric, theme::kHeaderPlate, 0.212f, 0.094f, 0.365f, 0.118f,
                     255, 255, 255, 255);
-        draw_sprite(theme::kMenu, theme::kDivider, 0.212f, 0.1575f, 0.345f, 0.0042f,
+        draw_sprite(theme::kMenu, theme::kDivider, 0.212f, 0.1575f, 0.353f, 0.0042f,
                     theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 215);
     } else {
         draw_rect(0.212f, 0.50f, 0.395f, 0.94f, 0, 0, 0, 232);
         draw_rect(0.212f, 0.095f, 0.365f, 0.125f, 14, 12, 11, 250);
-        draw_rect(0.212f, 0.157f, 0.34f, 0.0018f,
+        draw_rect(0.212f, 0.157f, 0.353f, 0.0018f,
                   theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 200);
     }
     const bool cjkTitle = hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
@@ -5273,7 +5273,7 @@ void draw_menu_header(const char* title, const char* subtitle,
         draw_text_raw(titleText, 0.071f, 0.109f + (22.0f - size) * 0.0007f, size,
                       theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
     }
-    if (subtitle != nullptr) draw_text(subtitle, 0.071f, 0.168f, 13.0f,
+    if (subtitle != nullptr) draw_text(subtitle, kMenuContentLeft, 0.168f, 13.0f,
                                        theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     if (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes) {
         if (textured) {
@@ -5293,20 +5293,20 @@ void draw_menu_header(const char* title, const char* subtitle,
 
 void draw_menu_footer() noexcept {
     if (menu_textures_ready()) {
-        draw_sprite(theme::kMenu, theme::kDivider, 0.212f, 0.895f, 0.345f, 0.0042f,
+        draw_sprite(theme::kMenu, theme::kDivider, 0.212f, 0.895f, 0.353f, 0.0042f,
                     theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 170);
     } else {
-        draw_rect(0.212f, 0.895f, 0.34f, 0.0018f,
+        draw_rect(0.212f, 0.895f, 0.353f, 0.0018f,
                   theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 160);
     }
     const char* keys = "UP/DOWN Navigate   ENTER Select   BACKSPACE Back";
     if (g_menu.page == MenuPage::Search)
         keys = g_menu.searchEditing ? "ENTER Done   BACKSPACE Delete" : "SPACE Search   ENTER Select   BACKSPACE Back";
     draw_text(keys,
-              0.065f, 0.855f, 14.0f, theme::kTextRed, theme::kTextGreen, theme::kTextBlue);
+              kMenuContentLeft, 0.855f, 14.0f, theme::kTextRed, theme::kTextGreen, theme::kTextBlue);
     char footer[48]{};
     std::snprintf(footer, sizeof(footer), hunting_companion::ui_text("%s Close"), key_name(g_menuHotkey));
-    draw_text(footer, 0.065f, 0.908f, 13.5f,
+    draw_text(footer, kMenuContentLeft, 0.908f, 13.5f,
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     if (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes) {
         char filterHint[64]{};
@@ -5411,7 +5411,7 @@ void draw_pearson_tools_note(float y) noexcept {
     char note[320]{};
     std::snprintf(note, sizeof(note), "* %s %s", first != nullptr ? first : "Pearson cannot craft this yet.",
                   second != nullptr ? second : "Purchase leather working tools at the ledger.");
-    draw_fitted_text(note, 0.071f, y, 0.3885f - 0.071f, 3, 12.0f, 232, 176, 112);
+    draw_fitted_text(note, kMenuContentLeft, y, 0.3875f - kMenuContentLeft, 3, 12.0f, 232, 176, 112);
 }
 
 const char* with_tools_mark(bool trapper, const RecipeEntry* recipe, const char* status,
@@ -5547,8 +5547,8 @@ void draw_settings_page() noexcept {
         const char* prompt = g_menu.captureFilterHotkey ? "PRESS A KEY FOR THE CRAFTABLE FILTER" :
                              (g_menu.captureIconsHotkey ? "PRESS A KEY FOR THE WEAPON/AMMO ICONS" :
                               "PRESS A KEY TO ASSIGN THE MENU HOTKEY");
-        draw_wrapped_text(prompt, 0.071f, 0.260f, 38, 2, 0.034f, 15.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
-        draw_text("BACKSPACE cancels", 0.071f, 0.350f, 13.0f, 210, 205, 195);
+        draw_wrapped_text(prompt, kMenuContentLeft, 0.260f, 38, 2, 0.034f, 15.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
+        draw_text("BACKSPACE cancels", kMenuContentLeft, 0.350f, 13.0f, 210, 205, 195);
         draw_menu_footer();
         return;
     }
@@ -5643,17 +5643,17 @@ void draw_settings_page() noexcept {
     std::snprintf(languageLine, sizeof(languageLine), hunting_companion::ui_text("RDR2 language: %s (%s)"),
                   game_language_name(g_detectedGameLanguage),
                   game_language_locale(g_detectedGameLanguage));
-    draw_text(languageLine, 0.071f, 0.642f, 13.5f, 206, 200, 186);
+    draw_text(languageLine, kMenuContentLeft, 0.642f, 13.5f, 206, 200, 186);
     char interfaceLine[256]{};
     std::snprintf(interfaceLine, sizeof(interfaceLine),
                   hunting_companion::ui_text("Companion interface: %s (%s)"),
                   game_language_name(selectedLanguage),
                   hunting_companion::ui_locale());
-    draw_text(interfaceLine, 0.071f, 0.676f, 12.5f, 184, 178, 164);
+    draw_text(interfaceLine, kMenuContentLeft, 0.676f, 12.5f, 184, 178, 164);
     if (native_font_fallback_active()) {
         // Only shown while the UI is in English (the fallback), so it is not translated.
         if (const char* status = hunting_companion::native_fonts::status_line(requested_language()))
-            draw_text_raw(status, 0.071f, 0.772f, 12.0f, 224, 160, 120);
+            draw_text_raw(status, kMenuContentLeft, 0.772f, 12.0f, 224, 160, 120);
     }
     const std::size_t officialCount = hunting_companion::loaded_official_string_count();
     char officialStatus[160]{};
@@ -5661,12 +5661,12 @@ void draw_settings_page() noexcept {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official Rockstar language entries loaded: %llu"),
                       static_cast<unsigned long long>(officialCount));
-        draw_wrapped_text(officialStatus, 0.071f, 0.710f, 44, 2, 0.026f, 12.0f, 145, 194, 157);
+        draw_wrapped_text(officialStatus, kMenuContentLeft, 0.710f, 44, 2, 0.026f, 12.0f, 145, 194, 157);
     } else {
         std::snprintf(officialStatus, sizeof(officialStatus),
                       hunting_companion::ui_text("Official item-name data unavailable for %s; English names used."),
                       hunting_companion::ui_text(hunting_companion::locale_name(selectedLanguage)));
-        draw_wrapped_text(officialStatus, 0.071f, 0.710f, 44, 2, 0.026f, 12.0f, 220, 174, 128);
+        draw_wrapped_text(officialStatus, kMenuContentLeft, 0.710f, 44, 2, 0.026f, 12.0f, 220, 174, 128);
     }
     draw_menu_footer();
 }
@@ -5690,7 +5690,7 @@ void draw_hud_layout_page() noexcept {
         draw_list_page("HUD LAYOUT", "Move and resize the HUD icons", kLayoutCount,
                        hud_layout_row_label, hud_layout_row_status);
         draw_wrapped_text("The icons on the right are a preview. Select a group to move it.",
-                          0.071f, 0.790f, 48, 2, 0.022f, 10.5f, 184, 178, 164);
+                          kMenuContentLeft, 0.790f, 48, 2, 0.022f, 10.5f, 184, 178, 164);
         return;
     }
     // While moving, only a short guide is shown so the whole screen is free.
@@ -5717,48 +5717,48 @@ void draw_challenge_detail() noexcept {
     draw_menu_header(definition.name, "LIVE STORY MODE CHALLENGE / READ ONLY");
 
     if (!progress.available) {
-        draw_text("CHALLENGE RANK DATA UNAVAILABLE", 0.071f, 0.235f,
+        draw_text("CHALLENGE RANK DATA UNAVAILABLE", kMenuContentLeft, 0.235f,
                   16.0f, 224, 177, 133);
         char nativeResult[96]{};
         std::snprintf(nativeResult, sizeof(nativeResult),
                       hunting_companion::ui_text("NATIVE RETURNED: %d COMPLETED / %d MAX (EXPECTED MAX 10)"),
                       progress.ranksCompleted, progress.maxRanks);
-        draw_text(nativeResult, 0.071f, 0.292f, 12.0f, 224, 211, 188);
+        draw_text(nativeResult, kMenuContentLeft, 0.292f, 12.0f, 224, 211, 188);
         char rootLine[96]{};
         std::snprintf(rootLine, sizeof(rootLine),
                       hunting_companion::ui_text("CATEGORY ROOT: %s"),
                       definition.rootHashName);
-        draw_text(rootLine, 0.071f, 0.337f, 11.0f, 190, 184, 170);
+        draw_text(rootLine, kMenuContentLeft, 0.337f, 11.0f, 190, 184, 170);
         draw_text("Check Story Mode state and ScriptHook compatibility.",
-                  0.071f, 0.379f, 11.0f, 190, 184, 170);
+                  kMenuContentLeft, 0.379f, 11.0f, 190, 184, 170);
     } else {
         char rankLine[64]{};
         std::snprintf(rankLine, sizeof(rankLine), hunting_companion::ui_text("RANKS COMPLETED: %d / %d"),
                       progress.ranksCompleted, progress.maxRanks);
-        draw_text(rankLine, 0.071f, 0.226f, 17.0f, 236, 219, 185);
+        draw_text(rankLine, kMenuContentLeft, 0.226f, 17.0f, 236, 219, 185);
 
         const bool allComplete = progress.ranksCompleted >= progress.maxRanks;
         if (allComplete) {
-            draw_text("ALL TEN RANKS COMPLETE", 0.071f, 0.281f,
+            draw_text("ALL TEN RANKS COMPLETE", kMenuContentLeft, 0.281f,
                       13.0f, 130, 215, 151);
-            draw_text("CHALLENGE STATUS", 0.071f, 0.326f,
+            draw_text("CHALLENGE STATUS", kMenuContentLeft, 0.326f,
                       11.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
             draw_wrapped_text("Every rank in this challenge category is complete.",
-                              0.071f, 0.350f, 48, 2, 0.028f, 13.0f,
+                              kMenuContentLeft, 0.350f, 48, 2, 0.028f, 13.0f,
                               225, 218, 202);
         } else {
             char activeRank[64]{};
             std::snprintf(activeRank, sizeof(activeRank), hunting_companion::ui_text("CURRENT RANK: %d / %d"),
                           progress.ranksCompleted + 1, progress.maxRanks);
-            draw_text(activeRank, 0.071f, 0.281f, 13.0f, 215, 202, 177);
-            draw_text("NEXT RANK OBJECTIVE", 0.071f, 0.326f,
+            draw_text(activeRank, kMenuContentLeft, 0.281f, 13.0f, 215, 202, 177);
+            draw_text("NEXT RANK OBJECTIVE", kMenuContentLeft, 0.326f,
                       11.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
             const char* objective = localized_challenge_objective(
                 definition.rankObjectives[progress.ranksCompleted]);
             // Translated objectives can be longer than the concise English source.
             // Three bounded lines prevent French/German/Portuguese copy from being
             // truncated while leaving clear space above the progress bar.
-            draw_wrapped_text(objective, 0.071f, 0.350f, 48, 3, 0.022f, 12.5f,
+            draw_wrapped_text(objective, kMenuContentLeft, 0.350f, 48, 3, 0.022f, 12.5f,
                               225, 218, 202);
         }
 
@@ -5766,10 +5766,10 @@ void draw_challenge_detail() noexcept {
         // to the exact right edge of the reward-row plates.
         draw_challenge_progress_bar(progress, 0.434f);
         draw_text("Rank totals come from the game's challenge system; progress is never changed.",
-                  0.071f, 0.462f, 10.5f, 174, 168, 154);
+                  kMenuContentLeft, 0.462f, 10.5f, 174, 168, 154);
     }
 
-    draw_text("REINFORCED REWARDS", 0.071f, 0.520f, 14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
+    draw_text("REINFORCED REWARDS", kMenuContentLeft, 0.520f, 14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
     const int rewardCount = reinforced_equipment_count_for_challenge(challengeIndex);
     for (int i = 0; i < rewardCount; ++i) {
         char label[128]{};
@@ -5796,60 +5796,60 @@ void draw_recipe_detail() noexcept {
         const char* itemStatus = recipe->owned ? "OWNED" :
             (unlocked ? "UNLOCKED - READY TO BUY" :
              (progress != nullptr && progress->available ? "LOCKED" : "RANK DATA UNAVAILABLE"));
-        draw_text(itemStatus, 0.071f, 0.215f, 17.0f,
+        draw_text(itemStatus, kMenuContentLeft, 0.215f, 17.0f,
                   recipe->owned || unlocked ? 130 : 220,
                   recipe->owned || unlocked ? 205 : 184,
                   recipe->owned || unlocked ? 145 : 112);
-        draw_text("PURCHASE PRICE", 0.071f, 0.282f, 14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
+        draw_text("PURCHASE PRICE", kMenuContentLeft, 0.282f, 14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
         char price[24]{};
         std::snprintf(price, sizeof(price), "$%u.%02u",
                       reinforced->priceCents / 100u, reinforced->priceCents % 100u);
         draw_text(price, 0.315f, 0.282f, 15.0f, 235, 224, 200);
-        draw_text("UNLOCK REQUIREMENT", 0.071f, 0.350f, 14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
+        draw_text("UNLOCK REQUIREMENT", kMenuContentLeft, 0.350f, 14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
         char requirement[128]{};
         std::snprintf(requirement, sizeof(requirement), hunting_companion::ui_text("Complete the %s Challenge Rank %u."),
                       hunting_companion::ui_text(reinforced->challengeName), reinforced->unlockRank);
-        draw_text(requirement, 0.071f, 0.402f, 14.0f, 235, 224, 200);
+        draw_text(requirement, kMenuContentLeft, 0.402f, 14.0f, 235, 224, 200);
         if (progress != nullptr && progress->available) {
             char ranks[64]{};
             std::snprintf(ranks, sizeof(ranks), hunting_companion::ui_text("RANKS COMPLETED: %d / %d"),
                           progress->ranksCompleted, progress->maxRanks);
-            draw_text(ranks, 0.071f, 0.474f, 14.0f, 214, 207, 190);
+            draw_text(ranks, kMenuContentLeft, 0.474f, 14.0f, 214, 207, 190);
 
             const ChallengeDefinition* challenge =
                 find_challenge_definition(reinforced->challengeName);
             const bool allComplete = progress->ranksCompleted >= progress->maxRanks;
             if (allComplete) {
-                draw_text("ALL TEN RANKS COMPLETE", 0.071f, 0.510f,
+                draw_text("ALL TEN RANKS COMPLETE", kMenuContentLeft, 0.510f,
                           12.0f, 130, 215, 151);
             } else {
                 char currentRank[64]{};
                 std::snprintf(currentRank, sizeof(currentRank),
                               hunting_companion::ui_text("CURRENT RANK: %d / %d"),
                               progress->ranksCompleted + 1, progress->maxRanks);
-                draw_text(currentRank, 0.071f, 0.510f, 12.0f, 215, 202, 177);
-                draw_text("NEXT RANK OBJECTIVE", 0.071f, 0.546f,
+                draw_text(currentRank, kMenuContentLeft, 0.510f, 12.0f, 215, 202, 177);
+                draw_text("NEXT RANK OBJECTIVE", kMenuContentLeft, 0.546f,
                           11.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
                 if (challenge != nullptr) {
                     const char* objective = localized_challenge_objective(
                         challenge->rankObjectives[progress->ranksCompleted]);
-                    draw_wrapped_text(objective, 0.071f, 0.568f,
+                    draw_wrapped_text(objective, kMenuContentLeft, 0.568f,
                                       48, 2, 0.024f, 12.0f,
                                       225, 218, 202);
                 } else {
                     draw_text("Challenge objective reference unavailable.",
-                              0.071f, 0.568f, 11.0f, 190, 184, 170);
+                              kMenuContentLeft, 0.568f, 11.0f, 190, 184, 170);
                 }
             }
             // Use exactly the same content bounds as the challenge category page.
             draw_challenge_progress_bar(*progress, 0.632f);
         }
-        draw_text("No animal pelts or feathers are required.", 0.071f, 0.680f,
+        draw_text("No animal pelts or feathers are required.", kMenuContentLeft, 0.680f,
                   13.0f, 205, 200, 185);
-        draw_text("Once unlocked, purchase the reward from the Trapper.", 0.071f, 0.727f,
+        draw_text("Once unlocked, purchase the reward from the Trapper.", kMenuContentLeft, 0.727f,
                   13.0f, 205, 200, 185);
         draw_text("Live rank totals are read-only; challenge progress is never modified.",
-                  0.071f, 0.774f, 11.0f, 174, 168, 154);
+                  kMenuContentLeft, 0.774f, 11.0f, 174, 168, 154);
         draw_menu_footer();
         return;
     }
@@ -5868,7 +5868,7 @@ void draw_recipe_detail() noexcept {
     }
     draw_menu_header(recipe_display_name(*recipe), subtitle, false);
     if (garmentSet != nullptr) {
-        draw_text("COMPONENT GARMENTS AND THEIR CATALOG MATERIAL COSTS", 0.071f, 0.215f,
+        draw_text("COMPONENT GARMENTS AND THEIR CATALOG MATERIAL COSTS", kMenuContentLeft, 0.215f,
                   14.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
         draw_wrapped_centered_text(
             "Donated counts use shared Trapper stock; they are not reserved per piece.",
@@ -5895,7 +5895,7 @@ void draw_recipe_detail() noexcept {
                 const char* componentName = line.component != nullptr
                     ? recipe_display_name(*line.component)
                     : (line.componentName ? line.componentName : "Unknown garment");
-                draw_text_raw(componentName, 0.071f, y, 14.0f, 236, 198, 139);
+                draw_text_raw(componentName, kMenuContentLeft, y, 14.0f, 236, 198, 139);
                 if (line.component != nullptr) {
                     draw_text(line.component->owned ? "CRAFTED" : "TO CRAFT", 0.315f, y + 0.002f,
                               11.0f, line.component->owned ? 130 : 210,
@@ -5909,7 +5909,7 @@ void draw_recipe_detail() noexcept {
                 char label[112]{};
                 if (material != nullptr) std::snprintf(label, sizeof(label), "    %s", material);
                 else std::snprintf(label, sizeof(label), "    Material %08X", line.cost->hash);
-                draw_wrapped_text_raw(label, 0.078f, y - 0.001f, 32, 2, 0.017f, 11.0f,
+                draw_wrapped_text_raw(label, kMenuContentLeft + 0.007f, y - 0.001f, 32, 2, 0.017f, 11.0f,
                                       224, 218, 205);
                 char right[32]{};
                 if (line.component->owned) {
@@ -5925,20 +5925,20 @@ void draw_recipe_detail() noexcept {
                           line.component->owned ? 168 : 125);
             } else {
                 draw_text(line.componentName ? line.componentName : "Catalog details unavailable",
-                          0.078f, y, 12.0f, 185, 177, 161);
+                          kMenuContentLeft + 0.007f, y, 12.0f, 185, 177, 161);
             }
         }
         draw_text("UP/DOWN scrolls through the garment pieces and costs.",
-                  0.071f, 0.805f, 11.0f, 174, 168, 154);
+                  kMenuContentLeft, 0.805f, 11.0f, 174, 168, 154);
         draw_menu_footer();
         return;
     }
     if (recipe->owned) {
-        draw_text("CRAFTED", 0.071f, 0.215f, 18.0f, 128, 218, 153);
-        draw_text("This item is already in your owned catalog.", 0.071f, 0.270f, 13.0f);
+        draw_text("CRAFTED", kMenuContentLeft, 0.215f, 18.0f, 128, 218, 153);
+        draw_text("This item is already in your owned catalog.", kMenuContentLeft, 0.270f, 13.0f);
     } else {
-        draw_text("DONATED / NEEDED FOR THIS RECIPE", 0.071f, 0.215f, 16.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
-        draw_text("Counts use vendor donation stock, not your inventory.", 0.071f, 0.258f, 12.0f, 188, 184, 174);
+        draw_text("DONATED / NEEDED FOR THIS RECIPE", kMenuContentLeft, 0.215f, 16.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
+        draw_text("Counts use vendor donation stock, not your inventory.", kMenuContentLeft, 0.258f, 12.0f, 188, 184, 174);
         if (pearson_needs_tools(g_menu.trapper, recipe)) {
             draw_pearson_tools_note(0.281f);
         }
@@ -5962,7 +5962,7 @@ void draw_recipe_detail() noexcept {
         if (recipe->owned) {
             char right[32]{};
             std::snprintf(right, sizeof(right), hunting_companion::ui_text("Recipe cost: %d"), cost.amount);
-            draw_wrapped_text_raw(label, 0.071f, y - 0.001f, 32, 2, 0.018f, 11.5f,
+            draw_wrapped_text_raw(label, kMenuContentLeft, y - 0.001f, 32, 2, 0.018f, 11.5f,
                                   222, 216, 203);
             draw_text(right, 0.305f, y, 15.0f, 187, 180, 164);
         } else {
@@ -5971,7 +5971,7 @@ void draw_recipe_detail() noexcept {
             const int donated = need ? std::min(need->vendorStock, total) : 0;
             char right[32]{};
             std::snprintf(right, sizeof(right), "%d/%d", donated, total);
-            draw_wrapped_text_raw(label, 0.071f, y - 0.001f, 32, 2, 0.018f, 11.5f,
+            draw_wrapped_text_raw(label, kMenuContentLeft, y - 0.001f, 32, 2, 0.018f, 11.5f,
                                   240, 234, 222);
             draw_text(right, 0.305f, y, 18.0f,
                       total > 0 && donated >= total ? 130 : 218,
@@ -5987,11 +5987,11 @@ void draw_recipe_detail() noexcept {
     }
     if (animalCostCount == 0) {
         if (recipe->hasAnyCosts) {
-            draw_text("No animal-material donation costs for this item.", 0.071f, 0.34f, 15.0f, 210, 205, 190);
-            draw_text("Cash or other catalog requirements are not shown here.", 0.071f, 0.395f, 12.0f, 180, 175, 163);
+            draw_text("No animal-material donation costs for this item.", kMenuContentLeft, 0.34f, 15.0f, 210, 205, 190);
+            draw_text("Cash or other catalog requirements are not shown here.", kMenuContentLeft, 0.395f, 12.0f, 180, 175, 163);
         } else {
-            draw_text("No animal-material costs were exposed for this entry.", 0.071f, 0.34f, 15.0f, 210, 205, 190);
-            draw_text("It may rely on an unlock or another requirement.", 0.071f, 0.395f, 12.0f, 180, 175, 163);
+            draw_text("No animal-material costs were exposed for this entry.", kMenuContentLeft, 0.34f, 15.0f, 210, 205, 190);
+            draw_text("It may rely on an unlock or another requirement.", kMenuContentLeft, 0.395f, 12.0f, 180, 175, 163);
         }
     }
     if (!recipe->owned) {
@@ -6008,12 +6008,12 @@ void draw_crafting_uses_page() noexcept {
                    crafting_use_row_status, false);
     if (g_craftingUseCount == 0) {
         draw_wrapped_text("NO UNCRAFTED RECIPES MATCH YOUR CURRENT HAUL",
-                          0.071f, 0.300f, 48, 2, 0.030f, 14.0f, 185, 177, 161);
+                          kMenuContentLeft, 0.300f, 48, 2, 0.030f, 14.0f, 185, 177, 161);
         draw_text("Try another pelt or animal part.",
-                  0.071f, 0.385f, 11.5f, 170, 164, 150);
+                  kMenuContentLeft, 0.385f, 11.5f, 170, 164, 150);
     }
     draw_text("Counts include what you carry, your satchel and saddle horse.",
-              0.071f, 0.815f, 10.5f, 160, 154, 142);
+              kMenuContentLeft, 0.815f, 10.5f, 160, 154, 142);
 }
 
 // The search box while it takes typing: a box of its own right of the menu
@@ -6113,12 +6113,12 @@ void draw_search_page() noexcept {
     draw_rect(0.212f, kLineY, 0.345f, 0.030f, 0, 0, 0, 140);
     if (g_searchQuery[0] != '\0') {
         const TextRightLimitScope keepInsideBox(0.300f);
-        draw_text_raw(g_searchQuery, 0.071f, kLineY - 0.012f, 15.0f, 220, 214, 202);
+        draw_text_raw(g_searchQuery, kMenuContentLeft + 0.007f, kLineY - 0.012f, 15.0f, 220, 214, 202);
     }
     draw_text(g_menu.searchEditing ? "ENTER Done" : "SPACE Search", 0.305f, kLineY - 0.009f, 11.0f,
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     draw_text("Matches item, part and animal names in this language and in English.",
-              0.071f, 0.815f, 10.5f, 160, 154, 142);
+              kMenuContentLeft, 0.815f, 10.5f, 160, 154, 142);
     if (g_menu.searchEditing) {
         // Everything around the open box is darkened (the game still draws text
         // above any shading, so the results stay readable).
@@ -6151,12 +6151,12 @@ void draw_crafting_use_detail() noexcept {
     const bool ready = readiness == CraftingUseReadiness::ReadyAfterDonation;
     const bool partsReady = (ready || readiness == CraftingUseReadiness::AnimalPartsReady) &&
                             (entry.trapper || g_pearsonHasTools);
-    draw_wrapped_text(readinessText, 0.071f, 0.208f, 30, 2, 0.030f, 14.0f,
+    draw_wrapped_text(readinessText, kMenuContentLeft, 0.208f, 30, 2, 0.030f, 14.0f,
                       partsReady ? 130 : 218, partsReady ? 205 : 184, partsReady ? 145 : 120);
     if (pearson_needs_tools(entry.trapper, recipe)) {
         draw_pearson_tools_note(0.304f);
     }
-    draw_wrapped_text("HELD / NEEDED (YOUR HAUL + VENDOR STOCK)", 0.071f, 0.275f, 44, 2, 0.022f,
+    draw_wrapped_text("HELD / NEEDED (YOUR HAUL + VENDOR STOCK)", kMenuContentLeft, 0.275f, 44, 2, 0.022f,
                       10.5f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
 
     // Cash is read from the catalog in units that cannot be confirmed here, so
@@ -6176,7 +6176,7 @@ void draw_crafting_use_detail() noexcept {
         const float notePush = pearson_needs_tools(entry.trapper, recipe) ? 0.036f : 0.0f;
         const float y = 0.350f + notePush + static_cast<float>(shown) * 0.052f;
         ++shown;
-        draw_wrapped_text_raw(label, 0.071f, y, 28, 2, 0.016f, 11.5f,
+        draw_wrapped_text_raw(label, kMenuContentLeft, y, 28, 2, 0.016f, 11.5f,
                               224, 218, 205);
         char amount[48]{};
         bool met = false;
@@ -6197,7 +6197,7 @@ void draw_crafting_use_detail() noexcept {
     }
     if (shown == 0 && g_menu.scroll == 0) {
         draw_text("No material costs were exposed for this catalog entry.",
-                  0.071f, 0.340f, 12.0f, 190, 182, 168);
+                  kMenuContentLeft, 0.340f, 12.0f, 190, 182, 168);
     }
     draw_menu_footer();
 }
@@ -6217,30 +6217,30 @@ void draw_scan_progress() noexcept {
     const DWORD stalledSeconds = lastProgress != 0 ? (now - lastProgress) / 1000u : 0u;
 
     draw_menu_header("HUNTING COMPANION", "INITIALIZING READ-ONLY CATALOG");
-    draw_text(scan_stage_label(stage), 0.071f, 0.235f, 15.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
+    draw_text(scan_stage_label(stage), kMenuContentLeft, 0.235f, 15.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
     if (stage == ScanStage::Failed) {
         const char* reason = "The game did not expose the required Story Mode inventory.";
         if (error == 2) reason = "The shop catalog returned an invalid item count.";
         else if (error == 3) reason = "The shop catalog exceeds the safe scan limit.";
         else if (error == 4 || error == 5) reason = "The player inventory is not ready yet.";
         else if (error == 6) reason = "The vendor catalogs could not be read completely.";
-        draw_wrapped_text(reason, 0.071f, 0.282f, 48, 2, 0.030f, 12.0f,
+        draw_wrapped_text(reason, kMenuContentLeft, 0.282f, 48, 2, 0.030f, 12.0f,
                           197, 188, 174);
         char stoppedLine[96]{};
         std::snprintf(stoppedLine, sizeof(stoppedLine), hunting_companion::ui_text("Last stage: %s"),
                       scan_stage_label(lastWorkStage));
-        draw_text(stoppedLine, 0.071f, 0.350f, 10.5f, 184, 176, 160);
+        draw_text(stoppedLine, kMenuContentLeft, 0.350f, 10.5f, 184, 176, 160);
         char elapsedLine[64]{};
         std::snprintf(elapsedLine, sizeof(elapsedLine), hunting_companion::ui_text("Elapsed: %lu seconds"),
                       static_cast<unsigned long>(elapsedSeconds));
-        draw_text(elapsedLine, 0.071f, 0.385f, 10.5f, 184, 176, 160);
+        draw_text(elapsedLine, kMenuContentLeft, 0.385f, 10.5f, 184, 176, 160);
         draw_text("Close and reopen the compendium to retry after Story Mode loads.",
-                  0.071f, 0.425f, 10.5f, 174, 167, 153);
+                  kMenuContentLeft, 0.425f, 10.5f, 174, 167, 153);
     } else {
         char progressLine[64]{};
         if (total > 0) std::snprintf(progressLine, sizeof(progressLine), "%d / %d", current, total);
         else std::snprintf(progressLine, sizeof(progressLine), "Preparing...");
-        draw_text(progressLine, 0.071f, 0.285f, 13.0f, 222, 214, 198);
+        draw_text(progressLine, kMenuContentLeft, 0.285f, 13.0f, 222, 214, 198);
         const float width = kMenuProgressBarWidth;
         const float left = kMenuContentLeft;
         draw_rect(left + width * 0.5f, 0.355f, width, 0.014f, 54, 51, 47, 235);
@@ -6254,16 +6254,16 @@ void draw_scan_progress() noexcept {
         char elapsedLine[64]{};
         std::snprintf(elapsedLine, sizeof(elapsedLine), hunting_companion::ui_text("Elapsed: %lu seconds"),
                       static_cast<unsigned long>(elapsedSeconds));
-        draw_text(elapsedLine, 0.071f, 0.397f, 10.5f, 169, 163, 150);
+        draw_text(elapsedLine, kMenuContentLeft, 0.397f, 10.5f, 169, 163, 150);
         draw_text("The scan yields between game queries; please allow it to finish.",
-                  0.071f, 0.438f, 10.5f, 169, 163, 150);
+                  kMenuContentLeft, 0.438f, 10.5f, 169, 163, 150);
         if (stalledSeconds >= 20u) {
             char stalledLine[80]{};
             std::snprintf(stalledLine, sizeof(stalledLine),
                           hunting_companion::ui_text("No scan progress for %lu seconds"), static_cast<unsigned long>(stalledSeconds));
-            draw_text(stalledLine, 0.071f, 0.482f, 11.0f, 225, 174, 128);
+            draw_text(stalledLine, kMenuContentLeft, 0.482f, 11.0f, 225, 174, 128);
             draw_wrapped_text("If it persists, report this stage and test once with other HUD or inventory mods disabled.",
-                              0.071f, 0.520f, 54, 2, 0.032f, 10.5f, 185, 176, 160);
+                              kMenuContentLeft, 0.520f, 54, 2, 0.032f, 10.5f, 185, 176, 160);
         }
     }
     draw_menu_footer();
