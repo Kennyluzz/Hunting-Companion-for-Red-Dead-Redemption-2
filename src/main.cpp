@@ -5019,8 +5019,12 @@ void draw_wrapped_text_impl(const char* text, float x, float y,
             const std::size_t suffixLength = sizeof(kEllipsis) - 1;
             const std::size_t safeLength = std::min(count, sizeof(line) - suffixLength - 1);
             if (safeLength >= suffixLength) {
-                std::memcpy(line + safeLength - suffixLength, kEllipsis, suffixLength);
-                line[safeLength] = '\0';
+                // Never cut a letter in half (Polish, Cyrillic and CJK letters
+                // take several bytes): step back to the start of a character.
+                std::size_t cut = safeLength - suffixLength;
+                while (cut > 0 && (static_cast<unsigned char>(line[cut]) & 0xC0) == 0x80) --cut;
+                std::memcpy(line + cut, kEllipsis, suffixLength);
+                line[cut + suffixLength] = '\0';
             }
         }
         draw_text_impl(line, x, y + static_cast<float>(lineIndex) * lineAdvance,
@@ -5045,12 +5049,28 @@ void draw_wrapped_text_raw(const char* text, float x, float y,
                            referencePixelHeight, red, green, blue, alpha, false);
 }
 
+// Wraps text to a width on screen (not a character count, which runs long in
+// Polish, Russian or German) on up to three lines, shrinking it until it fits.
+void draw_fitted_text(const char* text, float x, float y, float maxWidth, int maxLines,
+                      float startSize, int red, int green, int blue, bool centered = false) noexcept {
+    if (text == nullptr || text[0] == '\0') return;
+    const float correction = screen_width_correction();
+    FittedLines fitted;
+    float size = startSize;
+    while (!wrap_to_width(text, size, correction, maxWidth, maxLines, &fitted) && size > startSize * 0.72f)
+        size -= 0.5f;
+    for (int line = 0; line < fitted.count; ++line) {
+        draw_text_impl(fitted.lines[line], x, y + static_cast<float>(line) * size * 0.00155f, size,
+                       red, green, blue, 255, false, centered);
+    }
+}
+
 void draw_wrapped_centered_text(const char* text, float centerX, float y,
-                                std::size_t maxCharacters, int maxLines,
-                                float lineAdvance, float referencePixelHeight,
-                                int red, int green, int blue, int alpha = 255) noexcept {
-    draw_wrapped_text_impl(text, centerX, y, maxCharacters, maxLines, lineAdvance,
-                           referencePixelHeight, red, green, blue, alpha, true, true);
+                                std::size_t /*maxCharacters*/, int maxLines,
+                                float /*lineAdvance*/, float referencePixelHeight,
+                                int red, int green, int blue, int /*alpha*/ = 255) noexcept {
+    draw_fitted_text(hunting_companion::ui_text(text), centerX, y, 0.30f, maxLines, referencePixelHeight,
+                     red, green, blue, true);
 }
 
 // Shared horizontal bounds for rank bars on category and reinforced-item
@@ -5351,7 +5371,7 @@ void draw_pearson_tools_note(float y) noexcept {
     char note[320]{};
     std::snprintf(note, sizeof(note), "* %s %s", first != nullptr ? first : "Pearson cannot craft this yet.",
                   second != nullptr ? second : "Purchase leather working tools at the ledger.");
-    draw_wrapped_text_raw(note, 0.071f, y, 48, 2, 0.018f, 12.0f, 232, 176, 112);
+    draw_fitted_text(note, 0.071f, y, 0.3885f - 0.071f, 3, 12.0f, 232, 176, 112);
 }
 
 const char* with_tools_mark(bool trapper, const RecipeEntry* recipe, const char* status,
@@ -5896,7 +5916,9 @@ void draw_recipe_detail() noexcept {
         char label[128]{};
         if (name == nullptr) std::snprintf(label, sizeof(label), "Material %08X", cost.hash);
         else std::snprintf(label, sizeof(label), "%s", name);
-        const float y = 0.330f + static_cast<float>(visible - start) * 0.060f;
+        // The Pearson tools note takes up to three lines above the materials.
+        const float notePush = pearson_needs_tools(g_menu.trapper, recipe) ? 0.042f : 0.0f;
+        const float y = 0.330f + notePush + static_cast<float>(visible - start) * 0.060f;
         if (recipe->owned) {
             char right[32]{};
             std::snprintf(right, sizeof(right), hunting_companion::ui_text("Recipe cost: %d"), cost.amount);
@@ -6111,7 +6133,8 @@ void draw_crafting_use_detail() noexcept {
         char label[128]{};
         if (materialName != nullptr) std::snprintf(label, sizeof(label), "%s", materialName);
         else std::snprintf(label, sizeof(label), "Material %08X", cost.hash);
-        const float y = 0.350f + static_cast<float>(shown) * 0.052f;
+        const float notePush = pearson_needs_tools(entry.trapper, recipe) ? 0.036f : 0.0f;
+        const float y = 0.350f + notePush + static_cast<float>(shown) * 0.052f;
         ++shown;
         draw_wrapped_text_raw(label, 0.071f, y, 28, 2, 0.016f, 11.5f,
                               224, 218, 205);
