@@ -894,8 +894,10 @@ void update_story_state() noexcept {
             const bool missionDone = invoke_native<int>(kMissionDataWasCompleted, kPearsonEndMission) != 0;  // My Last Boy
             const bool storyOpen = g_playingJohn ||
                                    invoke_native<int>(kMissionDataWasCompleted, kStoryOpensMission) != 0;  // Eastward Bound
-            if (storyOpen != g_storyOpen)
+            static bool storyLogged = false;
+            if (storyOpen != g_storyOpen || !storyLogged)
                 hunting_companion::native_fonts::diagnostic("Pearson and Trapper: %s", storyOpen ? "open" : "available later");
+            storyLogged = true;
             g_storyOpen = storyOpen;
             if (g_pearsonSetting < 0) g_pearsonUnavailable = missionDone || g_playingJohn;
             const int state = (missionDone ? 1 : 0) | (g_playingJohn ? 2 : 0);
