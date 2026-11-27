@@ -1720,7 +1720,7 @@ void remember_pelt_identity(int entity, const std::uint32_t* materials, std::siz
     for (std::size_t i = 0; i < slot->count; ++i) slot->materials[i] = materials[i];
 }
 
-// Diagnostics (FontLog=1): what the haul scan saw, written when it changes.
+// Diagnostics (Log=1): what the haul scan saw, written when it changes.
 char g_haulTrace[1024]{};
 std::size_t g_haulTraceLength{};
 void haul_trace(const char* format, ...) noexcept {
@@ -2557,7 +2557,7 @@ void draw_hunting_recommendation_icons(
 // The focused animal's Animal Compendium short-description label.
 constexpr std::uint64_t kCompendiumShortDescriptionFromPed = 0x6C5E5D48E48B4C65ull;
 
-// Logged once per label (with [Fonts] FontLog=1): a Compendium label the advice
+// Logged once per label (with Log=1): a Compendium label the advice
 // table does not know, for example after a game update changed the text. No
 // weapon icons are shown for it.
 void note_unknown_compendium_label(std::uint32_t label, const char* species) noexcept {
@@ -2962,12 +2962,13 @@ void load_configuration() noexcept {
     char languageValue[16]{};
     std::snprintf(languageValue, sizeof(languageValue), "%d", g_uiLanguageOverride);
     WritePrivateProfileStringA("General", "UILanguage", languageValue, g_iniPath);
-    // A generated ini also gets the [Fonts] FontLog switch, so it can simply be
-    // set to 1 when a log is needed for a bug report.
-    char fontLog[8]{};
-    if (GetPrivateProfileStringA("Fonts", "FontLog", "", fontLog, sizeof(fontLog), g_iniPath) == 0 &&
-        GetPrivateProfileStringA("General", "FontLog", "", fontLog, sizeof(fontLog), g_iniPath) == 0)
-        WritePrivateProfileStringA("Fonts", "FontLog", "0", g_iniPath);
+    // A generated ini also gets the Log switch, so it can simply be set to 1 when
+    // a log is needed for a bug report (unless the older FontLog key is there).
+    char logValue[8]{};
+    if (GetPrivateProfileStringA("General", "Log", "", logValue, sizeof(logValue), g_iniPath) == 0 &&
+        GetPrivateProfileStringA("Fonts", "FontLog", "", logValue, sizeof(logValue), g_iniPath) == 0 &&
+        GetPrivateProfileStringA("General", "FontLog", "", logValue, sizeof(logValue), g_iniPath) == 0)
+        WritePrivateProfileStringA("General", "Log", "0", g_iniPath);
 }
 
 void save_menu_hotkey() noexcept {
@@ -3095,8 +3096,10 @@ hunting_companion::native_fonts::Settings make_font_settings() noexcept {
     initialise_ini_path();
     hunting_companion::native_fonts::Settings settings;
     if (g_iniPath[0] != '\0') {
-        // FontLog belongs under [Fonts]; under [General] it is accepted too.
-        settings.fileLog = GetPrivateProfileIntA("Fonts", "FontLog", 0, g_iniPath) != 0 ||
+        // [General] Log=1 writes HuntingCompanion.log; the older FontLog key (under
+        // [Fonts] or [General]) is still accepted.
+        settings.fileLog = GetPrivateProfileIntA("General", "Log", 0, g_iniPath) != 0 ||
+                           GetPrivateProfileIntA("Fonts", "FontLog", 0, g_iniPath) != 0 ||
                            GetPrivateProfileIntA("General", "FontLog", 0, g_iniPath) != 0;
         settings.logDirectory = g_moduleDirectory;
         settings.iniPath = g_iniPath;
@@ -3482,18 +3485,23 @@ const char* garment_set_display_name(const char* setName) noexcept {
 
 // STORY SPOILER (developer notes): these animals live only in New Austin,
 // which only John can reach (in the epilogue): the legendary cougar, pronghorn
-// and Tatanka bison, the Gila monster and the collared peccary (javelina).
-// While playing as anyone else, recipes that need their pelts, and garment sets
-// that include such a piece (for example The Death Roll, The Rattler, The
-// Dreamcatcher), cannot be completed and are left out of every list. Nothing
-// player-facing says why. Animals that also live elsewhere (armadillo, iguana)
-// are not listed.
+// and Tatanka bison, the Gila monster, the collared peccary (javelina), the
+// armadillo and the California condor (the materials the fan wiki marks "EP1";
+// in all 2 armadillo skins, 4 peccary pelts, 2 Gila skins and 1 condor feather
+// across the Trapper's recipes). While playing as anyone else, recipes that need
+// one, and garment sets that include such a piece (The Death Roll, The Rattler,
+// The Dreamcatcher, The Desperado...), cannot be completed and are left out of
+// every list; the recipes themselves come from the game's catalogue, so nothing
+// else is listed by hand. Nothing player-facing says why. The iguana also lives
+// elsewhere and is not listed.
 constexpr std::uint32_t kLateStoryMaterials[] = {
     0x5B21B527u,  // Legendary Cougar Pelt
     0xF9DB919Du,  // Legendary Pronghorn Hide
     0xC5206B67u,  // Legendary Tatanka Bison Pelt
     0x1BA02C14u,  // Perfect Gila Monster Skin
     0x7508CA92u,  // Perfect Collared Peccary Pig Pelt
+    0x158AFE6Eu,  // Perfect Armadillo Skin
+    0xC7EFA080u,  // Condor Feather
 };
 
 bool recipe_needs_late_story_material(const RecipeEntry& recipe) noexcept {

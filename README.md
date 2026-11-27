@@ -121,8 +121,8 @@ They check data and wiring only. Anything visible has to be tested in the game.
   game keeps its font library. The only other hooks are the two Windows key-state
   functions described under Search, active only while the search box is open.
   Nothing else in the game is changed.
-- **Diagnostics.** `FontLog=1` under `[Fonts]` in `HuntingCompanion.ini` writes
-  `HuntingCompanion.fonts.log` to the game folder (font loading, unknown Compendium
+- **Diagnostics.** `Log=1` under `[General]` in `HuntingCompanion.ini` writes
+  `HuntingCompanion.log` to the game folder (font loading, unknown Compendium
   labels, and what the haul scan sees while the menu is open).
 
 ## Credits

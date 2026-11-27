@@ -14,6 +14,8 @@
   Tools" instead of "Ready after donation".
 - Recipes that cannot be completed at your point in the story are left out until
   they can be.
+- The diagnostics switch is now simply `Log=1` under `[General]`, writing
+  `HuntingCompanion.log` (the old `FontLog` still works).
 
 ## 1.40.1
 

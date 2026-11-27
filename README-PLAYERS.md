@@ -76,9 +76,9 @@ The same works the other way round: on a Japanese, Korean or Chinese game, a
 European language (Polish, Spanish, Russian, ...) uses the game's own Latin or
 Cyrillic font, with all its accents.
 
-If text shows as squares or stays in English, set `FontLog=1` in
+If text shows as squares or stays in English, set `Log=1` in
 `HuntingCompanion.ini`, reproduce the problem, and report it with the generated
-`HuntingCompanion.fonts.log`.
+`HuntingCompanion.log`.
 
 ## Configuration
 
