@@ -874,6 +874,12 @@ bool g_pearsonUnavailable = false;
 int g_pearsonSetting = -1;
 
 bool g_playingJohn = false;
+// The Pearson and Trapper side of the mod opens once chapter 1 is over: the
+// game is asked whether "Eastward Bound" is completed (its code is MUD1, which
+// the game's own text labels "Eastward Bound"). Until then those pages, Search,
+// Crafting Uses and the vendor HUD icons say "Available later".
+constexpr std::uint32_t kStoryOpensMission = joaat("MUD1");
+bool g_storyOpen = true;   // until the first check says otherwise
 
 void update_story_state() noexcept {
     static DWORD nextCheck = 0;
@@ -886,6 +892,11 @@ void update_story_state() noexcept {
         if (playerPed != 0) {
             g_playingJohn = invoke_native<std::uint32_t>(kGetEntityModel, playerPed) == joaat("player_three");
             const bool missionDone = invoke_native<int>(kMissionDataWasCompleted, kPearsonEndMission) != 0;  // My Last Boy
+            const bool storyOpen = g_playingJohn ||
+                                   invoke_native<int>(kMissionDataWasCompleted, kStoryOpensMission) != 0;  // Eastward Bound
+            if (storyOpen != g_storyOpen)
+                hunting_companion::native_fonts::diagnostic("Pearson and Trapper: %s", storyOpen ? "open" : "available later");
+            g_storyOpen = storyOpen;
             if (g_pearsonSetting < 0) g_pearsonUnavailable = missionDone || g_playingJohn;
             const int state = (missionDone ? 1 : 0) | (g_playingJohn ? 2 : 0);
             if (state != lastLogged) {
@@ -2728,9 +2739,9 @@ void update_hud() noexcept {
     // weapon advice when that is nothing. Legendary animals are unaffected.
     const int quality = invoke_native<int>(kGetPedQuality, focusedEntity);
     const bool lowStar = !g_lowStarIcons && !legendary && quality >= 0 && quality < 2;
-    const bool needsPearson = !g_pearsonUnavailable && species != nullptr &&
+    const bool needsPearson = g_storyOpen && !g_pearsonUnavailable && species != nullptr &&
                               species_needed(g_tracker.pearson.demand, species, legendary, !lowStar);
-    const bool needsTrapper = species != nullptr &&
+    const bool needsTrapper = g_storyOpen && species != nullptr &&
                               species_needed(g_tracker.trapper.demand, species, legendary, !lowStar);
     if (lowStar && !needsPearson && !needsTrapper) return;
 
@@ -4433,12 +4444,10 @@ void update_menu_input() noexcept {
         adjust_hud_placement();
         return;
     }
-    if (g_menu.page == MenuPage::Root && root_item_disabled(kRootPearson) &&
-        g_menu.selection == kRootPearson)
-        g_menu.selection = kRootTrapper;
-    if (g_menu.page == MenuPage::Root && root_item_disabled(kRootCraftingUses) &&
-        g_menu.selection == kRootCraftingUses)
-        g_menu.selection = kRootChallenges;
+    // The cursor never rests on a greyed-out main menu row.
+    if (g_menu.page == MenuPage::Root) {
+        while (g_menu.selection < kRootCount - 1 && root_item_disabled(g_menu.selection)) ++g_menu.selection;
+    }
     if (key_pressed(g_menuHotkey) && !(typing && key_types_text(g_menuHotkey))) {
         g_menu.page = MenuPage::Closed;
         return;
@@ -4600,14 +4609,14 @@ void update_menu_input() noexcept {
     if (!key_pressed(VK_RETURN)) return;
     switch (g_menu.page) {
         case MenuPage::Root:
-            if ((g_menu.selection == kRootPearson && !root_item_disabled(kRootPearson)) ||
-                g_menu.selection == kRootTrapper) {
+            if ((g_menu.selection == kRootPearson || g_menu.selection == kRootTrapper) &&
+                !root_item_disabled(g_menu.selection)) {
                 g_menu.trapper = (g_menu.selection == kRootTrapper);
                 g_menu.rootReturnSelection = g_menu.selection;
                 build_menu_categories();
                 g_menu.page = MenuPage::Categories;
                 g_menu.selection = g_menu.scroll = 0;
-            } else if (g_menu.selection == kRootSearch) {
+            } else if (g_menu.selection == kRootSearch && !root_item_disabled(kRootSearch)) {
                 g_menu.page = MenuPage::Search;
                 // The box opens for typing at once (a search is cleared on leaving).
                 build_search_results();
@@ -5290,6 +5299,8 @@ const char* root_label(int index, char*, std::size_t) noexcept {
     return (index >= 0 && index < kRootCount) ? labels[index] : "";
 }
 bool root_item_disabled(int index) noexcept {
+    if (!g_storyOpen && (index == kRootPearson || index == kRootTrapper || index == kRootSearch ||
+                         index == kRootCraftingUses)) return true;
     if (index == kRootPearson) return g_pearsonUnavailable;
     // Satchel materials alone (antlers, claws...) count as haul, so gate on
     // the recipe list itself: no matching uncrafted recipe means nothing to open.
@@ -5297,6 +5308,8 @@ bool root_item_disabled(int index) noexcept {
                                           g_craftingUseCount == 0);
 }
 const char* root_row_status(int index, char*, std::size_t) noexcept {
+    if (!g_storyOpen && (index == kRootPearson || index == kRootTrapper || index == kRootSearch ||
+                         index == kRootCraftingUses)) return "AVAILABLE LATER";
     if (index == kRootPearson) return g_pearsonUnavailable ? "UNAVAILABLE" : "";
     if (index != kRootCraftingUses) return "";
     return root_item_disabled(index) ? "NO HAUL" : "AVAILABLE";

@@ -12,6 +12,10 @@
 - **Each HUD icon can be moved and sized on its own.** Settings > HUD layout now
   also has the weapon icon, the ammo icon, the Pearson icon and the Trapper icon
   separately, on top of the groups and "All icons".
+- **The crafting side opens after chapter 1.** Until "Eastward Bound" is finished,
+  Pearson, Trapper, Search and Crafting Uses are greyed out as "Available later"
+  and no vendor icons show on animals; weapon advice, Challenges and Settings work
+  from the start.
 - **Pearson's tools.** Until the Leather Working Tools are bought at the camp
   ledger, Pearson recipes whose materials are all there say "Needs Leather Working
   Tools" instead of "Ready after donation".
