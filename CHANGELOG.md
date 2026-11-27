@@ -2,8 +2,6 @@
 
 ## 1.40.2
 
-- **The mod loads on its own.** It no longer needs another ScriptHook mod to load
-  before it (it did not start alone, or with only Rampage, unless renamed).
 - **Pelts after loading a save.** A pelt already on you or on your horse when you
   load a save is now recognised; the horse's cargo is read directly, so stacked
   pelts and whole animals there count correctly too.
