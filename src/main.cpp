@@ -2298,9 +2298,13 @@ float codepoint_width(std::uint32_t c) noexcept {
     if (c == ' ') return 0.00017f;
     if (c == '.' || c == ',' || c == ':' || c == ';' || c == '\'' || c == '!' || c == '|' || c == 0x2019)
         return 0.00017f;
-    if (c < 0x80) return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
-                             ? 0.00041f : 0.00030f;
+    // Capitals are measured wider: the game's menu faces draw them with broad
+    // swashes, and all-capital text ("KEIN BEUTEGUT") otherwise ran past the row.
+    if (c >= 'A' && c <= 'Z') return 0.00052f;
+    if (c < 0x80) return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') ? 0.00041f : 0.00030f;
+    if (c >= 0xC0 && c <= 0xDE && c != 0xD7) return 0.00052f;   // Latin-1 capitals
     if (is_wide_codepoint(c)) return 0.00046f;
+    if (c >= 0x400 && c <= 0x42F) return 0.00054f;   // Cyrillic capitals
     if (c >= 0x400 && c <= 0x52F) return 0.00045f;   // Cyrillic
     return 0.00041f;
 }
@@ -2415,6 +2419,36 @@ void shorten_to_width(const char* text, float size, float correction, float maxW
 }
 
 constexpr std::size_t kFitLineCapacity = 192;
+
+// Copies `text` into `buffer` with typographic quotation marks replaced by plain
+// ones, which every game font has. Returns `text` itself when it has none (or
+// does not fit the buffer).
+const char* plain_quotes(const char* text, char* buffer, std::size_t size) noexcept {
+    const auto* p = reinterpret_cast<const unsigned char*>(text);
+    bool any = false;
+    std::size_t length = 0;
+    for (; p[length] != 0; ++length) {
+        if (p[length] == 0xC2 && (p[length + 1] == 0xAB || p[length + 1] == 0xBB)) any = true;
+        if (p[length] == 0xE2 && p[length + 1] == 0x80 && p[length + 2] >= 0x98 && p[length + 2] <= 0x9F) any = true;
+    }
+    if (!any || length >= size) return text;
+    std::size_t out = 0;
+    for (std::size_t i = 0; p[i] != 0;) {
+        if (p[i] == 0xC2 && (p[i + 1] == 0xAB || p[i + 1] == 0xBB)) {  // « »
+            buffer[out++] = '"';
+            i += 2;
+        } else if (p[i] == 0xE2 && p[i + 1] == 0x80 && p[i + 2] >= 0x98 && p[i + 2] <= 0x9F) {
+            // U+2018..U+201B single, U+201C..U+201F double quotation marks
+            buffer[out++] = p[i + 2] <= 0x9B ? '\'' : '"';
+            i += 3;
+        } else {
+            buffer[out++] = static_cast<char>(p[i++]);
+        }
+    }
+    buffer[out] = '\0';
+    return buffer;
+}
+
 struct FittedLines {
     char lines[3][kFitLineCapacity]{};
     int count{};
@@ -4847,6 +4881,12 @@ void draw_text_impl(const char* text, float x, float y, float referencePixelHeig
     if (text == nullptr || text[0] == '\0') return;
     if (localize) text = hunting_companion::ui_text(text);
 
+    // The game's fonts have no glyphs for typographic quotation marks (« » „ " " ' ')
+    // and draw them as squares; Russian and Polish item names use them. They are
+    // drawn as plain quotes instead.
+    char plainQuotes[1024];
+    text = plain_quotes(text, plainQuotes, sizeof(plainQuotes));
+
     apply_text_colour(&red, &green, &blue);
     // Text colours are drawn richer than specified. The game shows
     // tinted text rather flat, so the tint is pushed away from grey (white and
@@ -6231,8 +6271,8 @@ void draw_scan_progress() noexcept {
 
 void draw_menu() noexcept {
     if (g_menu.page == MenuPage::Closed) return;
-    // Right edge of the menu rows; all menu text is kept to its left.
-    const TextRightLimitScope keepTextInsidePanel(0.3885f);
+    // Right edge of the row underlines (less two pixels); all menu text is kept to its left.
+    const TextRightLimitScope keepTextInsidePanel(0.3875f);
     g_menuTextColourScope = true;
     struct EndScope { ~EndScope() { g_menuTextColourScope = false; } } endScope;
     if (!g_tracker.ready) {
