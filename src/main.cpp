@@ -5116,10 +5116,13 @@ void draw_wrapped_centered_text(const char* text, float centerX, float y,
 // Shared horizontal bounds for rank bars on category and reinforced-item
 // detail pages. Rows have no plates, so the bar ends where the
 // divider lines end, well inside the panel's rough painted edge.
-// Menu text runs between these two edges: the row underlines (0.0355 to 0.3885)
-// less a small inset on each side.
-constexpr float kMenuContentLeft = 0.0405f;
-constexpr float kMenuTextRight = 0.3835f;
+// Every underline in the menu (the row lines and the gold dividers) is this wide,
+// centred on the panel, and text keeps kMenuTextInset inside both of its ends.
+constexpr float kMenuLineCenter = 0.212f;
+constexpr float kMenuLineWidth = 0.353f;
+constexpr float kMenuTextInset = 0.005f;
+constexpr float kMenuContentLeft = kMenuLineCenter - kMenuLineWidth * 0.5f + kMenuTextInset;
+constexpr float kMenuTextRight = kMenuLineCenter + kMenuLineWidth * 0.5f - kMenuTextInset;
 constexpr float kMenuRewardRowRight = 0.212f + 0.345f * 0.5f;
 constexpr float kMenuProgressBarWidth = kMenuRewardRowRight - kMenuContentLeft;
 
@@ -5164,7 +5167,7 @@ void draw_menu_row(const char* label, const char* status, int row,
                       theme::kAccentRed, theme::kAccentGreen, theme::kAccentBlue, 225);
         }
     } else {
-        draw_rect(kPanelCenter, y + 0.0485f, kPanelWidth - 0.012f, 0.0012f, 255, 255, 255, 16);
+        draw_rect(kMenuLineCenter, y + 0.0485f, kMenuLineWidth, 0.0012f, 255, 255, 255, 16);
     }
     const int labelRed = selected ? 255 : (disabled ? 104 : (accent ? theme::kGoldRed : theme::kTextRed));
     const int labelGreen = selected ? 255 : (disabled ? 104 : (accent ? theme::kGoldGreen : theme::kTextGreen));
@@ -5235,12 +5238,12 @@ void draw_menu_header(const char* title, const char* subtitle,
         draw_sprite(theme::kGeneric, theme::kInkPanel, 0.212f, 0.50f, 0.412f, 0.965f, 0, 0, 0, 238);
         draw_sprite(theme::kGeneric, theme::kHeaderPlate, 0.212f, 0.094f, 0.365f, 0.118f,
                     255, 255, 255, 255);
-        draw_sprite(theme::kMenu, theme::kDivider, 0.212f, 0.1575f, 0.353f, 0.0042f,
+        draw_sprite(theme::kMenu, theme::kDivider, kMenuLineCenter, 0.1575f, kMenuLineWidth, 0.0042f,
                     theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 215);
     } else {
         draw_rect(0.212f, 0.50f, 0.395f, 0.94f, 0, 0, 0, 232);
         draw_rect(0.212f, 0.095f, 0.365f, 0.125f, 14, 12, 11, 250);
-        draw_rect(0.212f, 0.157f, 0.353f, 0.0018f,
+        draw_rect(kMenuLineCenter, 0.157f, kMenuLineWidth, 0.0018f,
                   theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 200);
     }
     const bool cjkTitle = hunting_companion::uses_cjk_font(hunting_companion::active_ui_language());
@@ -5296,10 +5299,10 @@ void draw_menu_header(const char* title, const char* subtitle,
 
 void draw_menu_footer() noexcept {
     if (menu_textures_ready()) {
-        draw_sprite(theme::kMenu, theme::kDivider, 0.212f, 0.895f, 0.353f, 0.0042f,
+        draw_sprite(theme::kMenu, theme::kDivider, kMenuLineCenter, 0.895f, kMenuLineWidth, 0.0042f,
                     theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 170);
     } else {
-        draw_rect(0.212f, 0.895f, 0.353f, 0.0018f,
+        draw_rect(kMenuLineCenter, 0.895f, kMenuLineWidth, 0.0018f,
                   theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 160);
     }
     const char* keys = "UP/DOWN Navigate   ENTER Select   BACKSPACE Back";
@@ -6046,7 +6049,9 @@ void draw_search_entry_box() noexcept {
     // end of the text and the caret fit.
     const float textWidth = text_width_estimate(line, kTextSize, correction);
     const float width = std::clamp(textWidth + sideMargin * 2.0f, kMinWidth, kMaxWidth);
-    const float room = width - sideMargin * 2.0f;
+    // Text keeps the menu's inset inside both ends of the field's underline.
+    const float lineWidth = width - sideMargin;
+    const float room = lineWidth - kMenuTextInset * 2.0f;
     const char* shown = typed;
     bool scrolled = false;
     while (*shown != '\0') {
@@ -6080,18 +6085,18 @@ void draw_search_entry_box() noexcept {
     }
     // The field: a dark strip with a gold underline, as on the menu's rows.
     const float fieldY = kTop + 0.088f;
-    draw_rect(centerX, fieldY, width - sideMargin, 0.042f, 0, 0, 0, 165);
-    draw_rect(centerX, fieldY + 0.021f, width - sideMargin, 0.0015f,
+    draw_rect(centerX, fieldY, lineWidth, 0.042f, 0, 0, 0, 165);
+    draw_rect(centerX, fieldY + 0.021f, lineWidth, 0.0015f,
               theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue, 190);
 
     const TextRightLimitScope noPanelLimit(0.0f);
-    const float textLeft = kLeft + sideMargin;
+    const float textLeft = centerX - lineWidth * 0.5f + kMenuTextInset;
     if (typed[0] == '\0') {
         if (caretOn) draw_text_impl("|", textLeft, fieldY - 0.015f, kTextSize, 255, 255, 255, 255, false, false);
         char hint[160]{};
         shorten_to_width(hunting_companion::ui_text("Type an animal, part or item name"), 11.0f, correction,
-                         room - 0.010f, hint, sizeof(hint));
-        draw_text_impl(hint, textLeft + 0.008f, fieldY - 0.010f, 11.0f,
+                         room, hint, sizeof(hint));
+        draw_text_impl(hint, textLeft, fieldY - 0.010f, 11.0f,
                        theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue, 255, false, false);
     } else {
         // "..." in front shows that the start of the text has scrolled out.
