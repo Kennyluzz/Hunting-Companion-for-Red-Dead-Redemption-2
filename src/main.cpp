@@ -5121,7 +5121,10 @@ void draw_wrapped_centered_text(const char* text, float centerX, float y,
 constexpr float kMenuLineCenter = 0.212f;
 constexpr float kMenuLineWidth = 0.353f;
 constexpr float kMenuTextInset = 0.005f;
-constexpr float kMenuContentLeft = kMenuLineCenter - kMenuLineWidth * 0.5f + kMenuTextInset;
+constexpr float kMenuUnderlinedLeft = kMenuLineCenter - kMenuLineWidth * 0.5f + kMenuTextInset;
+// Body text on the pages (no underline of its own) keeps its own, slightly
+// deeper margin.
+constexpr float kMenuContentLeft = 0.071f;
 constexpr float kMenuTextRight = kMenuLineCenter + kMenuLineWidth * 0.5f - kMenuTextInset;
 constexpr float kMenuRewardRowRight = 0.212f + 0.345f * 0.5f;
 constexpr float kMenuProgressBarWidth = kMenuRewardRowRight - kMenuContentLeft;
@@ -5173,7 +5176,7 @@ void draw_menu_row(const char* label, const char* status, int row,
     const int labelGreen = selected ? 255 : (disabled ? 104 : (accent ? theme::kGoldGreen : theme::kTextGreen));
     const int labelBlue = selected ? 255 : (disabled ? 104 : (accent ? theme::kGoldBlue : theme::kTextBlue));
 
-    constexpr float kLabelLeft = kMenuContentLeft;
+    constexpr float kLabelLeft = kMenuUnderlinedLeft;
     constexpr float kRowRight = kMenuTextRight;
     constexpr float kStatusGap = 0.010f;
     constexpr float kStatusSize = 13.0f;
@@ -5309,10 +5312,10 @@ void draw_menu_footer() noexcept {
     if (g_menu.page == MenuPage::Search)
         keys = g_menu.searchEditing ? "ENTER Done   BACKSPACE Delete" : "SPACE Search   ENTER Select   BACKSPACE Back";
     draw_text(keys,
-              kMenuContentLeft, 0.855f, 14.0f, theme::kTextRed, theme::kTextGreen, theme::kTextBlue);
+              kMenuUnderlinedLeft, 0.855f, 14.0f, theme::kTextRed, theme::kTextGreen, theme::kTextBlue);
     char footer[48]{};
     std::snprintf(footer, sizeof(footer), hunting_companion::ui_text("%s Close"), key_name(g_menuHotkey));
-    draw_text(footer, kMenuContentLeft, 0.908f, 13.5f,
+    draw_text(footer, kMenuUnderlinedLeft, 0.908f, 13.5f,
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
     if (g_menu.page == MenuPage::Categories || g_menu.page == MenuPage::Recipes) {
         char filterHint[64]{};
@@ -6121,7 +6124,7 @@ void draw_search_page() noexcept {
     draw_rect(0.212f, kLineY, 0.345f, 0.030f, 0, 0, 0, 140);
     if (g_searchQuery[0] != '\0') {
         const TextRightLimitScope keepInsideBox(0.300f);
-        draw_text_raw(g_searchQuery, kMenuContentLeft + 0.007f, kLineY - 0.012f, 15.0f, 220, 214, 202);
+        draw_text_raw(g_searchQuery, kMenuContentLeft, kLineY - 0.012f, 15.0f, 220, 214, 202);
     }
     draw_text(g_menu.searchEditing ? "ENTER Done" : "SPACE Search", 0.305f, kLineY - 0.009f, 11.0f,
               theme::kMutedRed, theme::kMutedGreen, theme::kMutedBlue);
