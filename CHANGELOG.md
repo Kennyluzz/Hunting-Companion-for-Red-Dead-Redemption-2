@@ -9,6 +9,11 @@
   is still needed so you can look for a three-star one; Hidden only shows icons on
   one- and two-star animals for what they can actually give. Saved as
   `LowStarIcons` in the ini.
+- **Pearson's tools.** Until the Leather Working Tools are bought at the camp
+  ledger, Pearson recipes whose materials are all there say "Needs Leather Working
+  Tools" instead of "Ready after donation".
+- Recipes that cannot be completed at your point in the story are left out until
+  they can be.
 
 ## 1.40.1
 
