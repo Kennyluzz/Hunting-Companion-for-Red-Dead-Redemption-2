@@ -7,10 +7,12 @@ SOURCE = (ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
 
 required = (
     # Every HUD icon goes through the group placement.
-    "hud_place(kHudWeapons, defaultX, rowTop + kIconHeight * 0.5f, layout)",
-    "hud_place(kHudWeapons, centerX, rowTop + kIconHeight * 0.5f, layout)",
-    "hud_place(kHudVendors, layout.pearsonCenterX, layout.centerY, layout)",
-    "hud_place(kHudVendors, layout.trapperCenterX, layout.centerY, layout)",
+    "hud_place_icon(which, kHudWeapons, defaultX, centerY, 0.0f, 0.0f, layout)",
+    "const int which = row.icons[i].ammo ? kHudAmmoIcon : kHudWeaponIcon;",
+    "hud_place_icon(kHudWeaponIcon, kHudWeapons, centerX, rowTop + kIconHeight * 0.5f,",
+    "hud_place_icon(kHudPearsonIcon, kHudVendors, layout.pearsonCenterX, layout.centerY,",
+    "hud_place_icon(kHudTrapperIcon, kHudVendors, layout.trapperCenterX, layout.centerY,",
+    "return g_hudPlacement[icon].scale * hud_scale(group);",
     "return g_hudPlacement[group].scale * g_hudPlacement[kHudAll].scale;",
     # Saved and loaded, bounded.
     'WritePrivateProfileStringA("HUD", key, value, g_iniPath);',

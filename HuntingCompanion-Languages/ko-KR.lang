@@ -344,3 +344,9 @@ Icons on low-star animals=별이 적은 동물의 아이콘
 
 # Pearson's tools
 NEEDS LEATHER WORKING TOOLS=가죽 세공 도구 필요
+
+# Individual HUD icons
+Weapon icon=무기 아이콘
+Ammo icon=탄약 아이콘
+Pearson icon=피어슨 아이콘
+Trapper icon=덫사냥꾼 아이콘

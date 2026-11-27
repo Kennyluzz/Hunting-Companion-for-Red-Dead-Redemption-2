@@ -9,6 +9,9 @@
   is still needed so you can look for a three-star one; Hidden only shows icons on
   one- and two-star animals for what they can actually give. Saved as
   `LowStarIcons` in the ini.
+- **Each HUD icon can be moved and sized on its own.** Settings > HUD layout now
+  also has the weapon icon, the ammo icon, the Pearson icon and the Trapper icon
+  separately, on top of the groups and "All icons".
 - **Pearson's tools.** Until the Leather Working Tools are bought at the camp
   ledger, Pearson recipes whose materials are all there say "Needs Leather Working
   Tools" instead of "Ready after donation".

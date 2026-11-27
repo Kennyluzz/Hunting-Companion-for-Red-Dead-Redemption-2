@@ -345,3 +345,9 @@ Icons on low-star animals=星の少ない動物のアイコン
 
 # Pearson's tools
 NEEDS LEATHER WORKING TOOLS=革細工道具が必要
+
+# Individual HUD icons
+Weapon icon=武器アイコン
+Ammo icon=弾薬アイコン
+Pearson icon=ピアソンのアイコン
+Trapper icon=罠猟師のアイコン

@@ -2070,13 +2070,18 @@ struct HudIconLayout {
 };
 
 // Where the player has moved the HUD icons and how large they are (Settings >
-// HUD layout). Each group is moved and sized around its own default position,
+// HUD layout). Each icon is first moved and sized on its own (weapon, ammo,
+// Pearson, Trapper), then with its group around the group's default position,
 // then "all icons" moves and sizes everything around the vendor icons.
 struct HudPlacement { float x{}; float y{}; float scale{1.0f}; };
 constexpr int kHudAll = 0;
 constexpr int kHudWeapons = 1;
 constexpr int kHudVendors = 2;
-constexpr int kHudGroupCount = 3;
+constexpr int kHudWeaponIcon = 3;
+constexpr int kHudAmmoIcon = 4;
+constexpr int kHudPearsonIcon = 5;
+constexpr int kHudTrapperIcon = 6;
+constexpr int kHudGroupCount = 7;
 HudPlacement g_hudPlacement[kHudGroupCount]{};
 constexpr float kHudRightEdge = 0.972f;
 constexpr float kHudMinScale = 0.5f;
@@ -2104,6 +2109,18 @@ HudPoint hud_place(int group, float x, float y, const HudIconLayout& layout) noe
 
 float hud_scale(int group) noexcept {
     return g_hudPlacement[group].scale * g_hudPlacement[kHudAll].scale;
+}
+
+// A point of one icon (its centre plus dx, dy, such as where its label goes):
+// the icon's own move and size first, then its group's and everything's.
+HudPoint hud_place_icon(int icon, int group, float centerX, float centerY, float dx, float dy,
+                        const HudIconLayout& layout) noexcept {
+    const HudPlacement& own = g_hudPlacement[icon];
+    return hud_place(group, centerX + own.x + dx * own.scale, centerY + own.y + dy * own.scale, layout);
+}
+
+float hud_icon_scale(int icon, int group) noexcept {
+    return g_hudPlacement[icon].scale * hud_scale(group);
 }
 
 namespace theme {
@@ -2459,6 +2476,7 @@ struct RecommendationIcon {
     const char* dictionary;
     const char* sprite;
     const char* label;   // untranslated key; translated when drawn
+    bool ammo = false;   // placed with the ammo icons rather than the weapon icons
 };
 
 void draw_icon_with_shadow(const RecommendationIcon& icon, float centerX, float centerY,
@@ -2507,7 +2525,7 @@ void draw_hunting_recommendation_icons(
         std::size_t itemCount = 0;
         items[itemCount++] = RecommendationIcon{"inventory_items", choice.texture, choice.label};
         for (std::size_t ammo = 0; ammo < choice.ammoCount && itemCount < std::size(items); ++ammo) {
-            items[itemCount++] = RecommendationIcon{"inventory_items", choice.ammo[ammo].texture, choice.ammo[ammo].label};
+            items[itemCount++] = RecommendationIcon{"inventory_items", choice.ammo[ammo].texture, choice.ammo[ammo].label, true};
         }
         for (std::size_t first = 0; first < itemCount && rowCount < kMaxRows; first += 2) {
             IconRow& row = rows[rowCount++];
@@ -2531,8 +2549,6 @@ void draw_hunting_recommendation_icons(
     const float rightColumnCenterX = kRightEdge - iconWidth * 0.5f;
     const float vendorTop = layout.centerY - layout.height * 0.5f;
     const float stackBottom = vendorTop - kGapAboveVendorIcons;
-    const float scale = hud_scale(kHudWeapons);
-
     char label[96]{};
     for (std::size_t r = 0; r < rowCount; ++r) {
         // rows[] runs from the top of the stack to the bottom.
@@ -2542,12 +2558,16 @@ void draw_hunting_recommendation_icons(
             // A lone icon goes in the right-hand column.
             const int column = row.count == 1 ? 1 : i;
             const float defaultX = rightColumnCenterX - kCellWidth * (1.0f - static_cast<float>(column));
-            const HudPoint icon = hud_place(kHudWeapons, defaultX, rowTop + kIconHeight * 0.5f, layout);
+            const int which = row.icons[i].ammo ? kHudAmmoIcon : kHudWeaponIcon;
+            const float scale = hud_icon_scale(which, kHudWeapons);
+            const float centerY = rowTop + kIconHeight * 0.5f;
+            const HudPoint icon = hud_place_icon(which, kHudWeapons, defaultX, centerY, 0.0f, 0.0f, layout);
             draw_icon_with_shadow(row.icons[i], icon.x, icon.y, iconWidth * scale, kIconHeight * scale);
             std::snprintf(label, sizeof(label), "%s", hunting_companion::ui_text(row.icons[i].label));
             // A label is wider than its icon, so a label near the right edge is
             // narrowed rather than allowed to run off the screen.
-            const HudPoint text = hud_place(kHudWeapons, defaultX, rowTop + kIconHeight + kLabelGap, layout);
+            const HudPoint text = hud_place_icon(which, kHudWeapons, defaultX, centerY, 0.0f,
+                                                 kIconHeight * 0.5f + kLabelGap, layout);
             const float labelWidth = std::max(0.02f, std::min(kCellWidth * 0.97f * scale,
                                                               (kLabelRightLimit - text.x) * 2.0f));
             draw_label_with_shadow(label, text.x, text.y, labelWidth, 9.0f, scale);
@@ -2614,7 +2634,7 @@ void draw_any_weapon_hint(const HudIconLayout& layout) noexcept {
     const float iconWidth = kIconHeight * heightOverWidth;
     const float vendorTop = layout.centerY - layout.height * 0.5f;
     const float bottom = vendorTop - kGapAboveVendorIcons;
-    const float scale = hud_scale(kHudWeapons);
+    const float scale = hud_icon_scale(kHudWeaponIcon, kHudWeapons);
     char label[96]{};
     std::snprintf(label, sizeof(label), "%s", hunting_companion::ui_text("Any weapon"));
     if (g_legendaryIcon) {
@@ -2622,30 +2642,36 @@ void draw_any_weapon_hint(const HudIconLayout& layout) noexcept {
         const float rowTop = bottom - kIconHeight - kLabelGap - kLabelBlockHeight;
         if (texture_dictionary_ready(kLegendaryIconDictionary)) {
             const RecommendationIcon icon{kLegendaryIconDictionary, kLegendaryIconTexture, ""};
-            const HudPoint at = hud_place(kHudWeapons, centerX, rowTop + kIconHeight * 0.5f, layout);
+            const HudPoint at = hud_place_icon(kHudWeaponIcon, kHudWeapons, centerX, rowTop + kIconHeight * 0.5f,
+                                               0.0f, 0.0f, layout);
             draw_icon_with_shadow(icon, at.x, at.y, iconWidth * scale, kIconHeight * scale);
         }
         // Centred under the icon and narrowed near the screen edge, like the
         // weapon labels.
-        const HudPoint text = hud_place(kHudWeapons, centerX, rowTop + kIconHeight + kLabelGap, layout);
+        const HudPoint text = hud_place_icon(kHudWeaponIcon, kHudWeapons, centerX, rowTop + kIconHeight * 0.5f,
+                                             0.0f, kIconHeight * 0.5f + kLabelGap, layout);
         const float labelWidth = std::max(0.02f, std::min(0.09f * scale, (0.988f - text.x) * 2.0f));
         draw_label_with_shadow(label, text.x, text.y, labelWidth, 9.0f, scale);
         return;
     }
     constexpr float kWidth = 0.12f;
-    const HudPoint text = hud_place(kHudWeapons, kRightEdge - kWidth * 0.5f, bottom - 0.030f, layout);
+    const HudPoint text = hud_place_icon(kHudWeaponIcon, kHudWeapons, kRightEdge - kWidth * 0.5f, bottom - 0.030f,
+                                         0.0f, 0.0f, layout);
     draw_label_with_shadow(label, text.x, text.y, kWidth * scale, 12.0f, scale);
 }
 
 void draw_vendor_icons(const HudIconLayout& layout, bool pearson, bool trapper) noexcept {
-    const float scale = hud_scale(kHudVendors);
     if (pearson) {
-        const HudPoint at = hud_place(kHudVendors, layout.pearsonCenterX, layout.centerY, layout);
+        const float scale = hud_icon_scale(kHudPearsonIcon, kHudVendors);
+        const HudPoint at = hud_place_icon(kHudPearsonIcon, kHudVendors, layout.pearsonCenterX, layout.centerY,
+                                           0.0f, 0.0f, layout);
         draw_vendor_icon("blip_shop_butcher", at.x, at.y, layout.width * scale, layout.height * scale,
                          245, 184, 72);
     }
     if (trapper) {
-        const HudPoint at = hud_place(kHudVendors, layout.trapperCenterX, layout.centerY, layout);
+        const float scale = hud_icon_scale(kHudTrapperIcon, kHudVendors);
+        const HudPoint at = hud_place_icon(kHudTrapperIcon, kHudVendors, layout.trapperCenterX, layout.centerY,
+                                           0.0f, 0.0f, layout);
         draw_vendor_icon("blip_shop_animal_trapper", at.x, at.y, layout.width * scale, layout.height * scale,
                          100, 190, 245);
     }
@@ -2755,10 +2781,10 @@ constexpr int kSetPearson = 11;
 constexpr int kSetBack = 12;
 constexpr int kSettingsCount = 13;
 constexpr int kSettingsVisibleRows = 7;  // the language details sit below them
-// Rows of the HUD layout page; the first three are kHudAll, kHudWeapons, kHudVendors.
-constexpr int kLayoutReset = 3;
-constexpr int kLayoutBack = 4;
-constexpr int kLayoutCount = 5;
+// Rows of the HUD layout page; the first seven are the kHud* placements in order.
+constexpr int kLayoutReset = 7;
+constexpr int kLayoutBack = 8;
+constexpr int kLayoutCount = 9;
 struct MenuCategory { std::uint32_t hash{}; const char* label{}; int recipeCount{}; };
 struct MenuState {
     MenuPage page{MenuPage::Closed};
@@ -2860,7 +2886,8 @@ void initialise_ini_path() noexcept {
 
 // [HUD] in the ini: each group's offset in thousandths of the screen and its
 // size in percent.
-constexpr const char* kHudKeyNames[kHudGroupCount] = {"All", "Weapon", "Vendor"};
+constexpr const char* kHudKeyNames[kHudGroupCount] = {
+    "All", "Weapon", "Vendor", "WeaponIcon", "AmmoIcon", "PearsonIcon", "TrapperIcon"};
 
 void load_hud_layout() noexcept {
     for (int group = 0; group < kHudGroupCount; ++group) {
@@ -5522,7 +5549,8 @@ void draw_settings_page() noexcept {
 
 const char* hud_layout_row_label(int index, char*, std::size_t) noexcept {
     static const char* labels[kLayoutCount] = {
-        "All icons", "Weapon and ammo icons", "Pearson and Trapper icons", "Reset layout", "Back"
+        "All icons", "Weapon and ammo icons", "Pearson and Trapper icons",
+        "Weapon icon", "Ammo icon", "Pearson icon", "Trapper icon", "Reset layout", "Back"
     };
     return index >= 0 && index < kLayoutCount ? labels[index] : "";
 }
@@ -5538,7 +5566,7 @@ void draw_hud_layout_page() noexcept {
         draw_list_page("HUD LAYOUT", "Move and resize the HUD icons", kLayoutCount,
                        hud_layout_row_label, hud_layout_row_status);
         draw_wrapped_text("The icons on the right are a preview. Select a group to move it.",
-                          0.071f, 0.560f, 48, 2, 0.026f, 11.5f, 184, 178, 164);
+                          0.071f, 0.790f, 48, 2, 0.022f, 10.5f, 184, 178, 164);
         return;
     }
     // While moving, only a short guide is shown so the whole screen is free.

@@ -345,3 +345,9 @@ Icons on low-star animals=Icônes sur les animaux à peu d'étoiles
 
 # Pearson's tools
 NEEDS LEATHER WORKING TOOLS=OUTILS DE MAROQUINERIE REQUIS
+
+# Individual HUD icons
+Weapon icon=Icône de l'arme
+Ammo icon=Icône des munitions
+Pearson icon=Icône de Pearson
+Trapper icon=Icône du trappeur
