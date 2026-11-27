@@ -57,7 +57,7 @@ PEARSON_STORY = (
     'player_owned_count(inventoryId, joaat("LEATHER_UPGRADE")) > 0',
     'if (!trapper && partsReady && !g_pearsonHasTools) return "NEEDS LEATHER WORKING TOOLS";',
     "if (index == kRootPearson) return g_pearsonUnavailable;",
-    "const bool needsPearson = !g_pearsonUnavailable && species != nullptr &&",
+    "const bool needsPearson = g_storyOpen && !g_pearsonUnavailable && species != nullptr &&",
     "i < g_tracker.pearson.recipeCount && !g_pearsonUnavailable;",
     "for (int vendorIndex = g_pearsonUnavailable ? 1 : 0; vendorIndex < 2; ++vendorIndex) {",
     "if (g_pearsonSetting >= 0) g_pearsonUnavailable = g_pearsonSetting == 0;",
