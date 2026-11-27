@@ -5116,7 +5116,10 @@ void draw_wrapped_centered_text(const char* text, float centerX, float y,
 // Shared horizontal bounds for rank bars on category and reinforced-item
 // detail pages. Rows have no plates, so the bar ends where the
 // divider lines end, well inside the panel's rough painted edge.
-constexpr float kMenuContentLeft = 0.0365f;
+// Menu text runs between these two edges: the row underlines (0.0355 to 0.3885)
+// less a small inset on each side.
+constexpr float kMenuContentLeft = 0.0405f;
+constexpr float kMenuTextRight = 0.3835f;
 constexpr float kMenuRewardRowRight = 0.212f + 0.345f * 0.5f;
 constexpr float kMenuProgressBarWidth = kMenuRewardRowRight - kMenuContentLeft;
 
@@ -5168,7 +5171,7 @@ void draw_menu_row(const char* label, const char* status, int row,
     const int labelBlue = selected ? 255 : (disabled ? 104 : (accent ? theme::kGoldBlue : theme::kTextBlue));
 
     constexpr float kLabelLeft = kMenuContentLeft;
-    constexpr float kRowRight = kPanelCenter + kPanelWidth * 0.5f - 0.007f;
+    constexpr float kRowRight = kMenuTextRight;
     constexpr float kStatusGap = 0.010f;
     constexpr float kStatusSize = 13.0f;
     const float correction = screen_width_correction();
@@ -5411,7 +5414,7 @@ void draw_pearson_tools_note(float y) noexcept {
     char note[320]{};
     std::snprintf(note, sizeof(note), "* %s %s", first != nullptr ? first : "Pearson cannot craft this yet.",
                   second != nullptr ? second : "Purchase leather working tools at the ledger.");
-    draw_fitted_text(note, kMenuContentLeft, y, 0.3875f - kMenuContentLeft, 3, 12.0f, 232, 176, 112);
+    draw_fitted_text(note, kMenuContentLeft, y, kMenuTextRight - kMenuContentLeft, 3, 12.0f, 232, 176, 112);
 }
 
 const char* with_tools_mark(bool trapper, const RecipeEntry* recipe, const char* status,
@@ -6271,8 +6274,7 @@ void draw_scan_progress() noexcept {
 
 void draw_menu() noexcept {
     if (g_menu.page == MenuPage::Closed) return;
-    // Right edge of the row underlines (less two pixels); all menu text is kept to its left.
-    const TextRightLimitScope keepTextInsidePanel(0.3875f);
+    const TextRightLimitScope keepTextInsidePanel(kMenuTextRight);
     g_menuTextColourScope = true;
     struct EndScope { ~EndScope() { g_menuTextColourScope = false; } } endScope;
     if (!g_tracker.ready) {
