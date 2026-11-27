@@ -338,3 +338,18 @@ TRAPPER RECIPE - PART OF %s=덫 사냥꾼 제작법 - %s 세트의 일부
 
 # Pearson setting
 AUTO=자동
+
+# Low-star animals
+Icons on low-star animals=별이 적은 동물의 아이콘
+
+# Pearson's tools
+NEEDS: %s=필요: %s
+
+# Individual HUD icons
+Weapon icon=무기 아이콘
+Ammo icon=탄약 아이콘
+Pearson icon=피어슨 아이콘
+Trapper icon=덫사냥꾼 아이콘
+
+# Early story
+AVAILABLE LATER=나중에 이용 가능

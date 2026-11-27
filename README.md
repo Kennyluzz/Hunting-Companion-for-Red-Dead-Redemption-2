@@ -64,6 +64,8 @@ Rerun the generator after changing its input:
 | `HuntingCompanion-Languages/*.lang` | `python tools/embed_languages.py` | `src/embedded_languages.hpp` |
 | The game's English string table (`.xml`, or a `.zip` holding it) | `python tools/build_compendium_advice.py <file>` | `data/compendium_advice.json` |
 | `data/compendium_advice.json`, `data/weapon_icons.json` | `python tools/embed_hunting_recommendations.py` | `src/embedded_hunting_recommendations.hpp` |
+| The 13 official language files (`RDR2 Official Language - <Language> *.zip`, or the `<Language> Translation.xml` inside) and `data/official_ui_strings.json` | `python tools/build_official_strings.py --input-dir <folder>` | `src/embedded_official_strings.hpp` |
+| `HuntingCompanion.ini` (bump `IniVersion` when its layout changes) | `python tools/embed_ini.py` | `src/embedded_ini_template.hpp` |
 | The game's English string table (`.xml`, or a `.zip` holding it) | `python tools/build_satchel_carcasses.py <file>` | `src/embedded_satchel_carcasses.hpp` |
 
 ## Tests
@@ -79,6 +81,7 @@ python tests/test_native_fonts_integration.py
 python tests/test_localization.py
 python tests/test_search.py
 python tests/test_hud_layout.py
+python tests/test_ini_upgrade.py
 g++ -std=c++17 -I src src/official_strings.cpp tests/test_official_strings.cpp -o test_official_strings && ./test_official_strings
 ```
 
@@ -121,8 +124,8 @@ They check data and wiring only. Anything visible has to be tested in the game.
   game keeps its font library. The only other hooks are the two Windows key-state
   functions described under Search, active only while the search box is open.
   Nothing else in the game is changed.
-- **Diagnostics.** `FontLog=1` under `[Fonts]` in `HuntingCompanion.ini` writes
-  `HuntingCompanion.fonts.log` to the game folder (font loading, unknown Compendium
+- **Diagnostics.** `Log=1` under `[General]` in `HuntingCompanion.ini` writes
+  `HuntingCompanion.log` to the game folder (font loading, unknown Compendium
   labels, and what the haul scan sees while the menu is open).
 
 ## Credits

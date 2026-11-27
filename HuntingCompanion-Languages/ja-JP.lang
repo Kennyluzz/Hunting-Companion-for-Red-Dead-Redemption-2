@@ -339,3 +339,18 @@ TRAPPER RECIPE - PART OF %s=罠師のレシピ - %sの一部
 
 # Pearson setting
 AUTO=自動
+
+# Low-star animals
+Icons on low-star animals=星の少ない動物のアイコン
+
+# Pearson's tools
+NEEDS: %s=必要：%s
+
+# Individual HUD icons
+Weapon icon=武器アイコン
+Ammo icon=弾薬アイコン
+Pearson icon=ピアソンのアイコン
+Trapper icon=罠猟師のアイコン
+
+# Early story
+AVAILABLE LATER=後で利用可能

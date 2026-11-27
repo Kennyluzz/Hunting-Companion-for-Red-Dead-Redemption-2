@@ -12,7 +12,7 @@ int main() {
     // All values below are read from Rockstar's Translation.xml language packs,
     // matched by the same stable label ID used by ItemDatabase.
     assert(table.select_locale("en-US"));
-    assert(table.size() == 358);
+    assert(table.size() == 361);
     assert(std::strcmp(table.find(0xC24749A2u), "Perfect Deer Pelt") == 0);
     assert(std::strcmp(table.find(0x158AFE6Eu), "Perfect Armadillo Skin") == 0);
     assert(std::strcmp(table.find(0x2A348502u), "Snake Skin Banjo Head") == 0);
@@ -78,6 +78,6 @@ int main() {
     assert(table.size() == 0);
     assert(table.find(0xC24749A2u) == nullptr);
 
-    std::cout << "Embedded official string tests passed (358 hashes x 13 locales, including challenge objectives).\n";
+    std::cout << "Embedded official string tests passed (361 hashes x 13 locales, including challenge objectives and interface lines).\n";
     return 0;
 }

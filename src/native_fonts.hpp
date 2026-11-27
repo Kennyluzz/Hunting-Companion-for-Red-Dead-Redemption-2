@@ -15,7 +15,7 @@
 namespace hunting_companion::native_fonts {
 
 struct Settings {
-    bool fileLog = false;              // [Fonts] FontLog=1
+    bool fileLog = false;              // [General] Log=1
     const char* logDirectory = nullptr;
     const char* iniPath = nullptr;     // for the [Fonts] face overrides
 };
@@ -61,8 +61,8 @@ void mark_unusable(int language, const char* reason) noexcept;
 char* read_game_file(const char* path, std::size_t* size) noexcept;
 void free_game_file(char* data) noexcept;
 
-// Writes one line to the diagnostics log (HuntingCompanion.fonts.log) when
-// [Fonts] FontLog=1; does nothing otherwise.
+// Writes one line to the diagnostics log (HuntingCompanion.log) when Log=1;
+// does nothing otherwise.
 void diagnostic(const char* format, ...) noexcept;
 
 // Short English status line for the Settings page (not translated: it is only

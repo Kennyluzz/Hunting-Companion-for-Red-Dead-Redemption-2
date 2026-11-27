@@ -46,6 +46,8 @@ required = (
     'joaat("AT_BUFFALO_TATANKA")',
     "if (name == nullptr || std::strstr(name, \"Legendary\") == nullptr) continue;",
     "for (const auto& carcass : hunting_companion::satchel::kCarcassItems) {",
+    'add_carcass_items(inventoryId, 0, "satchel");',
+    'add_carcass_items(horseInventory, 5, "cargo");',
     "if (std::strstr(name, \"Perfect\") != nullptr && carcass.quality != 2) continue;",
     "if (isPelt && (carcassMaterial || !perfectOnly)) continue;",
     "if (!isPelt && known_skinned(carcass)) return true;",

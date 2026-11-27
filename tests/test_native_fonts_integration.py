@@ -20,7 +20,7 @@ def need(cond, msg):
 # copy are opt-in. (main.cpp reads the game's own fontmap.xml, it never writes one.)
 for bad in ("CreateDirectoryW", "commonx", "WriteFile(", "CreateFile"):
     need(bad not in main, f"main.cpp must not create game-folder files ({bad})")
-need("if (!g_settings.fileLog" in fonts, "the font log must only be written with FontLog=1")
+need("if (!g_settings.fileLog" in fonts, "the log must only be written with Log=1")
 # No overlay left behind.
 for gone in ("overlay::", "imgui", "vulkan", "cjk_overlay"):
     need(gone not in main.lower() and gone not in cmake.lower(), f"overlay remnant: {gone}")

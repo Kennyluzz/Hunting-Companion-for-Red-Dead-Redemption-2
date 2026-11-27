@@ -16,11 +16,12 @@
     "es-MX",
     "zh-CN"
   ],
-  "uniqueHashes": 358,
-  "entriesPerLocale": 358,
+  "uniqueHashes": 361,
+  "entriesPerLocale": 361,
   "recipeMaterialHashes": 290,
   "challengeObjectiveHashes": 68,
-  "verifiedAgainstEnglish": 358,
+  "interfaceHashes": 3,
+  "verifiedAgainstEnglish": 361,
   "excludedUnlabelledEntries": [],
   "items": [
     {
@@ -1816,19 +1817,33 @@
       "officialEnglishLabel": "Rob any 3 coaches or return any 3 stolen coaches to the fence in a day"
     }
   ],
+  "interfaceLines": [
+    {
+      "id": "0x4F1661D8",
+      "english": "Pearson cannot craft this yet."
+    },
+    {
+      "id": "0x77DDA3E6",
+      "english": "Leather Working Tools"
+    },
+    {
+      "id": "0xBEA51F04",
+      "english": "Purchase leather working tools at the ledger."
+    }
+  ],
   "bytesByLocale": {
-    "en-US": 8558,
-    "fr-FR": 11338,
-    "de-DE": 10220,
-    "it-IT": 10614,
-    "es-ES": 10945,
-    "pt-BR": 9942,
-    "pl-PL": 10389,
-    "ru-RU": 17479,
-    "ko-KR": 10679,
-    "zh-TW": 9150,
-    "ja-JP": 12376,
-    "es-MX": 10987,
-    "zh-CN": 8526
+    "en-US": 8654,
+    "fr-FR": 11458,
+    "de-DE": 10332,
+    "it-IT": 10751,
+    "es-ES": 11077,
+    "pt-BR": 10055,
+    "pl-PL": 10514,
+    "ru-RU": 17718,
+    "ko-KR": 10802,
+    "zh-TW": 9231,
+    "ja-JP": 12499,
+    "es-MX": 11122,
+    "zh-CN": 8619
   }
 }

@@ -338,3 +338,18 @@ TRAPPER RECIPE - PART OF %s=PRZEPIS TRAPERA - CZĘŚĆ ZESTAWU %s
 
 # Pearson setting
 AUTO=AUTO
+
+# Low-star animals
+Icons on low-star animals=Ikony przy zwierzętach z mniejszą liczbą gwiazdek
+
+# Pearson's tools
+NEEDS: %s=WYMAGA: %s
+
+# Individual HUD icons
+Weapon icon=Ikona broni
+Ammo icon=Ikona amunicji
+Pearson icon=Ikona Pearsona
+Trapper icon=Ikona trapera
+
+# Early story
+AVAILABLE LATER=DOSTĘPNE PÓŹNIEJ

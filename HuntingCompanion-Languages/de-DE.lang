@@ -339,3 +339,18 @@ TRAPPER RECIPE - PART OF %s=FALLENSTELLER-REZEPT - TEIL VON %s
 
 # Pearson setting
 AUTO=AUTO
+
+# Low-star animals
+Icons on low-star animals=Symbole bei Tieren mit wenigen Sternen
+
+# Pearson's tools
+NEEDS: %s=BENÖTIGT: %s
+
+# Individual HUD icons
+Weapon icon=Waffensymbol
+Ammo icon=Munitionssymbol
+Pearson icon=Pearson-Symbol
+Trapper icon=Fallensteller-Symbol
+
+# Early story
+AVAILABLE LATER=SPÄTER VERFÜGBAR

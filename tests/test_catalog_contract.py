@@ -48,12 +48,21 @@ print("Pearson retention and unknown-recipe exclusion checks passed.")
 # Player-facing texts stay spoiler-free.
 PEARSON_STORY = (
     "invoke_native<int>(kMissionDataWasCompleted, kPearsonEndMission) != 0",
-    "g_pearsonUnavailable = missionDone || playingJohn;",
+    "if (g_pearsonSetting < 0) g_pearsonUnavailable = missionDone || g_playingJohn;",
+    "if (g_playingJohn || !trapper) return false;",
+    'constexpr std::uint32_t kStoryOpensMission = joaat("MUD1");',
+    'index == kRootCraftingUses)) return "AVAILABLE LATER";',
+    "const bool needsTrapper = g_storyOpen && species != nullptr &&",
+    "0x1BA02C14u,  // Perfect Gila Monster Skin",
+    'player_owned_count(inventoryId, joaat("LEATHER_UPGRADE")) > 0',
+    'return !trapper && partsReady && !g_pearsonHasTools;',
+    'hunting_companion::official_item_string(kLeatherWorkingToolsLabel)',
+    'hunting_companion::official_item_string(kCannotCraftYetLabel)',
     "if (index == kRootPearson) return g_pearsonUnavailable;",
-    "const bool needsPearson = !g_pearsonUnavailable && species != nullptr &&",
+    "const bool needsPearson = g_storyOpen && !g_pearsonUnavailable && species != nullptr &&",
     "i < g_tracker.pearson.recipeCount && !g_pearsonUnavailable;",
     "for (int vendorIndex = g_pearsonUnavailable ? 1 : 0; vendorIndex < 2; ++vendorIndex) {",
-    "g_pearsonUnavailable = g_pearsonSetting == 0;",
+    "if (g_pearsonSetting >= 0) g_pearsonUnavailable = g_pearsonSetting == 0;",
     'WritePrivateProfileStringA("General", "PearsonAvailable", value, g_iniPath);',
 )
 for token in PEARSON_STORY:

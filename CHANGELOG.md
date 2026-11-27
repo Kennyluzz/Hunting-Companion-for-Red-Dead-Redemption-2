@@ -1,5 +1,46 @@
 # Changelog
 
+## 1.50.0
+
+### Hunting and crafting
+
+- **Pelts are recognised after loading a save.** A pelt you are carrying or have on
+  your horse when you load a save now counts, and so do pelts and animals stacked
+  on the horse.
+- **Pearson's tools.** Until you buy the Leather Working Tools at the camp ledger,
+  Pearson's recipes are marked with a "*" and their page says so in the game's own
+  words. A recipe with all its materials says "Needs: Leather Working Tools"
+  instead of "Ready after donation".
+- **The crafting pages open after the first chapter.** Until "Eastward Bound" is
+  finished, Pearson, Trapper, Search and Crafting Uses show "Available later" and
+  animals show no Pearson or Trapper icons. Weapon advice, Challenges and Settings
+  work from the start.
+- Recipes you cannot complete yet at your point in the story stay hidden until you
+  can.
+
+### HUD
+
+- **Move and resize each HUD icon on its own.** Settings > HUD layout now lists the
+  weapon, ammo, Pearson and Trapper icons separately, as well as the groups and
+  "All icons".
+- **New setting: Icons on low-star animals.** Shown (as before) tells you a species
+  is still needed, so you know to look for a three-star one. Hidden shows icons on
+  one- and two-star animals only for what they can actually give.
+
+### Menu
+
+- **Text fits the menu.** Long names and notes, in Polish and Russian for example,
+  are fitted to the panel instead of running off it or losing letters. Row names,
+  statuses and the keys at the bottom stay inside the lines under them.
+- Quotation marks the game's fonts cannot show, such as « », no longer appear as
+  squares.
+
+### Settings file
+
+- **`HuntingCompanion.ini` updates itself.** An older file is brought up to date the
+  first time the mod runs, keeping all your settings, with new options added and
+  explained.
+
 ## 1.40.1
 
 - Some changes to how the mod works later in the story.

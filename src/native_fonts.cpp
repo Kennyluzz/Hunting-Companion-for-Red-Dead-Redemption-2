@@ -20,8 +20,8 @@
 //
 // Every step validates what it finds and gives up quietly; the companion then
 // shows English for a CJK language, or the game's basic font for a Latin or
-// Cyrillic one. Nothing touches the disk unless [Fonts] FontLog=1, which writes
-// HuntingCompanion.fonts.log.
+// Cyrillic one. Nothing touches the disk unless Log=1, which writes
+// HuntingCompanion.log.
 
 #include "native_fonts.hpp"
 
@@ -42,7 +42,7 @@ namespace hunting_companion::native_fonts {
 namespace {
 
 // ---------------------------------------------------------------------------
-// Logging (only with FontLog=1)
+// Logging (only with Log=1)
 // ---------------------------------------------------------------------------
 Settings g_settings;
 char g_logPath[MAX_PATH]{};
@@ -921,7 +921,7 @@ void read_overrides() noexcept {
 void install(const Settings& settings) noexcept {
     g_settings = settings;
     if (settings.fileLog && settings.logDirectory != nullptr) {
-        std::snprintf(g_logPath, sizeof(g_logPath), "%sHuntingCompanion.fonts.log", settings.logDirectory);
+        std::snprintf(g_logPath, sizeof(g_logPath), "%sHuntingCompanion.log", settings.logDirectory);
     }
     read_overrides();
     // The hook hands a function in this DLL to the game; never let it unload.

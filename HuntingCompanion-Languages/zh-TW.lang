@@ -339,3 +339,18 @@ TRAPPER RECIPE - PART OF %s=捕獸人配方 - %s 的一部分
 
 # Pearson setting
 AUTO=自動
+
+# Low-star animals
+Icons on low-star animals=低星級動物的圖示
+
+# Pearson's tools
+NEEDS: %s=需要：%s
+
+# Individual HUD icons
+Weapon icon=武器圖示
+Ammo icon=彈藥圖示
+Pearson icon=皮爾森圖示
+Trapper icon=陷阱獵人圖示
+
+# Early story
+AVAILABLE LATER=稍後開放

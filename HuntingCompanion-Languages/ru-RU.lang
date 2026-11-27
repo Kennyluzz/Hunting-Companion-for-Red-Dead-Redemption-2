@@ -339,3 +339,18 @@ TRAPPER RECIPE - PART OF %s=РЕЦЕПТ ОХОТНИКА - ЧАСТЬ КОМП�
 
 # Pearson setting
 AUTO=АВТО
+
+# Low-star animals
+Icons on low-star animals=Значки на животных с малым числом звёзд
+
+# Pearson's tools
+NEEDS: %s=НУЖНО: %s
+
+# Individual HUD icons
+Weapon icon=Значок оружия
+Ammo icon=Значок боеприпасов
+Pearson icon=Значок Пирсона
+Trapper icon=Значок траппера
+
+# Early story
+AVAILABLE LATER=ДОСТУПНО ПОЗЖЕ

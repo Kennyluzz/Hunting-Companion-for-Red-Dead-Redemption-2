@@ -1,0 +1,8 @@
+{
+  "description": "Rockstar's own interface lines the mod shows (beyond item and challenge names), by label ID, with the exact English text they are checked against.",
+  "strings": [
+    {"id": "0x77DDA3E6", "english": "Leather Working Tools"},
+    {"id": "0x4F1661D8", "english": "Pearson cannot craft this yet."},
+    {"id": "0xBEA51F04", "english": "Purchase leather working tools at the ledger."}
+  ]
+}

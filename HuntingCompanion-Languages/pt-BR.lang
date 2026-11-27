@@ -339,3 +339,18 @@ TRAPPER RECIPE - PART OF %s=RECEITA DO CAÇADOR - PARTE DE %s
 
 # Pearson setting
 AUTO=AUTO
+
+# Low-star animals
+Icons on low-star animals=Ícones em animais de poucas estrelas
+
+# Pearson's tools
+NEEDS: %s=PRECISA: %s
+
+# Individual HUD icons
+Weapon icon=Ícone da arma
+Ammo icon=Ícone da munição
+Pearson icon=Ícone de Pearson
+Trapper icon=Ícone do caçador
+
+# Early story
+AVAILABLE LATER=DISPONÍVEL MAIS TARDE

@@ -211,3 +211,18 @@ TRAPPER RECIPE - PART OF %s=TRAPPER RECIPE - PART OF %s
 
 # Pearson setting
 AUTO=AUTO
+
+# Low-star animals
+Icons on low-star animals=Icons on low-star animals
+
+# Pearson's tools
+NEEDS: %s=NEEDS: %s
+
+# Individual HUD icons
+Weapon icon=Weapon icon
+Ammo icon=Ammo icon
+Pearson icon=Pearson icon
+Trapper icon=Trapper icon
+
+# Early story
+AVAILABLE LATER=AVAILABLE LATER

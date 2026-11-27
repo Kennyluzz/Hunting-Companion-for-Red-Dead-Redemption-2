@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(HuntingCompanion VERSION 1.40.1 LANGUAGES C CXX)
+project(HuntingCompanion VERSION 1.50.0 LANGUAGES C CXX)
 
 if(NOT WIN32)
     message(FATAL_ERROR "Configure with cmake/mingw-w64-toolchain.cmake to target Windows x64.")
@@ -28,6 +28,9 @@ add_library(HuntingCompanion SHARED
     src/official_strings.cpp
     src/native_fonts.cpp
     src/text_input.cpp
+    src/ini_upgrade.cpp
+    src/ini_upgrade.hpp
+    src/embedded_ini_template.hpp
     src/text_input.hpp
     src/search_text.hpp
     src/native_fonts.hpp
@@ -40,6 +43,10 @@ add_library(HuntingCompanion SHARED
     ${HC_THIRD_PARTY_SOURCES})
 
 target_compile_features(HuntingCompanion PRIVATE cxx_std_17)
+# Always compile as C++17, even where the compiler's default is newer (GCC 16
+# defaults to C++20, whose std::string needs symbols some static MinGW
+# libstdc++ builds lack, so linking would fail).
+set_target_properties(HuntingCompanion PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
 target_include_directories(HuntingCompanion PRIVATE
     src
     ${HC_MINHOOK_DIR}/include
