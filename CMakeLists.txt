@@ -43,6 +43,10 @@ add_library(HuntingCompanion SHARED
     ${HC_THIRD_PARTY_SOURCES})
 
 target_compile_features(HuntingCompanion PRIVATE cxx_std_17)
+# Always compile as C++17, even where the compiler's default is newer (GCC 16
+# defaults to C++20, whose std::string needs symbols some static MinGW
+# libstdc++ builds lack, so linking would fail).
+set_target_properties(HuntingCompanion PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
 target_include_directories(HuntingCompanion PRIVATE
     src
     ${HC_MINHOOK_DIR}/include
