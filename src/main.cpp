@@ -14,6 +14,7 @@
 #include "embedded_satchel_carcasses.hpp"
 #include "search_text.hpp"
 #include "text_input.hpp"
+#include "ini_upgrade.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -2917,6 +2918,9 @@ void load_configuration() noexcept {
         g_menuHotkey = kDefaultMenuKey;
         return;
     }
+    // Bring an older (or missing) ini up to the current layout first, keeping
+    // every setting the player has made.
+    hunting_companion::ini::upgrade(g_iniPath);
     const UINT key = GetPrivateProfileIntA("General", "MenuKey", kDefaultMenuKey, g_iniPath);
     g_menuHotkey = (key > 0 && key < 256) ? key : kDefaultMenuKey;
     const UINT filterKey = GetPrivateProfileIntA("General", "FilterKey", kDefaultFilterKey, g_iniPath);

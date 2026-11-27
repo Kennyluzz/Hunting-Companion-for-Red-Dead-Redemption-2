@@ -64,6 +64,7 @@ Rerun the generator after changing its input:
 | `HuntingCompanion-Languages/*.lang` | `python tools/embed_languages.py` | `src/embedded_languages.hpp` |
 | The game's English string table (`.xml`, or a `.zip` holding it) | `python tools/build_compendium_advice.py <file>` | `data/compendium_advice.json` |
 | `data/compendium_advice.json`, `data/weapon_icons.json` | `python tools/embed_hunting_recommendations.py` | `src/embedded_hunting_recommendations.hpp` |
+| `HuntingCompanion.ini` (bump `IniVersion` when its layout changes) | `python tools/embed_ini.py` | `src/embedded_ini_template.hpp` |
 | The game's English string table (`.xml`, or a `.zip` holding it) | `python tools/build_satchel_carcasses.py <file>` | `src/embedded_satchel_carcasses.hpp` |
 
 ## Tests
@@ -79,6 +80,7 @@ python tests/test_native_fonts_integration.py
 python tests/test_localization.py
 python tests/test_search.py
 python tests/test_hud_layout.py
+python tests/test_ini_upgrade.py
 g++ -std=c++17 -I src src/official_strings.cpp tests/test_official_strings.cpp -o test_official_strings && ./test_official_strings
 ```
 

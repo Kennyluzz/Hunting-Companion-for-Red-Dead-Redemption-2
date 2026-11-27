@@ -28,6 +28,9 @@ add_library(HuntingCompanion SHARED
     src/official_strings.cpp
     src/native_fonts.cpp
     src/text_input.cpp
+    src/ini_upgrade.cpp
+    src/ini_upgrade.hpp
+    src/embedded_ini_template.hpp
     src/text_input.hpp
     src/search_text.hpp
     src/native_fonts.hpp

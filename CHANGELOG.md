@@ -14,8 +14,11 @@
   Tools" instead of "Ready after donation".
 - Recipes that cannot be completed at your point in the story are left out until
   they can be.
-- The diagnostics switch is now simply `Log=1` under `[General]`, writing
-  `HuntingCompanion.log` (the old `FontLog` still works).
+- **The ini updates itself.** An older `HuntingCompanion.ini` is rewritten in the
+  current layout the first time the mod runs, keeping every setting you have made:
+  new settings appear with their explanations, outdated ones are removed, and
+  `FontLog` becomes the new `Log` switch (`[General]`, writing
+  `HuntingCompanion.log`).
 
 ## 1.40.1
 
