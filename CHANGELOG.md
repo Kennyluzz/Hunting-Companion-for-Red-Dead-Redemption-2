@@ -1,40 +1,45 @@
 # Changelog
 
-## 1.40.2
+## 1.50.0
 
-- **Pelts after loading a save.** A pelt already on you or on your horse when you
-  load a save is now recognised; the horse's cargo is read directly, so stacked
-  pelts and whole animals there count correctly too.
+### Hunting and crafting
+
+- **Pelts are recognised after loading a save.** A pelt you are carrying or have on
+  your horse when you load a save now counts, and so do pelts and animals stacked
+  on the horse.
+- **Pearson's tools.** Until you buy the Leather Working Tools at the camp ledger,
+  Pearson's recipes are marked with a "*" and their page says so in the game's own
+  words. A recipe with all its materials says "Needs: Leather Working Tools"
+  instead of "Ready after donation".
+- **The crafting pages open after the first chapter.** Until "Eastward Bound" is
+  finished, Pearson, Trapper, Search and Crafting Uses show "Available later" and
+  animals show no Pearson or Trapper icons. Weapon advice, Challenges and Settings
+  work from the start.
+- Recipes you cannot complete yet at your point in the story stay hidden until you
+  can.
+
+### HUD
+
+- **Move and resize each HUD icon on its own.** Settings > HUD layout now lists the
+  weapon, ammo, Pearson and Trapper icons separately, as well as the groups and
+  "All icons".
 - **New setting: Icons on low-star animals.** Shown (as before) tells you a species
-  is still needed so you can look for a three-star one; Hidden only shows icons on
-  one- and two-star animals for what they can actually give. Saved as
-  `LowStarIcons` in the ini.
-- **Each HUD icon can be moved and sized on its own.** Settings > HUD layout now
-  also has the weapon icon, the ammo icon, the Pearson icon and the Trapper icon
-  separately, on top of the groups and "All icons".
-- **The crafting side opens after chapter 1.** Until "Eastward Bound" is finished,
-  Pearson, Trapper, Search and Crafting Uses are greyed out as "Available later"
-  and no vendor icons show on animals; weapon advice, Challenges and Settings work
-  from the start.
-- **Pearson's tools.** Until the Leather Working Tools are bought at the camp
-  ledger, every Pearson recipe still to make has a "*" after its status, and its
-  page explains it in the game's own words ("Pearson cannot craft this yet.
-  Purchase leather working tools at the ledger."); one whose materials are all there
-  says "Needs: Leather Working Tools" instead of "Ready after donation". All in
-  Rockstar's wording, in every language.
-- Recipes that cannot be completed at your point in the story are left out until
-  they can be.
-- **The ini updates itself.** An older `HuntingCompanion.ini` is rewritten in the
-  current layout the first time the mod runs, keeping every setting you have made:
-  new settings appear with their explanations, outdated ones are removed, and
-  `FontLog` becomes the new `Log` switch (`[General]`, writing
-  `HuntingCompanion.log`).
-- **Text fits the menu.** Long notes and names are fitted to the panel's width
-  instead of being cut after a set number of letters, so Polish, Russian and other
-  long translations no longer run off the page or lose letters. Row labels,
-  statuses and the key footer now start and end just inside the underlines, and
-  quotation marks the game's fonts lack (« », „ ") are drawn as plain quotes
-  instead of squares.
+  is still needed, so you know to look for a three-star one. Hidden shows icons on
+  one- and two-star animals only for what they can actually give.
+
+### Menu
+
+- **Text fits the menu.** Long names and notes, in Polish and Russian for example,
+  are fitted to the panel instead of running off it or losing letters. Row names,
+  statuses and the keys at the bottom stay inside the lines under them.
+- Quotation marks the game's fonts cannot show, such as « », no longer appear as
+  squares.
+
+### Settings file
+
+- **`HuntingCompanion.ini` updates itself.** An older file is brought up to date the
+  first time the mod runs, keeping all your settings, with new options added and
+  explained.
 
 ## 1.40.1
 
