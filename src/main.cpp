@@ -5327,6 +5327,29 @@ bool pearson_needs_tools(bool trapper, const RecipeEntry* recipe) noexcept {
     return !trapper && !g_pearsonHasTools && !g_pearsonUnavailable && recipe != nullptr && !recipe->owned;
 }
 
+// The note on a Pearson recipe page while the tools are missing. When the menu
+// is in the game's language it uses the game's own lines ("Pearson cannot craft
+// this yet." and "Purchase leather working tools at the ledger."); otherwise the
+// mod's translation.
+void draw_pearson_tools_note(float y) noexcept {
+    constexpr std::uint32_t kCannotCraftYet = 0x4F1661D8u;
+    constexpr std::uint32_t kPurchaseAtLedger = 0xBEA51F04u;
+    char note[320]{};
+    if (hunting_companion::active_ui_language() == g_detectedGameLanguage) {
+        char first[160]{};
+        const char* text = invoke_native<const char*>(kGetStringFromHashKey, kCannotCraftYet);
+        if (text != nullptr) std::snprintf(first, sizeof(first), "%s", text);
+        text = invoke_native<const char*>(kGetStringFromHashKey, kPurchaseAtLedger);
+        if (first[0] != '\0' && text != nullptr && text[0] != '\0' && std::strchr(first, '~') == nullptr &&
+            std::strchr(text, '~') == nullptr)
+            std::snprintf(note, sizeof(note), "* %s %s", first, text);
+    }
+    if (note[0] == '\0')
+        std::snprintf(note, sizeof(note), "%s",
+                      hunting_companion::ui_text("* Pearson needs the Leather Working Tools from the camp ledger first."));
+    draw_wrapped_text_raw(note, 0.071f, y, 48, 2, 0.018f, 12.0f, 232, 176, 112);
+}
+
 const char* with_tools_mark(bool trapper, const RecipeEntry* recipe, const char* status,
                             char* buffer, std::size_t size) noexcept {
     if (!pearson_needs_tools(trapper, recipe) || buffer == nullptr || size == 0) return status;
@@ -5851,8 +5874,7 @@ void draw_recipe_detail() noexcept {
         draw_text("DONATED / NEEDED FOR THIS RECIPE", 0.071f, 0.215f, 16.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
         draw_text("Counts use vendor donation stock, not your inventory.", 0.071f, 0.258f, 12.0f, 188, 184, 174);
         if (pearson_needs_tools(g_menu.trapper, recipe)) {
-            draw_wrapped_text("* Pearson needs the Leather Working Tools from the camp ledger first.",
-                              0.071f, 0.281f, 48, 2, 0.018f, 12.0f, 232, 176, 112);
+            draw_pearson_tools_note(0.281f);
         }
     }
 
@@ -6062,8 +6084,7 @@ void draw_crafting_use_detail() noexcept {
     draw_wrapped_text(readinessText, 0.071f, 0.208f, 30, 2, 0.030f, 14.0f,
                       partsReady ? 130 : 218, partsReady ? 205 : 184, partsReady ? 145 : 120);
     if (pearson_needs_tools(entry.trapper, recipe)) {
-        draw_wrapped_text("* Pearson needs the Leather Working Tools from the camp ledger first.",
-                          0.071f, 0.304f, 48, 2, 0.018f, 12.0f, 232, 176, 112);
+        draw_pearson_tools_note(0.304f);
     }
     draw_wrapped_text("HELD / NEEDED (YOUR HAUL + VENDOR STOCK)", 0.071f, 0.275f, 44, 2, 0.022f,
                       10.5f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
