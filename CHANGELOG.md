@@ -29,6 +29,12 @@
   new settings appear with their explanations, outdated ones are removed, and
   `FontLog` becomes the new `Log` switch (`[General]`, writing
   `HuntingCompanion.log`).
+- **Text fits the menu.** Long notes and names are fitted to the panel's width
+  instead of being cut after a set number of letters, so Polish, Russian and other
+  long translations no longer run off the page or lose letters. Row labels,
+  statuses and the key footer now start and end just inside the underlines, and
+  quotation marks the game's fonts lack (« », „ ") are drawn as plain quotes
+  instead of squares.
 
 ## 1.40.1
 
