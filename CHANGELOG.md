@@ -17,7 +17,8 @@
   and no vendor icons show on animals; weapon advice, Challenges and Settings work
   from the start.
 - **Pearson's tools.** Until the Leather Working Tools are bought at the camp
-  ledger, Pearson recipes whose materials are all there say "Needs Leather Working
+  ledger, every Pearson recipe still to make has a "*" after its status, and its
+  page explains it; one whose materials are all there says "Needs Leather Working
   Tools" instead of "Ready after donation".
 - Recipes that cannot be completed at your point in the story are left out until
   they can be.

@@ -5321,10 +5321,26 @@ const char* crafting_use_row_label(int index, char* buffer, std::size_t size) no
     if (index < 0 || static_cast<std::size_t>(index) >= g_craftingUseCount) return "";
     return crafting_use_label(g_craftingUseEntries[static_cast<std::size_t>(index)], buffer, size);
 }
-const char* crafting_use_row_status(int index, char*, std::size_t) noexcept {
+// Until the Leather Working Tools are bought, every Pearson recipe still to
+// make carries a "*" after its status; its page says why.
+bool pearson_needs_tools(bool trapper, const RecipeEntry* recipe) noexcept {
+    return !trapper && !g_pearsonHasTools && !g_pearsonUnavailable && recipe != nullptr && !recipe->owned;
+}
+
+const char* with_tools_mark(bool trapper, const RecipeEntry* recipe, const char* status,
+                            char* buffer, std::size_t size) noexcept {
+    if (!pearson_needs_tools(trapper, recipe) || buffer == nullptr || size == 0) return status;
+    // Translated here, as the mark makes the phrase unknown to the menu's lookup.
+    std::snprintf(buffer, size, "%s *", hunting_companion::ui_text(status));
+    return buffer;
+}
+
+const char* crafting_use_row_status(int index, char* buffer, std::size_t size) noexcept {
     if (index < 0 || static_cast<std::size_t>(index) >= g_craftingUseCount) return "";
     const CraftingUseEntry& entry = g_craftingUseEntries[static_cast<std::size_t>(index)];
-    return crafting_use_status_label(entry.trapper, static_cast<CraftingUseReadiness>(entry.readiness));
+    const char* status = crafting_use_status_label(entry.trapper, static_cast<CraftingUseReadiness>(entry.readiness));
+    if (std::strcmp(status, "NEEDS LEATHER WORKING TOOLS") == 0) return status;  // says it in full
+    return with_tools_mark(entry.trapper, crafting_use_recipe(entry), status, buffer, size);
 }
 
 const char* challenge_row_label(int index, char*, std::size_t) noexcept {
@@ -5414,7 +5430,9 @@ const char* recipe_row_status(int index, char* buffer, std::size_t size) noexcep
     if (index < 0 || static_cast<std::size_t>(index) >= g_menuRecipeCount) return "";
     const VendorState& vendor = g_menu.trapper ? g_tracker.trapper : g_tracker.pearson;
     const RecipeEntry& recipe = vendor.recipes[static_cast<std::size_t>(g_menuRecipeIndices[static_cast<std::size_t>(index)])];
-    return recipe_status(g_menu.trapper, recipe, buffer, size);
+    char status[64]{};
+    const char* base = recipe_status(g_menu.trapper, recipe, status, sizeof(status));
+    return with_tools_mark(g_menu.trapper, &recipe, base, buffer, size);
 }
 
 const char* search_row_label(int index, char* buffer, std::size_t size) noexcept {
@@ -5426,8 +5444,10 @@ const char* search_row_status(int index, char* buffer, std::size_t size) noexcep
     const CraftingUseEntry& entry = g_searchResults[static_cast<std::size_t>(index)];
     const RecipeEntry* recipe = crafting_use_recipe(entry);
     if (recipe == nullptr) return "";
-    if (!recipe->owned && recipe_uses_current_haul(*recipe)) return "USES YOUR HAUL";
-    return recipe_status(entry.trapper, *recipe, buffer, size);
+    char status[64]{};
+    const char* base = !recipe->owned && recipe_uses_current_haul(*recipe)
+        ? "USES YOUR HAUL" : recipe_status(entry.trapper, *recipe, status, sizeof(status));
+    return with_tools_mark(entry.trapper, recipe, base, buffer, size);
 }
 
 void draw_settings_page() noexcept {
@@ -5830,6 +5850,10 @@ void draw_recipe_detail() noexcept {
     } else {
         draw_text("DONATED / NEEDED FOR THIS RECIPE", 0.071f, 0.215f, 16.0f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
         draw_text("Counts use vendor donation stock, not your inventory.", 0.071f, 0.258f, 12.0f, 188, 184, 174);
+        if (pearson_needs_tools(g_menu.trapper, recipe)) {
+            draw_wrapped_text("* Pearson needs the Leather Working Tools from the camp ledger first.",
+                              0.071f, 0.281f, 48, 2, 0.018f, 12.0f, 232, 176, 112);
+        }
     }
 
     int visible = 0;
@@ -6037,6 +6061,10 @@ void draw_crafting_use_detail() noexcept {
                             (entry.trapper || g_pearsonHasTools);
     draw_wrapped_text(readinessText, 0.071f, 0.208f, 30, 2, 0.030f, 14.0f,
                       partsReady ? 130 : 218, partsReady ? 205 : 184, partsReady ? 145 : 120);
+    if (pearson_needs_tools(entry.trapper, recipe)) {
+        draw_wrapped_text("* Pearson needs the Leather Working Tools from the camp ledger first.",
+                          0.071f, 0.304f, 48, 2, 0.018f, 12.0f, 232, 176, 112);
+    }
     draw_wrapped_text("HELD / NEEDED (YOUR HAUL + VENDOR STOCK)", 0.071f, 0.275f, 44, 2, 0.022f,
                       10.5f, theme::kGoldRed, theme::kGoldGreen, theme::kGoldBlue);
 
